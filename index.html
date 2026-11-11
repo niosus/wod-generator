@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en" class="dark">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
@@ -9,7 +10,9 @@
   <!-- Google Fonts: Inter & JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;600;700;800&display=swap"
+    rel="stylesheet">
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
 
@@ -56,13 +59,16 @@
       width: 6px;
       height: 6px;
     }
+
     ::-webkit-scrollbar-track {
       background: #0b1120;
     }
+
     ::-webkit-scrollbar-thumb {
       background: #334155;
       border-radius: 9999px;
     }
+
     ::-webkit-scrollbar-thumb:hover {
       background: #475569;
     }
@@ -70,9 +76,104 @@
     /* Subtle tactical grid background */
     .bg-gym-grid {
       background-size: 28px 28px;
-      background-image: 
+      background-image:
         linear-gradient(to right, rgba(148, 163, 184, 0.04) 1px, transparent 1px),
         linear-gradient(to bottom, rgba(148, 163, 184, 0.04) 1px, transparent 1px);
+    }
+
+    /* Deliberate & Smooth Workout Reveal Animation */
+    @keyframes wodReveal {
+      0% {
+        opacity: 0.55;
+        transform: translateY(8px) scale(0.99);
+      }
+
+      100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    @keyframes rowFadeInUp {
+      0% {
+        opacity: 0;
+        transform: translateY(16px);
+      }
+
+      100% {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes flareSweep {
+      0% {
+        transform: translateX(-100%);
+      }
+
+      100% {
+        transform: translateX(250%);
+      }
+    }
+
+    .wod-card-refresh {
+      animation: wodReveal 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+
+    .wod-item-animated {
+      animation: rowFadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+
+    .accent-glow-sweep {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .accent-glow-sweep::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 50%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.95), transparent);
+      animation: flareSweep 0.85s ease-in-out;
+    }
+
+    .wod-outdated {
+      border-style: dashed !important;
+      border-color: rgba(148, 163, 184, 0.25) !important;
+      transition: border-color 0.35s ease;
+    }
+
+    .wod-outdated #wodAccentBar {
+      opacity: 0;
+      transition: opacity 0.35s ease;
+    }
+
+    .wod-outdated #wodTitleSection,
+    .wod-outdated #copyWodBtn,
+    .wod-outdated #wodCardBody {
+      opacity: 0.24;
+      filter: grayscale(100%) contrast(75%);
+      transition: opacity 0.35s ease, filter 0.35s ease;
+    }
+
+    /* Tactile Micro-Bump for Button Updates (One-Shot, Deliberate & Smooth) */
+    @keyframes buttonBump {
+      0% {
+        transform: scale(1);
+      }
+      40% {
+        transform: scale(1.065);
+      }
+      100% {
+        transform: scale(1);
+      }
+    }
+
+    .btn-bump {
+      animation: buttonBump 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
     }
   </style>
 </head>
@@ -81,45 +182,49 @@
 
   <!-- TOP NAVIGATION BAR -->
   <header class="sticky top-0 z-30 backdrop-blur-xl bg-slate-950/90 border-b border-slate-800/80">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
       <!-- Brand Identity -->
       <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-xl bg-volt flex items-center justify-center text-slate-950 font-black shadow-lg shadow-volt/20">
+        <div
+          class="w-10 h-10 rounded-xl bg-volt flex items-center justify-center text-slate-950 font-black shadow-lg shadow-volt/20">
           <i data-lucide="zap" class="w-6 h-6 stroke-[2.5]"></i>
         </div>
         <div>
           <div class="flex items-center gap-2">
-            <h1 class="font-black tracking-tight text-lg sm:text-xl text-white">WOD<span class="text-volt">FORGE</span></h1>
-            <span class="text-[10px] font-mono uppercase tracking-widest px-2 py-0.5 rounded-full bg-slate-800 text-volt border border-volt/30">v4 Kinematic Engine</span>
+            <h1 class="font-black tracking-tight text-lg sm:text-xl text-white">WOD<span class="text-volt">FORGE</span>
+            </h1>
+            <span
+              class="text-[10px] font-mono uppercase tracking-widest px-2 py-0.5 rounded-full bg-slate-800 text-volt border border-volt/30">v4
+              Kinematic Engine</span>
           </div>
-          <p class="text-xs text-slate-400 hidden sm:block">12-Gear Split • Collision-Free Sub & Scale Engine • Anatomically Verified Kinematics</p>
+          <p class="text-xs text-slate-400 hidden sm:block">12-Gear Split • Collision-Free Sub & Scale Engine • Visual
+            Biomechanical Library</p>
         </div>
       </div>
 
       <!-- Quick Status & Actions -->
       <div class="flex items-center gap-2 sm:gap-3">
-        <!-- Active Pool Badge -->
-        <button id="openMatrixQuickBtn" class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700/80 text-xs font-medium text-slate-200 transition">
-          <span class="w-2 h-2 rounded-full bg-volt animate-pulse"></span>
+        <!-- Active Pool Badge / Jump to Movements -->
+        <button id="openMatrixQuickBtn"
+          class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700/80 text-xs font-medium text-slate-200 transition"
+          title="Jump to Movement Library">
+          <span class="w-2 h-2 rounded-full bg-volt"></span>
           <span id="activePoolSummary">0 Movements Active</span>
           <i data-lucide="sliders-horizontal" class="w-3.5 h-3.5 text-slate-400"></i>
         </button>
 
-        <!-- Kinematics Lab & Anatomical Audit Button -->
-        <button id="openKinematicsLabBtn" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-emerald-500/40 text-xs font-medium text-emerald-300 transition" title="Inspect Every Animation & Its Anatomical Invariants">
-          <i data-lucide="activity" class="w-3.5 h-3.5 text-volt"></i>
-          <span class="hidden md:inline">Kinematics Lab</span>
-          <span id="kinematicsAuditBadge" class="text-[10px] font-mono font-bold px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300">…</span>
-        </button>
-
         <!-- Benchmark Library Button -->
-        <button id="openBenchmarksModalBtn" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700/80 text-xs font-medium text-cyan-300 transition" title="Browse Classical Benchmarks">
+        <button id="openBenchmarksModalBtn"
+          class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700/80 text-xs font-medium text-cyan-300 transition"
+          title="Browse Classical Benchmarks">
           <i data-lucide="trophy" class="w-3.5 h-3.5"></i>
           <span class="hidden md:inline">Benchmarks</span>
         </button>
 
         <!-- Reset Local Preferences -->
-        <button id="resetPrefsBtn" class="p-2 rounded-xl bg-slate-900 hover:bg-rose-950/60 border border-slate-800 hover:border-rose-500/40 text-slate-400 hover:text-rose-300 transition" title="Reset Local Preferences to Default">
+        <button id="resetPrefsBtn"
+          class="p-2 rounded-xl bg-slate-900 hover:bg-rose-950/60 border border-slate-800 hover:border-rose-500/40 text-slate-400 hover:text-rose-300 transition"
+          title="Reset Local Preferences to Default">
           <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
         </button>
       </div>
@@ -127,67 +232,324 @@
   </header>
 
   <!-- MAIN WORKSPACE -->
-  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-5 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+  <main class="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 py-6 flex flex-col gap-8">
 
-    <!-- LEFT COLUMN: 3-STATE EQUIPMENT, DIFFICULTY FILTER, WHITELIST & PARAMETERS (5 Cols) -->
-    <section class="lg:col-span-5 flex flex-col gap-5">
+    <!-- HERO SECTION: FRONT & CENTRAL GENERATED WOD BOARD -->
+    <section id="heroWodSection" class="w-full relative">
+      <!-- ACTIVE WOD WHITEBOARD CARD -->
+      <div id="wodCardContainer"
+        class="bg-slate-925/95 border border-slate-800 rounded-2xl p-5 sm:p-7 shadow-2xl relative overflow-hidden transition-all duration-300">
+        <!-- Decorative Top Accent Bar with animation sweep -->
+        <div id="wodAccentBar" class="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-volt via-cyan-400 to-volt">
+        </div>
 
-      <!-- STEP 1: 3-STATE EQUIPMENT SELECTOR CARD (AVAILABLE / OPTIONAL / OFF) -->
-      <div class="bg-slate-925/90 border border-slate-800/90 rounded-2xl p-4 sm:p-5 shadow-xl">
-        <div class="flex flex-wrap items-center justify-between gap-2 mb-2.5">
-          <div class="flex items-center gap-2">
-            <span class="w-6 h-6 rounded-lg bg-volt/15 border border-volt/40 text-volt font-mono text-xs font-bold flex items-center justify-center">1</span>
-            <h2 class="font-bold text-sm sm:text-base uppercase tracking-wider text-slate-100">Equipment Matrix</h2>
+        <!-- WOD Header (Stable non-wrapping flex layout) -->
+        <div class="flex items-center justify-between gap-4 pb-4 border-b border-slate-800/90">
+          <div id="wodTitleSection" class="min-w-0 flex-1 transition-all duration-300">
+            <div class="flex flex-wrap items-center gap-2 mb-1.5">
+              <span id="wodBadgeType"
+                class="px-2.5 py-0.5 rounded-md text-[11px] font-mono font-bold uppercase bg-volt/15 text-volt border border-volt/30">
+                ALGORITHMIC METCON
+              </span>
+              <span id="wodBadgeFormat"
+                class="px-2.5 py-0.5 rounded-md text-[11px] font-mono font-bold uppercase bg-cyan-500/15 text-cyan-300 border border-cyan-500/30">
+                15 MIN AMRAP
+              </span>
+              <span id="wodBadgeDifficulty"
+                class="px-2.5 py-0.5 rounded-md text-[11px] font-mono uppercase bg-slate-800 text-slate-300">
+                Balanced Triplet
+              </span>
+            </div>
+            <h2 id="wodTitle" class="text-2xl sm:text-4xl font-black tracking-tight text-white truncate">
+              "IRON ENGINE"
+            </h2>
           </div>
 
-          <!-- Quick Presets -->
-          <div class="flex items-center gap-1.5">
-            <button data-preset="bodyweight" class="preset-btn text-[11px] font-medium px-2.5 py-1 rounded-lg bg-slate-800/90 hover:bg-slate-700 text-slate-300 border border-slate-700 transition">
-              Bodyweight
+          <!-- Action Buttons: Re-roll & Copy WOD (Pinned firmly to top-right, never wraps) -->
+          <div class="shrink-0 flex items-center gap-2">
+            <button id="copyWodBtn"
+              class="px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700/80 text-xs font-semibold text-slate-300 flex items-center gap-1.5 transition"
+              title="Copy Workout to Clipboard">
+              <i data-lucide="copy" class="w-4 h-4"></i>
+              <span id="copyWodLabel">Copy</span>
             </button>
-            <button data-preset="minimal" class="preset-btn text-[11px] font-medium px-2.5 py-1 rounded-lg bg-slate-800/90 hover:bg-slate-700 text-slate-300 border border-slate-700 transition" title="Bodyweight + Pull-up Bar HAVE; Rings, KB, BikeErg, Jump Rope OPT">
-              Home Minimal
-            </button>
-            <button data-preset="full" class="preset-btn text-[11px] font-medium px-2.5 py-1 rounded-lg bg-slate-800/90 hover:bg-slate-700 text-slate-300 border border-slate-700 transition">
-              Full Gym
+            <span id="rerollSideDot"
+              class="hidden w-2.5 h-2.5 rounded-full bg-volt shadow-[0_0_8px_rgba(216,255,62,0.8)] border border-volt/50"
+              title="Settings changed"></span>
+            <button id="rerollWodBtn"
+              class="px-4 py-2 rounded-xl bg-volt hover:bg-volt-400 active:scale-[0.98] text-slate-950 font-black text-xs uppercase tracking-wider flex items-center gap-1.5 shadow-md shadow-volt/20 transition"
+              title="Generate Another WOD">
+              <i data-lucide="refresh-cw" class="w-4 h-4 stroke-[2.5]"></i>
+              <span>Re-Roll</span>
             </button>
           </div>
         </div>
 
-        <!-- Legend for 3-State Equipment -->
-        <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-slate-400 mb-3.5 bg-slate-900/80 border border-slate-800/80 rounded-xl px-3 py-2">
-          <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-volt"></span><strong class="text-slate-200">HAVE:</strong> Primary gear</span>
-          <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span><strong class="text-amber-300">OPTIONAL:</strong> Shows inline sub</span>
-          <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-slate-700"></span><strong class="text-slate-400">OFF:</strong> Excluded</span>
-        </div>
+        <!-- Outdated-Muted Card Body Wrapper -->
+        <div id="wodCardBody" class="transition-all duration-300">
+          <!-- Workout Prescription Banner -->
+          <div
+            class="my-4 flex items-center justify-between bg-slate-900/90 border border-slate-800/90 rounded-xl px-4 py-3">
+            <p id="wodPrescriptionHeader" class="text-sm sm:text-base font-bold text-slate-100">
+              AMRAP in 15 Minutes:
+            </p>
+            <span id="wodTimeCapBadge"
+              class="text-xs font-mono font-semibold text-amber-300 bg-amber-500/10 border border-amber-500/30 px-2.5 py-1 rounded-lg">
+              15:00 Clock
+            </span>
+          </div>
 
-        <!-- 3-State Equipment Grid -->
-        <div id="equipmentGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-          <!-- Dynamically populated by JS -->
+          <!-- Movements Prescription List (With Real-Time 2D IK Canvas Previews & Optional Gear Sub Bar) -->
+          <div id="wodMovementsList" class="space-y-3 my-4">
+            <!-- Populated dynamically by JS -->
+          </div>
+
+          <!-- Biomechanical Balance & Stimulus Notes -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-4 border-t border-slate-800/80">
+            <!-- Coach's Stimulus & Pacing -->
+            <div class="bg-slate-900/70 border border-slate-800/80 rounded-xl p-3.5">
+              <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-volt mb-1.5">
+                <i data-lucide="flame" class="w-4 h-4"></i>
+                <span>Intended Stimulus & Pacing</span>
+              </div>
+              <p id="wodStimulusText" class="text-xs text-slate-300 leading-relaxed"></p>
+            </div>
+
+            <!-- Biomechanical Pattern Breakdown -->
+            <div class="bg-slate-900/70 border border-slate-800/80 rounded-xl p-3.5">
+              <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-cyan-300 mb-1.5">
+                <i data-lucide="shield-check" class="w-4 h-4"></i>
+                <span>HIIT Programming Logic</span>
+              </div>
+              <p id="wodLogicText" class="text-xs text-slate-300 leading-relaxed mb-2"></p>
+              <div id="wodPatternTags" class="flex flex-wrap gap-1.5"></div>
+            </div>
+          </div>
+
+          <!-- Bottom Jump Bar to Customize Section -->
+          <div
+            class="mt-5 pt-4 border-t border-slate-800/60 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-400">
+            <span class="flex items-center gap-1.5">
+              <i data-lucide="sliders-horizontal" class="w-4 h-4 text-cyan-400"></i>
+              Want to adapt your equipment, format, or movement animations?
+            </span>
+            <button id="scrollToCustomizeBtn"
+              class="px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-cyan-300 hover:text-white border border-cyan-500/30 flex items-center gap-1.5 font-semibold transition">
+              <span>Adapt Settings Below</span>
+              <i data-lucide="arrow-down" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>
         </div>
       </div>
 
-      <!-- STEP 2: SKILL DIFFICULTY TIER & GRANULAR MOVEMENT WHITELIST -->
-      <div id="movementMatrixCard" class="bg-slate-925/90 border border-slate-800/90 rounded-2xl p-4 sm:p-5 shadow-xl space-y-4">
-        <div class="flex items-center justify-between gap-2">
-          <div class="flex items-center gap-2">
-            <span class="w-6 h-6 rounded-lg bg-cyan-500/15 border border-cyan-400/40 text-cyan-300 font-mono text-xs font-bold flex items-center justify-center">2</span>
-            <h2 class="font-bold text-sm sm:text-base uppercase tracking-wider text-slate-100">Skill Filter & Whitelist</h2>
-          </div>
+      <!-- Zero-Shift Outdated Floating Pill Overlay (Floats over the dimmed card at full brightness) -->
+      <div id="wodOutdatedBadge"
+        class="hidden absolute inset-0 pointer-events-none items-center justify-center z-20">
+        <div
+          class="px-5 py-2.5 rounded-full bg-slate-950/95 border border-volt/40 shadow-2xl backdrop-blur-md flex items-center gap-2.5">
+          <span class="w-2.5 h-2.5 rounded-full bg-volt shadow-[0_0_8px_rgba(216,255,62,0.9)]"></span>
+          <span class="font-mono text-xs sm:text-sm font-black uppercase tracking-wider text-slate-100">
+            Workout Outdated • Settings Modified
+          </span>
+        </div>
+      </div>
+    </section>
 
-          <button id="toggleMatrixCollapseBtn" class="flex items-center gap-1.5 text-xs font-semibold text-cyan-300 hover:text-cyan-200 bg-slate-900 px-3 py-1.5 rounded-xl border border-slate-800 transition">
-            <span id="matrixToggleLabel">Movement Pool</span>
-            <i id="matrixToggleIcon" data-lucide="chevron-down" class="w-4 h-4 transition-transform duration-200"></i>
-          </button>
+    <!-- CUSTOMIZATION SECTION: ADAPT EQUIPMENT, PARAMETERS & MOVEMENT LIBRARY -->
+    <section id="customizeSection" class="w-full flex flex-col gap-6 pt-2">
+
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 class="text-xl sm:text-2xl font-black text-white flex items-center gap-2">
+            <i data-lucide="sliders-horizontal" class="w-5 h-5 text-volt"></i>
+            <span>Adapt Equipment & Movements</span>
+          </h2>
+          <p class="text-xs text-slate-400 mt-0.5">
+            Modify available gear, time domain and format, and visually choose your active movement animations.
+          </p>
         </div>
 
-        <!-- PROMINENT NORMAL vs HARD SKILL CONTROL BAR -->
+        <!-- Section CTA Button -->
+        <div class="flex items-center gap-2.5">
+          <span id="generateWodSideDot"
+            class="hidden w-2.5 h-2.5 rounded-full bg-volt shadow-[0_0_8px_rgba(216,255,62,0.8)] border border-volt/50"
+            title="Settings changed"></span>
+          <button id="generateWodBtn"
+            class="px-5 py-2.5 rounded-xl bg-volt hover:bg-volt-400 active:scale-95 text-slate-950 font-black text-xs uppercase tracking-wider flex items-center gap-2 shadow-lg shadow-volt/20 transition">
+            <i data-lucide="shuffle" class="w-4 h-4 stroke-[2.5]"></i>
+            <span id="generateWodBtnLabel">Generate Workout</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Top Row: Equipment Matrix & Programming Parameters -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+        <!-- STEP 1: 3-STATE EQUIPMENT SELECTOR CARD -->
+        <div
+          class="lg:col-span-7 bg-slate-925/90 border border-slate-800/90 rounded-2xl p-4 sm:p-5 shadow-xl space-y-3.5">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div class="flex items-center gap-2">
+              <span
+                class="w-6 h-6 rounded-lg bg-volt/15 border border-volt/40 text-volt font-mono text-xs font-bold flex items-center justify-center">1</span>
+              <h3 class="font-bold text-sm sm:text-base uppercase tracking-wider text-slate-100">Equipment Matrix</h3>
+            </div>
+
+            <!-- Quick Presets -->
+            <div class="flex items-center gap-1.5">
+              <button data-preset="bodyweight"
+                class="preset-btn text-[11px] font-medium px-2.5 py-1 rounded-lg bg-slate-800/90 hover:bg-slate-700 text-slate-300 border border-slate-700 transition">
+                Bodyweight
+              </button>
+              <button data-preset="minimal"
+                class="preset-btn text-[11px] font-medium px-2.5 py-1 rounded-lg bg-slate-800/90 hover:bg-slate-700 text-slate-300 border border-slate-700 transition"
+                title="Bodyweight + Pull-up Bar HAVE; Rings, KB, BikeErg, Jump Rope OPT">
+                Home Minimal
+              </button>
+              <button data-preset="full"
+                class="preset-btn text-[11px] font-medium px-2.5 py-1 rounded-lg bg-slate-800/90 hover:bg-slate-700 text-slate-300 border border-slate-700 transition">
+                Full Gym
+              </button>
+            </div>
+          </div>
+
+          <!-- Legend for 3-State Equipment -->
+          <div
+            class="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-slate-400 bg-slate-900/80 border border-slate-800/80 rounded-xl px-3 py-2">
+            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-volt"></span><strong
+                class="text-slate-200">HAVE:</strong> Primary gear</span>
+            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span><strong
+                class="text-amber-300">OPTIONAL:</strong> Inline subs</span>
+            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-slate-700"></span><strong
+                class="text-slate-400">OFF:</strong> Excluded</span>
+          </div>
+
+          <!-- 3-State Equipment Grid -->
+          <div id="equipmentGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            <!-- Dynamically populated by JS -->
+          </div>
+        </div>
+
+        <!-- STEP 2: WORKOUT GENERATOR PARAMETERS -->
+        <div
+          class="lg:col-span-5 bg-slate-925/90 border border-slate-800/90 rounded-2xl p-4 sm:p-5 shadow-xl space-y-4">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span
+                class="w-6 h-6 rounded-lg bg-volt/15 border border-volt/40 text-volt font-mono text-xs font-bold flex items-center justify-center">2</span>
+              <h3 class="font-bold text-sm sm:text-base uppercase tracking-wider text-slate-100">Parameters</h3>
+            </div>
+            <span class="text-[11px] font-mono text-slate-400">HIIT Constraint Solver</span>
+          </div>
+
+          <!-- Generation Mode -->
+          <div>
+            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Programming
+              Source</label>
+            <div class="grid grid-cols-3 gap-2" id="modeSelectorGrid">
+              <button data-mode="smart"
+                class="mode-btn py-2 px-2 rounded-xl border text-xs font-semibold transition flex flex-col items-center text-center gap-0.5">
+                <span>Smart Mixed</span>
+                <span class="text-[10px] font-normal opacity-75">Algo + Classics</span>
+              </button>
+              <button data-mode="algorithmic"
+                class="mode-btn py-2 px-2 rounded-xl border text-xs font-semibold transition flex flex-col items-center text-center gap-0.5">
+                <span>Custom HIIT</span>
+                <span class="text-[10px] font-normal opacity-75">Pure Rules</span>
+              </button>
+              <button data-mode="benchmark"
+                class="mode-btn py-2 px-2 rounded-xl border text-xs font-semibold transition flex flex-col items-center text-center gap-0.5">
+                <span>Classics Only</span>
+                <span class="text-[10px] font-normal opacity-75">CF / Hyrox</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Workout Format -->
+          <div>
+            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Workout
+              Format</label>
+            <div class="grid grid-cols-3 sm:grid-cols-5 gap-1.5" id="formatSelectorGrid">
+              <button data-format="ANY"
+                class="format-btn py-2 px-2 rounded-xl border text-xs font-mono font-semibold transition">ANY</button>
+              <button data-format="AMRAP"
+                class="format-btn py-2 px-2 rounded-xl border text-xs font-mono font-semibold transition">AMRAP</button>
+              <button data-format="EMOM"
+                class="format-btn py-2 px-2 rounded-xl border text-xs font-mono font-semibold transition">EMOM</button>
+              <button data-format="FOR_TIME"
+                class="format-btn py-2 px-2 rounded-xl border text-xs font-mono font-semibold transition">FOR
+                TIME</button>
+              <button data-format="INTERVALS"
+                class="format-btn py-2 px-2 rounded-xl border text-xs font-mono font-semibold transition col-span-2 sm:col-span-1">TABATA</button>
+            </div>
+          </div>
+
+          <!-- Time Domain -->
+          <div>
+            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Time Domain</label>
+            <div class="grid grid-cols-3 gap-2" id="durationSelectorGrid">
+              <button data-duration="short"
+                class="duration-btn py-2 px-2.5 rounded-xl border text-xs font-semibold transition flex flex-col items-center">
+                <span>Sprint / Short</span>
+                <span class="text-[10px] font-mono opacity-75">8 – 12 Min</span>
+              </button>
+              <button data-duration="medium"
+                class="duration-btn py-2 px-2.5 rounded-xl border text-xs font-semibold transition flex flex-col items-center">
+                <span>Classic Metcon</span>
+                <span class="text-[10px] font-mono opacity-75">14 – 20 Min</span>
+              </button>
+              <button data-duration="long"
+                class="duration-btn py-2 px-2.5 rounded-xl border text-xs font-semibold transition flex flex-col items-center">
+                <span>Engine / Hyrox</span>
+                <span class="text-[10px] font-mono opacity-75">24 – 40 Min</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- STEP 3: VISUAL MOVEMENT LIBRARY & ANIMATION SELECTION (FULL WIDTH) -->
+      <div id="movementMatrixCard"
+        class="bg-slate-925/90 border border-slate-800/90 rounded-2xl p-4 sm:p-6 shadow-xl space-y-5">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div class="flex items-center gap-2">
+            <span
+              class="w-6 h-6 rounded-lg bg-cyan-500/15 border border-cyan-400/40 text-cyan-300 font-mono text-xs font-bold flex items-center justify-center">3</span>
+            <div>
+              <h3
+                class="font-bold text-base sm:text-lg uppercase tracking-wider text-slate-100 flex items-center gap-2">
+                <span>Movement Animations & Pool Selection</span>
+              </h3>
+              <p class="text-xs text-slate-400">
+                Click any movement card to toggle it in your generator pool. Click "Cues" to inspect form and scaling
+                options.
+              </p>
+            </div>
+          </div>
+
+          <!-- Quick Actions: Select All / Deselect All -->
+          <div class="flex items-center gap-2">
+            <button id="enableAllMovementsBtn"
+              class="px-2.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-[11px] font-mono font-bold text-slate-300 border border-slate-800 transition">
+              Select All Visible
+            </button>
+            <button id="disableAllMovementsBtn"
+              class="px-2.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-[11px] font-mono font-bold text-slate-400 border border-slate-800 transition">
+              Deselect All
+            </button>
+          </div>
+        </div>
+
+        <!-- Skill Tier Bar (Normal vs Hard switch) -->
         <div class="bg-slate-900/95 border border-slate-800 rounded-xl p-3.5 space-y-3">
-          <div class="flex items-center justify-between gap-3">
+          <div class="flex flex-wrap items-center justify-between gap-3">
             <div>
               <div class="flex items-center gap-2">
-                <span class="text-xs font-extrabold uppercase tracking-wider text-white">Include "Hard" High-Skill Movements</span>
-                <span id="hardCountBadge" class="text-[10px] font-mono px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-500/30 font-bold">
+                <span class="text-xs font-extrabold uppercase tracking-wider text-white">Include "Hard" High-Skill
+                  Movements</span>
+                <span id="hardCountBadge"
+                  class="text-[10px] font-mono px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-500/30 font-bold">
                   0 Active
                 </span>
               </div>
@@ -197,205 +559,53 @@
             </div>
 
             <!-- Toggle Switch -->
-            <button
-              id="toggleHardSwitch"
-              role="switch"
-              aria-checked="true"
+            <button id="toggleHardSwitch" role="switch" aria-checked="true"
               class="relative inline-flex h-7 w-13 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none bg-rose-500"
-              style="width: 52px;"
-            >
-              <span
-                id="toggleHardKnob"
-                class="pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out translate-x-6"
-              ></span>
+              style="width: 52px;">
+              <span id="toggleHardKnob"
+                class="pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out translate-x-6"></span>
             </button>
           </div>
 
           <!-- Quick Skill Filter Pills -->
           <div class="grid grid-cols-3 gap-1.5 pt-1">
-            <button data-skillpreset="normal_only" class="skill-preset-btn py-1.5 px-2 rounded-lg text-[11px] font-mono font-bold border transition">
+            <button data-skillpreset="normal_only"
+              class="skill-preset-btn py-1.5 px-2 rounded-lg text-[11px] font-mono font-bold border transition">
               Normal Only (No Hard)
             </button>
-            <button data-skillpreset="all_enabled" class="skill-preset-btn py-1.5 px-2 rounded-lg text-[11px] font-mono font-bold border transition">
+            <button data-skillpreset="all_enabled"
+              class="skill-preset-btn py-1.5 px-2 rounded-lg text-[11px] font-mono font-bold border transition">
               All Available (Normal+Hard)
             </button>
-            <button data-skillpreset="custom" class="skill-preset-btn py-1.5 px-2 rounded-lg text-[11px] font-mono font-bold border transition">
+            <button data-skillpreset="custom"
+              class="skill-preset-btn py-1.5 px-2 rounded-lg text-[11px] font-mono font-bold border transition">
               Custom Selection
             </button>
           </div>
         </div>
 
-        <!-- Pattern Summary Bar (Always visible) -->
-        <div id="patternSummaryPills" class="flex flex-wrap gap-1.5">
-          <!-- Dynamically populated pattern counts -->
-        </div>
-
-        <!-- Expandable Movement Whitelist Drawer -->
-        <div id="movementMatrixDrawer" class="hidden pt-3 border-t border-slate-800/90 space-y-3">
-          <!-- Filter & Difficulty Sub-Tabs -->
-          <div class="flex flex-wrap items-center justify-between gap-2">
-            <div id="matrixCategoryTabs" class="flex flex-wrap gap-1">
-              <!-- Populated by JS -->
-            </div>
-
-            <div class="flex items-center gap-1.5">
-              <button data-difffilter="ALL" class="diff-filter-btn px-2 py-1 rounded text-[10px] font-mono font-bold bg-slate-800 text-white">ALL</button>
-              <button data-difffilter="normal" class="diff-filter-btn px-2 py-1 rounded text-[10px] font-mono font-bold bg-slate-900 text-emerald-300 border border-emerald-500/30">NORMAL</button>
-              <button data-difffilter="hard" class="diff-filter-btn px-2 py-1 rounded text-[10px] font-mono font-bold bg-slate-900 text-rose-300 border border-rose-500/30">HARD</button>
-            </div>
+        <!-- Pattern Filter Tabs & Difficulty Filter -->
+        <div class="flex flex-wrap items-center justify-between gap-3 pt-1">
+          <div id="matrixCategoryTabs" class="flex flex-wrap gap-1.5">
+            <!-- Dynamically populated category buttons -->
           </div>
 
-          <!-- Movements List Container -->
-          <div id="movementListContainer" class="max-h-80 overflow-y-auto pr-1 space-y-2">
-            <!-- Populated by JS -->
-          </div>
-        </div>
-      </div>
-
-      <!-- STEP 3: WORKOUT GENERATOR PARAMETERS -->
-      <div class="bg-slate-925/90 border border-slate-800/90 rounded-2xl p-4 sm:p-5 shadow-xl space-y-4">
-        <div class="flex items-center justify-between">
-          <div class="flex items-center gap-2">
-            <span class="w-6 h-6 rounded-lg bg-volt/15 border border-volt/40 text-volt font-mono text-xs font-bold flex items-center justify-center">3</span>
-            <h2 class="font-bold text-sm sm:text-base uppercase tracking-wider text-slate-100">Programming Parameters</h2>
-          </div>
-          <span class="text-[11px] font-mono text-slate-400">HIIT Constraint Solver</span>
-        </div>
-
-        <!-- Generation Mode -->
-        <div>
-          <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Programming Source</label>
-          <div class="grid grid-cols-3 gap-2" id="modeSelectorGrid">
-            <button data-mode="smart" class="mode-btn py-2 px-2.5 rounded-xl border text-xs font-semibold transition flex flex-col items-center text-center gap-0.5">
-              <span>Smart Mixed</span>
-              <span class="text-[10px] font-normal opacity-75">Algo + Classics</span>
-            </button>
-            <button data-mode="algorithmic" class="mode-btn py-2 px-2.5 rounded-xl border text-xs font-semibold transition flex flex-col items-center text-center gap-0.5">
-              <span>Custom HIIT</span>
-              <span class="text-[10px] font-normal opacity-75">Pure Rule Engine</span>
-            </button>
-            <button data-mode="benchmark" class="mode-btn py-2 px-2.5 rounded-xl border text-xs font-semibold transition flex flex-col items-center text-center gap-0.5">
-              <span>Classics Only</span>
-              <span class="text-[10px] font-normal opacity-75">CF / Hyrox WODs</span>
-            </button>
+          <div class="flex items-center gap-1.5">
+            <span
+              class="text-[10px] font-mono text-slate-400 uppercase tracking-wider mr-1 hidden sm:inline">Tier:</span>
+            <button data-difffilter="ALL"
+              class="diff-filter-btn px-2.5 py-1 rounded-lg text-[11px] font-mono font-bold bg-slate-800 text-white">ALL</button>
+            <button data-difffilter="normal"
+              class="diff-filter-btn px-2.5 py-1 rounded-lg text-[11px] font-mono font-bold bg-slate-900 text-emerald-300 border border-emerald-500/30">NORMAL</button>
+            <button data-difffilter="hard"
+              class="diff-filter-btn px-2.5 py-1 rounded-lg text-[11px] font-mono font-bold bg-slate-900 text-rose-300 border border-rose-500/30">HARD</button>
           </div>
         </div>
 
-        <!-- Workout Format -->
-        <div>
-          <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Workout Format</label>
-          <div class="grid grid-cols-3 sm:grid-cols-5 gap-1.5" id="formatSelectorGrid">
-            <button data-format="ANY" class="format-btn py-2 px-2 rounded-xl border text-xs font-mono font-semibold transition">ANY</button>
-            <button data-format="AMRAP" class="format-btn py-2 px-2 rounded-xl border text-xs font-mono font-semibold transition">AMRAP</button>
-            <button data-format="EMOM" class="format-btn py-2 px-2 rounded-xl border text-xs font-mono font-semibold transition">EMOM</button>
-            <button data-format="FOR_TIME" class="format-btn py-2 px-2 rounded-xl border text-xs font-mono font-semibold transition">FOR TIME</button>
-            <button data-format="INTERVALS" class="format-btn py-2 px-2 rounded-xl border text-xs font-mono font-semibold transition col-span-2 sm:col-span-1">TABATA</button>
-          </div>
-        </div>
-
-        <!-- Time Domain -->
-        <div>
-          <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Time Domain</label>
-          <div class="grid grid-cols-3 gap-2" id="durationSelectorGrid">
-            <button data-duration="short" class="duration-btn py-2 px-2.5 rounded-xl border text-xs font-semibold transition flex flex-col items-center">
-              <span>Sprint / Short</span>
-              <span class="text-[10px] font-mono opacity-75">8 – 12 Min</span>
-            </button>
-            <button data-duration="medium" class="duration-btn py-2 px-2.5 rounded-xl border text-xs font-semibold transition flex flex-col items-center">
-              <span>Classic Metcon</span>
-              <span class="text-[10px] font-mono opacity-75">14 – 20 Min</span>
-            </button>
-            <button data-duration="long" class="duration-btn py-2 px-2.5 rounded-xl border text-xs font-semibold transition flex flex-col items-center">
-              <span>Engine / Hyrox</span>
-              <span class="text-[10px] font-mono opacity-75">24 – 40 Min</span>
-            </button>
-          </div>
-        </div>
-
-        <!-- GENERATE CTA BUTTON -->
-        <button id="generateWodBtn" class="w-full py-3.5 px-5 rounded-2xl bg-volt hover:bg-volt-400 active:scale-[0.99] text-slate-950 font-black text-base tracking-wide uppercase shadow-lg shadow-volt/20 flex items-center justify-center gap-2.5 transition">
-          <i data-lucide="shuffle" class="w-5 h-5 stroke-[2.5]"></i>
-          <span>Generate Smart WOD</span>
-        </button>
-      </div>
-
-    </section>
-
-    <!-- RIGHT COLUMN: GENERATED WOD BOARD & INTEGRATED GYM CLOCK (7 Cols) -->
-    <section class="lg:col-span-7 flex flex-col gap-5">
-
-      <!-- ACTIVE WOD WHITEBOARD CARD -->
-      <div id="wodCardContainer" class="bg-slate-925/95 border border-slate-800 rounded-2xl p-5 sm:p-6 shadow-2xl relative overflow-hidden">
-        <!-- Decorative Top Accent Bar -->
-        <div class="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-volt via-cyan-400 to-volt"></div>
-
-        <!-- WOD Header -->
-        <div class="flex flex-wrap items-start justify-between gap-3 pb-4 border-b border-slate-800/90">
-          <div>
-            <div class="flex flex-wrap items-center gap-2 mb-1.5">
-              <span id="wodBadgeType" class="px-2.5 py-0.5 rounded-md text-[11px] font-mono font-bold uppercase bg-volt/15 text-volt border border-volt/30">
-                ALGORITHMIC METCON
-              </span>
-              <span id="wodBadgeFormat" class="px-2.5 py-0.5 rounded-md text-[11px] font-mono font-bold uppercase bg-cyan-500/15 text-cyan-300 border border-cyan-500/30">
-                15 MIN AMRAP
-              </span>
-              <span id="wodBadgeDifficulty" class="px-2.5 py-0.5 rounded-md text-[11px] font-mono uppercase bg-slate-800 text-slate-300">
-                Balanced Triplet
-              </span>
-            </div>
-            <h2 id="wodTitle" class="text-2xl sm:text-3xl font-black tracking-tight text-white">
-              "IRON ENGINE"
-            </h2>
-          </div>
-
-          <!-- Action Buttons: Re-roll & Copy WOD -->
-          <div class="flex items-center gap-2">
-            <button id="copyWodBtn" class="px-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700/80 text-xs font-semibold text-slate-300 flex items-center gap-1.5 transition" title="Copy Workout to Clipboard">
-              <i data-lucide="copy" class="w-3.5 h-3.5"></i>
-              <span id="copyWodLabel">Copy</span>
-            </button>
-            <button id="rerollWodBtn" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-semibold text-volt flex items-center gap-1.5 transition" title="Generate Another WOD">
-              <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
-              <span>Re-Roll</span>
-            </button>
-          </div>
-        </div>
-
-        <!-- Workout Prescription Banner -->
-        <div class="my-4 flex items-center justify-between bg-slate-900/90 border border-slate-800/90 rounded-xl px-4 py-3">
-          <p id="wodPrescriptionHeader" class="text-sm sm:text-base font-bold text-slate-100">
-            AMRAP in 15 Minutes:
-          </p>
-          <span id="wodTimeCapBadge" class="text-xs font-mono font-semibold text-amber-300 bg-amber-500/10 border border-amber-500/30 px-2.5 py-1 rounded-lg">
-            15:00 Clock
-          </span>
-        </div>
-
-        <!-- Movements Prescription List (With Real-Time 2D IK Canvas Previews & Optional Gear Sub Bar) -->
-        <div id="wodMovementsList" class="space-y-3 my-4">
-          <!-- Populated dynamically by JS -->
-        </div>
-
-        <!-- Biomechanical Balance & Stimulus Notes -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-4 border-t border-slate-800/80">
-          <!-- Coach's Stimulus & Pacing -->
-          <div class="bg-slate-900/70 border border-slate-800/80 rounded-xl p-3.5">
-            <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-volt mb-1.5">
-              <i data-lucide="flame" class="w-4 h-4"></i>
-              <span>Intended Stimulus & Pacing</span>
-            </div>
-            <p id="wodStimulusText" class="text-xs text-slate-300 leading-relaxed"></p>
-          </div>
-
-          <!-- Biomechanical Pattern Breakdown -->
-          <div class="bg-slate-900/70 border border-slate-800/80 rounded-xl p-3.5">
-            <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-cyan-300 mb-1.5">
-              <i data-lucide="shield-check" class="w-4 h-4"></i>
-              <span>HIIT Programming Logic</span>
-            </div>
-            <p id="wodLogicText" class="text-xs text-slate-300 leading-relaxed mb-2"></p>
-            <div id="wodPatternTags" class="flex flex-wrap gap-1.5"></div>
-          </div>
+        <!-- Visual Animated Movements Grid -->
+        <div id="movementAnimatedGrid"
+          class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3.5 pt-2">
+          <!-- Dynamically populated by JS with live 2D animations on canvases -->
         </div>
       </div>
 
@@ -403,22 +613,26 @@
   </main>
 
   <!-- MOVEMENT DEMO & 2D INVERSE KINEMATICS MODAL -->
-  <div id="movementDemoModal" class="fixed inset-0 z-[60] hidden items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
+  <div id="movementDemoModal"
+    class="fixed inset-0 z-[60] hidden items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
     <div class="bg-slate-925 border border-slate-700 rounded-2xl max-w-lg w-full p-5 sm:p-6 shadow-2xl relative">
       <!-- Close Button -->
-      <button id="closeDemoModalBtn" class="absolute top-4 right-4 w-9 h-9 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center transition">
+      <button id="closeDemoModalBtn"
+        class="absolute top-4 right-4 w-9 h-9 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center transition">
         <i data-lucide="x" class="w-5 h-5"></i>
       </button>
 
       <!-- Header -->
       <div class="flex flex-wrap items-center gap-2 mb-1">
-        <span id="demoModalPatternBadge" class="text-[11px] font-mono font-bold uppercase px-2.5 py-0.5 rounded-md bg-volt/15 text-volt border border-volt/30">
+        <span id="demoModalPatternBadge"
+          class="text-[11px] font-mono font-bold uppercase px-2.5 py-0.5 rounded-md bg-volt/15 text-volt border border-volt/30">
           SQUAT / LUNGE
         </span>
         <span id="demoModalDifficultyBadge" class="text-[11px] font-mono font-bold uppercase px-2.5 py-0.5 rounded-md">
           NORMAL
         </span>
-        <span id="demoModalEquipBadge" class="text-[11px] font-mono uppercase px-2.5 py-0.5 rounded-md bg-slate-800 text-slate-300">
+        <span id="demoModalEquipBadge"
+          class="text-[11px] font-mono uppercase px-2.5 py-0.5 rounded-md bg-slate-800 text-slate-300">
           Bodyweight
         </span>
       </div>
@@ -427,9 +641,11 @@
       </h3>
 
       <!-- High-Precision 2D Inverse Kinematics Canvas Viewport -->
-      <div class="bg-slate-950 border border-slate-800 rounded-2xl p-3 flex flex-col items-center justify-center relative overflow-hidden mb-4">
+      <div
+        class="bg-slate-950 border border-slate-800 rounded-2xl p-3 flex flex-col items-center justify-center relative overflow-hidden mb-4">
         <canvas id="demoModalCanvas" width="280" height="230" class="w-[280px] h-[230px] block"></canvas>
-        <div class="w-full flex items-center justify-between text-[11px] font-mono text-slate-400 mt-2 px-2 pt-2 border-t border-slate-900">
+        <div
+          class="w-full flex items-center justify-between text-[11px] font-mono text-slate-400 mt-2 px-2 pt-2 border-t border-slate-900">
           <span class="flex items-center gap-1.5">
             <span class="w-2 h-2 rounded-full bg-volt animate-ping"></span>
             <span id="demoModalCameraLabel">2D Multi-View Biomechanical Rig</span>
@@ -445,7 +661,8 @@
           <p id="demoModalCues" class="text-slate-300 leading-relaxed"></p>
         </div>
         <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-3">
-          <div class="font-bold text-cyan-300 uppercase text-xs tracking-wider mb-1">Scaling & No-Gear Substitution</div>
+          <div class="font-bold text-cyan-300 uppercase text-xs tracking-wider mb-1">Scaling & No-Gear Substitution
+          </div>
           <p id="demoModalScaling" class="text-slate-300 leading-relaxed"></p>
         </div>
       </div>
@@ -453,8 +670,10 @@
   </div>
 
   <!-- CLASSICAL BENCHMARKS BROWSER MODAL -->
-  <div id="benchmarksModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
-    <div class="bg-slate-925 border border-slate-700 rounded-2xl max-w-3xl w-full max-h-[85vh] flex flex-col p-5 sm:p-6 shadow-2xl relative">
+  <div id="benchmarksModal"
+    class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
+    <div
+      class="bg-slate-925 border border-slate-700 rounded-2xl max-w-3xl w-full max-h-[85vh] flex flex-col p-5 sm:p-6 shadow-2xl relative">
       <div class="flex items-center justify-between pb-4 border-b border-slate-800">
         <div>
           <h3 class="text-xl font-black text-white flex items-center gap-2">
@@ -462,18 +681,23 @@
             <span>Classical CrossFit, Hero & Hyrox Benchmarks</span>
           </h3>
           <p class="text-xs text-slate-400 mt-0.5">
-            Respects your Available/Optional gear and Normal/Hard skill filter. Click any benchmark to load it onto the board.
+            Respects your Available/Optional gear and Normal/Hard skill filter. Click any benchmark to load it onto the
+            board.
           </p>
         </div>
-        <button id="closeBenchmarksModalBtn" class="w-9 h-9 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center transition">
+        <button id="closeBenchmarksModalBtn"
+          class="w-9 h-9 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center transition">
           <i data-lucide="x" class="w-5 h-5"></i>
         </button>
       </div>
 
       <!-- Filter Bar -->
       <div class="flex items-center gap-2 my-3">
-        <button data-bfilter="all" class="bfilter-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-volt text-slate-950">All Classics</button>
-        <button data-bfilter="eligible" class="bfilter-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 text-slate-300">Ready With My Filter</button>
+        <button data-bfilter="all"
+          class="bfilter-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-volt text-slate-950">All Classics</button>
+        <button data-bfilter="eligible"
+          class="bfilter-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 text-slate-300">Ready With My
+          Filter</button>
       </div>
 
       <!-- Benchmarks List -->
@@ -483,43 +707,21 @@
     </div>
   </div>
 
-  <!-- BIOMECHANICAL KINEMATICS LAB & 35-MOVEMENT INVARIANT AUDIT MODAL -->
-  <div id="kinematicsLabModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md">
-    <div class="bg-slate-925 border border-slate-700 rounded-2xl max-w-6xl w-full max-h-[88vh] flex flex-col p-5 sm:p-6 shadow-2xl relative">
-      <div class="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-slate-800">
-        <div>
-          <div class="flex items-center gap-2.5">
-            <h3 class="text-xl font-black text-white flex items-center gap-2">
-              <i data-lucide="activity" class="w-5 h-5 text-volt"></i>
-              <span>Biomechanical Kinematics Lab & Invariant Audit</span>
-            </h3>
-            <span id="kinematicsLabStatusPill" class="text-[11px] font-mono font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
-              Running audit…
-            </span>
-          </div>
-          <p class="text-xs text-slate-400 mt-1">
-            Every exercise is sampled across 120 frames of its full cycle and checked for rigid bone lengths (Torso=46, Thigh=32, Shin=32, Arm=25+24), floor/box non-penetration, and frame-to-frame joint continuity (no IK flips).
-          </p>
-        </div>
-        <button id="closeKinematicsLabBtn" class="w-9 h-9 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center transition">
-          <i data-lucide="x" class="w-5 h-5"></i>
-        </button>
-      </div>
-
-      <!-- Pattern Filter Bar -->
-      <div class="flex flex-wrap items-center justify-between gap-2 my-3">
-        <div id="kinematicsLabPatternTabs" class="flex flex-wrap gap-1.5">
-          <!-- Populated by JS -->
-        </div>
-        <div class="text-[11px] font-mono text-slate-400">
-          Click any card to inspect full execution cues
-        </div>
-      </div>
-
-      <!-- 35-Movement Live Canvas Grid -->
-      <div id="kinematicsLabGrid" class="flex-1 overflow-y-auto grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 pr-1">
-        <!-- Populated by JS -->
-      </div>
+  <!-- FLOATING "GENERATE WORKOUT" CTA (Appears when scrolled down) -->
+  <div id="floatingGenerateBar"
+    class="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 transition-all duration-300 opacity-0 translate-y-10 pointer-events-none">
+    <div class="flex items-center gap-2.5">
+      <span id="floatingSideDot"
+        class="hidden w-3 h-3 rounded-full bg-volt shadow-[0_0_10px_rgba(216,255,62,0.9)] border border-volt/50"
+        title="Settings changed"></span>
+      <button id="floatingGenerateBtn"
+        class="flex items-center gap-2.5 px-6 py-3.5 rounded-full bg-volt hover:bg-volt-400 active:scale-95 text-slate-950 font-black text-sm tracking-wide uppercase shadow-2xl shadow-volt/30 border border-volt/50 transition">
+        <i data-lucide="shuffle" class="w-4 h-4 stroke-[2.5]"></i>
+        <span id="floatingGenerateLabel">Generate Workout</span>
+        <span id="floatingActiveCountBadge"
+          class="bg-slate-950/20 text-slate-950 text-xs px-2.5 py-0.5 rounded-full font-mono font-bold">0 Active</span>
+        <i data-lucide="arrow-up" class="w-4 h-4 stroke-[2.5]"></i>
+      </button>
     </div>
   </div>
 
@@ -940,7 +1142,7 @@
       },
       {
         id: 'v_ups',
-        name: 'Alternating V-Ups / Tuck-Ups',
+        name: 'V-Ups / Tuck-Ups',
         equipment: 'bodyweight',
         pattern: 'HINGE_CORE',
         difficulty: 'normal',
@@ -1740,7 +1942,7 @@
 
 
       // Complete Pose Computation Engine for all WODFORGE movements
-      Animator.computePose = function(poseType, timestamp) {
+      Animator.computePose = function (poseType, timestamp) {
         const periodMs = 2400;
         const normT = ((timestamp % periodMs) + periodMs) % periodMs / periodMs;
         const theta = normT * Math.PI * 2;
@@ -1816,17 +2018,17 @@
           // guarantees dx = barX - shoulderX > 0 across all phases so solveIK(bendSide=1) never flips or crosses!
           const muKF = [
             // 0: Full straight-arm, straight-leg dead hang well above stationary floor
-            { relSX: -2,  relSY: 47,  spine: -1.56, thigh: 1.56, shin: 1.58, neck: 0.05 },
+            { relSX: -2, relSY: 47, spine: -1.56, thigh: 1.56, shin: 1.58, neck: 0.05 },
             // 1: Kip swing & lat press (arms straight pressing down on bar/rings, hips load & drive forward)
-            { relSX: -14, relSY: 44,  spine: -1.32, thigh: 0.92, shin: 1.06, neck: 0.10 },
+            { relSX: -14, relSY: 44, spine: -1.32, thigh: 0.92, shin: 1.06, neck: 0.10 },
             // 2: Explosive hip-to-bar pull (elbows drive back behind ribs)
-            { relSX: -18, relSY: 14,  spine: -1.16, thigh: 0.62, shin: 0.88, neck: 0.16 },
+            { relSX: -18, relSY: 14, spine: -1.16, thigh: 0.62, shin: 0.88, neck: 0.16 },
             // 3: Fast forward turnover into bottom of dip above bar/rings (shoulders above hands, elbows back!)
             { relSX: -10, relSY: -10, spine: -1.24, thigh: 1.42, shin: 1.62, neck: 0.18 },
             // 4: Locked-out top support press above bar/rings (arms fully extended 46.5px above stationary bar/rings!)
-            { relSX: -3,  relSY: -46, spine: -1.52, thigh: 1.52, shin: 1.56, neck: 0.08 },
+            { relSX: -3, relSY: -46, spine: -1.52, thigh: 1.52, shin: 1.56, neck: 0.08 },
             // 5: Controlled eccentric return to hang
-            { relSX: -14, relSY: 20,  spine: -1.42, thigh: 1.48, shin: 1.56, neck: 0.08 }
+            { relSX: -14, relSY: 20, spine: -1.42, thigh: 1.48, shin: 1.56, neck: 0.08 }
           ];
           const st = this.sampleKeyframes(muKF, normT);
 
@@ -2282,11 +2484,11 @@
               // 2: Explosive Upward Leg Drive! (hips & knees extend violently to hy=101, launching bar upward)
               { hx: 96, hy: 101, spine: -1.56, bx: 100, by: 42 },
               // 3: Rapid Drop-Under into Quarter-Squat Catch! (hips drop to hy=123 while arms lock out overhead!)
-              { hx: 83, hy: 123, spine: -1.42, bx: 97,  by: 30 },
+              { hx: 83, hy: 123, spine: -1.42, bx: 97, by: 30 },
               // 4: Hold Quarter-Squat Catch briefly
-              { hx: 85, hy: 120, spine: -1.44, bx: 97,  by: 27 },
+              { hx: 85, hy: 120, spine: -1.44, bx: 97, by: 27 },
               // 5: Stand Tall with Bar Locked Out Overhead
-              { hx: 95, hy: 104, spine: -1.55, bx: 97,  by: 11 },
+              { hx: 95, hy: 104, spine: -1.55, bx: 97, by: 11 },
               // 6: Lower bar controlled back to Front Rack
               { hx: 93, hy: 108, spine: -1.52, bx: 104, by: 60 }
             ];
@@ -2566,31 +2768,31 @@
             //   with locked-out overhead arms (ua=-1.50, fa=-1.50) -> stand tall to full Snatch Lockout (ua=-1.55, fa=-1.55).
             const olyKF = isHangClean
               ? [
-                  // 0: Hang setup at top of knee (hips hinged back, straight arms holding bar at knee height)
-                  { hx: 72, hy: 116, spine: -0.72, ua: 1.54, fa: 1.58 },
-                  // 1: Violent triple extension & shrug / upright pull along thighs
-                  { hx: 95, hy: 102, spine: -1.55, ua: 1.75, fa: 0.85 },
-                  // 2: Whip elbows forward under bar into Quarter-Squat Front Rack Catch!
-                  { hx: 82, hy: 122, spine: -1.38, ua: 0.35, fa: -1.62 },
-                  // 3: Stand Tall with High Front-Rack Elbows
-                  { hx: 94, hy: 104, spine: -1.54, ua: 0.42, fa: -1.55 },
-                  // 4: Return bar controlled to hang position
-                  { hx: 84, hy: 110, spine: -1.12, ua: 1.18, fa: 0.82 }
-                ]
+                // 0: Hang setup at top of knee (hips hinged back, straight arms holding bar at knee height)
+                { hx: 72, hy: 116, spine: -0.72, ua: 1.54, fa: 1.58 },
+                // 1: Violent triple extension & shrug / upright pull along thighs
+                { hx: 95, hy: 102, spine: -1.55, ua: 1.75, fa: 0.85 },
+                // 2: Whip elbows forward under bar into Quarter-Squat Front Rack Catch!
+                { hx: 82, hy: 122, spine: -1.38, ua: 0.35, fa: -1.62 },
+                // 3: Stand Tall with High Front-Rack Elbows
+                { hx: 94, hy: 104, spine: -1.54, ua: 0.42, fa: -1.55 },
+                // 4: Return bar controlled to hang position
+                { hx: 84, hy: 110, spine: -1.12, ua: 1.18, fa: 0.82 }
+              ]
               : [
-                  // 0: Snatch setup from mid-shin (deep hip hinge, straight arms down to bar)
-                  { hx: 68, hy: 122, spine: -0.62, ua: 1.52, fa: 1.55 },
-                  // 1: Explosive triple extension + Snatch High Pull (hips tall, elbows pull high above bar!)
-                  { hx: 95, hy: 102, spine: -1.56, ua: -0.35, fa: 0.95 },
-                  // 2: Rapid turnover & drop under into deep Overhead Squat Catch (arms locked overhead!)
-                  { hx: 70, hy: 139, spine: -1.24, ua: -1.50, fa: -1.50 },
-                  // 3: Stabilize bottom of Overhead Squat briefly
-                  { hx: 72, hy: 136, spine: -1.26, ua: -1.50, fa: -1.50 },
-                  // 4: Stand tall from Overhead Squat to full Snatch Lockout
-                  { hx: 94, hy: 104, spine: -1.55, ua: -1.55, fa: -1.55 },
-                  // 5: Controlled return toward hang
-                  { hx: 82, hy: 112, spine: -1.08, ua: 0.55, fa: 0.85 }
-                ];
+                // 0: Snatch setup from mid-shin (deep hip hinge, straight arms down to bar)
+                { hx: 68, hy: 122, spine: -0.62, ua: 1.52, fa: 1.55 },
+                // 1: Explosive triple extension + Snatch High Pull (hips tall, elbows pull high above bar!)
+                { hx: 95, hy: 102, spine: -1.56, ua: -0.35, fa: 0.95 },
+                // 2: Rapid turnover & drop under into deep Overhead Squat Catch (arms locked overhead!)
+                { hx: 70, hy: 139, spine: -1.24, ua: -1.50, fa: -1.50 },
+                // 3: Stabilize bottom of Overhead Squat briefly
+                { hx: 72, hy: 136, spine: -1.26, ua: -1.50, fa: -1.50 },
+                // 4: Stand tall from Overhead Squat to full Snatch Lockout
+                { hx: 94, hy: 104, spine: -1.55, ua: -1.55, fa: -1.55 },
+                // 5: Controlled return toward hang
+                { hx: 82, hy: 112, spine: -1.08, ua: 0.55, fa: 0.85 }
+              ];
             const st = this.sampleKeyframes(olyKF, normT);
             frame.torso = this.torsoFromHip(st.hx, st.hy, st.spine, 1, 0.10);
             const { shoulderX, shoulderY } = frame.torso;
@@ -2738,7 +2940,7 @@
             const rowKF = [
               { hx: 98, spine: -1.22, wx: 136, wy: 114 },
               { hx: 68, spine: -1.42, wx: 112, wy: 114 },
-              { hx: 52, spine: -1.84, wx: 58,  wy: 112 },
+              { hx: 52, spine: -1.84, wx: 58, wy: 112 },
               { hx: 76, spine: -1.32, wx: 116, wy: 114 }
             ];
             const st = this.sampleKeyframes(rowKF, normT);
@@ -2798,7 +3000,7 @@
             const mmNorm = ((timestamp % mmPeriod) + mmPeriod) % mmPeriod / mmPeriod;
             const mmKFs = [
               // 0: Stand tall holding DBs at hips (exact burpee KF 0)
-              { hx: 96, hy: 104, spine: -1.55, ax: 98, ay: 166, bwx: 104, bwy: 98,  fwx: 106, fwy: 98 },
+              { hx: 96, hy: 104, spine: -1.55, ax: 98, ay: 166, bwx: 104, bwy: 98, fwx: 106, fwy: 98 },
               // 1: Deep Squat-Hinge & Plant DBs on Floor (exact burpee KF 1)
               { hx: 86, hy: 136, spine: -0.38, ax: 96, ay: 166, bwx: 136, bwy: 164, fwx: 136, fwy: 164 },
               // 2: Sprawl Feet Back into High Plank (exact burpee KF 2)
@@ -2808,11 +3010,11 @@
               // 4: Press up to High Plank (exact burpee KF 4)
               { hx: 92, hy: 138, spine: -0.42, ax: 35, ay: 164, bwx: 136, bwy: 164, fwx: 136, fwy: 164 },
               // 5: Renegade Row 1 (Near arm rows DB to ribs, far arm holds plank)
-              { hx: 92, hy: 138, spine: -0.42, ax: 35, ay: 164, bwx: 136, bwy: 164, fwx: 98,  fwy: 126 },
+              { hx: 92, hy: 138, spine: -0.42, ax: 35, ay: 164, bwx: 136, bwy: 164, fwx: 98, fwy: 126 },
               // 6: Lower Near DB to floor in plank
               { hx: 92, hy: 138, spine: -0.42, ax: 35, ay: 164, bwx: 136, bwy: 164, fwx: 136, fwy: 164 },
               // 7: Renegade Row 2 (Far arm rows DB to ribs, near arm holds plank)
-              { hx: 92, hy: 138, spine: -0.42, ax: 35, ay: 164, bwx: 98,  bwy: 126, fwx: 136, fwy: 164 },
+              { hx: 92, hy: 138, spine: -0.42, ax: 35, ay: 164, bwx: 98, bwy: 126, fwx: 136, fwy: 164 },
               // 8: Lower Far DB to floor in plank
               { hx: 92, hy: 138, spine: -0.42, ax: 35, ay: 164, bwx: 136, bwy: 164, fwx: 136, fwy: 164 },
               // 9: Elastic Hip Pike & Snap: feet hop forward (exact burpee KF 5)
@@ -2820,11 +3022,11 @@
               // 10: Feet Land Flat in Deep Squat outside DBs (exact burpee KF 6)
               { hx: 84, hy: 136, spine: -0.40, ax: 96, ay: 166, bwx: 136, bwy: 164, fwx: 136, fwy: 164 },
               // 11: DB Squat Clean Catch at shoulders (front rack)
-              { hx: 72, hy: 139, spine: -1.24, ax: 96, ay: 166, bwx: 104, bwy: 74,  fwx: 106, fwy: 74 },
+              { hx: 72, hy: 139, spine: -1.24, ax: 96, ay: 166, bwx: 104, bwy: 74, fwx: 106, fwy: 74 },
               // 12: Explosive Thruster Drive to Overhead Lockout (exact devil press KF 7)
-              { hx: 96, hy: 104, spine: -1.55, ax: 98, ay: 166, bwx: 104, bwy: 12,  fwx: 106, fwy: 12 },
+              { hx: 96, hy: 104, spine: -1.55, ax: 98, ay: 166, bwx: 104, bwy: 12, fwx: 106, fwy: 12 },
               // 13: Absorb / Swing DBs Forward-Down (exact burpee KF 8)
-              { hx: 96, hy: 106, spine: -1.48, ax: 98, ay: 166, bwx: 122, bwy: 78,  fwx: 124, fwy: 78 }
+              { hx: 96, hy: 106, spine: -1.48, ax: 98, ay: 166, bwx: 122, bwy: 78, fwx: 124, fwy: 78 }
             ];
             const st = this.sampleKeyframes(mmKFs, mmNorm);
             frame.torso = this.torsoFromHip(st.hx, st.hy, st.spine, 1, 0);
@@ -2850,40 +3052,40 @@
 
           const KF = (poseType === 'burpee_6stage' || isDevilPress)
             ? [
-                // 0: Stand Tall (or overhead DB lockout finish)
-                { hx: 96,  hy: 104, spine: -1.55, ax: 98,  ay: 166, wx: 104, wy: 98 },
-                // 1: Deep Squat-Hinge & Plant Hands Flat on Floor/DBs (shoulderY=119 so 49px arms physically reach wy=164!)
-                { hx: 86,  hy: 136, spine: -0.38, ax: 96,  ay: 166, wx: 136, wy: 164 },
-                // 2: Sprawl Feet Back into True Rigid High Plank (dist(hip,ankle)=62.6px < 64px so toes rest on floor!)
-                { hx: 92,  hy: 138, spine: -0.42, ax: 35,  ay: 164, wx: 136, wy: 164 },
-                // 3: Chest & Thighs Touch Deck
-                { hx: 91,  hy: 156, spine: -0.18, ax: 31,  ay: 164, wx: 136, wy: 164 },
-                // 4: LEVER / PEEL CHEST UP
-                { hx: 91,  hy: 152, spine: -0.76, ax: 31,  ay: 164, wx: 136, wy: 164 },
-                // 5: ELASTIC HIP PIKE & SNAP (feet hop forward toward hands)
-                { hx: 86,  hy: 122, spine: -0.48, ax: 72,  ay: 152, wx: 136, wy: 162 },
-                // 6: Feet Land Flat Under Hips (Swing DBs / arms forward through power zone)
-                { hx: 84,  hy: 122, spine: -0.75, ax: 100, ay: 166, wx: 134, wy: isDevilPress ? 92 : 84 },
-                // 7: Vertical Jump & Overhead Clap (or DB Snatch to Overhead Lockout!)
-                { hx: 98,  hy: isDevilPress ? 104 : 82, spine: -1.55, ax: 98, ay: isDevilPress ? 166 : 142, wx: 106, wy: isDevilPress ? 10 : 2 },
-                // 8: Absorb Landing & Swing Arms Forward Down
-                { hx: 96,  hy: 106, spine: -1.48, ax: 98,  ay: 166, wx: 122, wy: 78 }
-              ]
+              // 0: Stand Tall (or overhead DB lockout finish)
+              { hx: 96, hy: 104, spine: -1.55, ax: 98, ay: 166, wx: 104, wy: 98 },
+              // 1: Deep Squat-Hinge & Plant Hands Flat on Floor/DBs (shoulderY=119 so 49px arms physically reach wy=164!)
+              { hx: 86, hy: 136, spine: -0.38, ax: 96, ay: 166, wx: 136, wy: 164 },
+              // 2: Sprawl Feet Back into True Rigid High Plank (dist(hip,ankle)=62.6px < 64px so toes rest on floor!)
+              { hx: 92, hy: 138, spine: -0.42, ax: 35, ay: 164, wx: 136, wy: 164 },
+              // 3: Chest & Thighs Touch Deck
+              { hx: 91, hy: 156, spine: -0.18, ax: 31, ay: 164, wx: 136, wy: 164 },
+              // 4: LEVER / PEEL CHEST UP
+              { hx: 91, hy: 152, spine: -0.76, ax: 31, ay: 164, wx: 136, wy: 164 },
+              // 5: ELASTIC HIP PIKE & SNAP (feet hop forward toward hands)
+              { hx: 86, hy: 122, spine: -0.48, ax: 72, ay: 152, wx: 136, wy: 162 },
+              // 6: Feet Land Flat Under Hips (Swing DBs / arms forward through power zone)
+              { hx: 84, hy: 122, spine: -0.75, ax: 100, ay: 166, wx: 134, wy: isDevilPress ? 92 : 84 },
+              // 7: Vertical Jump & Overhead Clap (or DB Snatch to Overhead Lockout!)
+              { hx: 98, hy: isDevilPress ? 104 : 82, spine: -1.55, ax: 98, ay: isDevilPress ? 166 : 142, wx: 106, wy: isDevilPress ? 10 : 2 },
+              // 8: Absorb Landing & Swing Arms Forward Down
+              { hx: 96, hy: 106, spine: -1.48, ax: 98, ay: 166, wx: 122, wy: 78 }
+            ]
             : [
-                // ATHLETIC UP-DOWN:
-                // 0: Stand Tall
-                { hx: 96,  hy: 104, spine: -1.55, ax: 98,  ay: 166, wx: 104, wy: 98 },
-                // 1: Deep Squat-Hinge & Plant Hands Flat on Floor at (136, 164) (shoulder=(128.7, 119.0), dist=45.6px < 49px!)
-                { hx: 86,  hy: 136, spine: -0.38, ax: 96,  ay: 166, wx: 136, wy: 164 },
-                // 2: Kick Feet Back into Rigid Straight-Arm High Plank (ankle=(35, 164) -> hip=(92, 138) -> shoulder=(134, 119.3))
-                { hx: 92,  hy: 138, spine: -0.42, ax: 35,  ay: 164, wx: 136, wy: 164 },
-                // 3: Hold Crisp High Plank Lockout (no push-up, zero hip sag)
-                { hx: 92,  hy: 138, spine: -0.42, ax: 35,  ay: 164, wx: 136, wy: 164 },
-                // 4: Elastic Hip-Pike Hop — Snap Feet Forward Under Hips while Hands Push Off Floor
-                { hx: 86,  hy: 128, spine: -0.45, ax: 94,  ay: 164, wx: 136, wy: 162 },
-                // 5: Stand Tall & Finish Rep
-                { hx: 94,  hy: 110, spine: -1.46, ax: 98,  ay: 166, wx: 112, wy: 96 }
-              ];
+              // ATHLETIC UP-DOWN:
+              // 0: Stand Tall
+              { hx: 96, hy: 104, spine: -1.55, ax: 98, ay: 166, wx: 104, wy: 98 },
+              // 1: Deep Squat-Hinge & Plant Hands Flat on Floor at (136, 164) (shoulder=(128.7, 119.0), dist=45.6px < 49px!)
+              { hx: 86, hy: 136, spine: -0.38, ax: 96, ay: 166, wx: 136, wy: 164 },
+              // 2: Kick Feet Back into Rigid Straight-Arm High Plank (ankle=(35, 164) -> hip=(92, 138) -> shoulder=(134, 119.3))
+              { hx: 92, hy: 138, spine: -0.42, ax: 35, ay: 164, wx: 136, wy: 164 },
+              // 3: Hold Crisp High Plank Lockout (no push-up, zero hip sag)
+              { hx: 92, hy: 138, spine: -0.42, ax: 35, ay: 164, wx: 136, wy: 164 },
+              // 4: Elastic Hip-Pike Hop — Snap Feet Forward Under Hips while Hands Push Off Floor
+              { hx: 86, hy: 128, spine: -0.45, ax: 94, ay: 164, wx: 136, wy: 162 },
+              // 5: Stand Tall & Finish Rep
+              { hx: 94, hy: 110, spine: -1.46, ax: 98, ay: 166, wx: 112, wy: 96 }
+            ];
 
           const st = this.sampleKeyframes(KF, bNorm);
           frame.torso = this.torsoFromHip(st.hx, st.hy, st.spine, 1, 0);
@@ -3249,7 +3451,7 @@
       //  2. No body part penetrates the floor (or the plyo box)
       //  3. Frame-to-frame continuity (no IK branch flips / joint teleports)
       // -------------------------------------------------------------------------
-      Animator.validatePose = function(poseType, numSteps = 120, cycleMs = null) {
+      Animator.validatePose = function (poseType, numSteps = 120, cycleMs = null) {
         if (!cycleMs) {
           if (poseType === 'man_maker') cycleMs = 6400;
           else if (poseType === 'stepping_lunge' || poseType === 'box_step_up') cycleMs = 3800;
@@ -3315,7 +3517,7 @@
         return { poseType, ok: violations.length === 0, violations };
       };
 
-      Animator.validateAllPoses = function(poseTypes) {
+      Animator.validateAllPoses = function (poseTypes) {
         const results = {};
         let passed = 0;
         for (const pt of poseTypes) {
@@ -3958,7 +4160,7 @@
         ctx.stroke();
       };
 
-      Animator.renderFrame = function(ctx, frame) {
+      Animator.renderFrame = function (ctx, frame) {
         if (frame.scale && frame.scale !== 1) {
           ctx.save();
           const ox = frame.originX ?? 100;
@@ -3993,24 +4195,28 @@
       Animator.activeCanvases = new Map();
       Animator.rafId = null;
 
-      Animator.registerCanvas = function(canvas, poseType) {
+      Animator.registerCanvas = function (canvas, poseType) {
         if (!canvas) return;
         this.activeCanvases.set(canvas, { poseType });
         if (!this.rafId) this.startLoop();
       };
 
-      Animator.pruneDetachedCanvases = function() {
+      Animator.pruneDetachedCanvases = function () {
         for (const [canvas] of this.activeCanvases.entries()) {
           if (!document.body.contains(canvas)) this.activeCanvases.delete(canvas);
         }
       };
 
-      Animator.startLoop = function() {
+      Animator.startLoop = function () {
         const tick = (timestamp) => {
           this.pruneDetachedCanvases();
+          const vh = window.innerHeight;
           for (const [canvas, meta] of this.activeCanvases.entries()) {
             // Skip canvases inside hidden modals (offsetParent is null when display:none)
             if (canvas.offsetParent === null) continue;
+            // Viewport culling: only draw canvases currently visible on screen
+            const rect = canvas.getBoundingClientRect();
+            if (rect.bottom < -80 || rect.top > vh + 80) continue;
             this.drawPoseOnCanvas(canvas, meta.poseType, timestamp);
           }
           this.rafId = requestAnimationFrame(tick);
@@ -4018,7 +4224,7 @@
         this.rafId = requestAnimationFrame(tick);
       };
 
-      Animator.drawPoseOnCanvas = function(canvas, poseType, timestamp) {
+      Animator.drawPoseOnCanvas = function (canvas, poseType, timestamp) {
         const ctx = canvas.getContext('2d');
         const w = canvas.width;
         const h = canvas.height;
@@ -4108,7 +4314,7 @@
             duration: this.duration
           };
           localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
-        } catch (e) {}
+        } catch (e) { }
       },
 
       isEquipmentUsable(eqId) {
@@ -4141,8 +4347,8 @@
       getActiveMovementPool() {
         return MOVEMENTS_DB.filter(
           m => this.isEquipmentUsable(m.equipment) &&
-               !this.isMovementSuppressedByBetterGear(m) &&
-               !this.excludedMovements.has(m.id)
+            !this.isMovementSuppressedByBetterGear(m) &&
+            !this.excludedMovements.has(m.id)
         );
       },
 
@@ -4165,38 +4371,38 @@
         // Pass 1: Candidate in fallbackCandidates with strictly 'available' gear, not suppressed, enabled in pool, and not in forbidden set
         const pass1 = candidates.find(
           c => this.equipmentStates[c.equipment] === 'available' &&
-               !this.isMovementSuppressedByBetterGear(c) &&
-               !this.excludedMovements.has(c.id) &&
-               !forbidden.has(c.id)
+            !this.isMovementSuppressedByBetterGear(c) &&
+            !this.excludedMovements.has(c.id) &&
+            !forbidden.has(c.id)
         );
         if (pass1) return pass1;
 
         // Pass 2: Any movement of the SAME biomechanical pattern with 'available' gear, not suppressed, enabled in pool, and not in forbidden set
         const pass2 = MOVEMENTS_DB.find(
           m => m.pattern === mov.pattern &&
-               this.equipmentStates[m.equipment] === 'available' &&
-               !this.isMovementSuppressedByBetterGear(m) &&
-               !this.excludedMovements.has(m.id) &&
-               !forbidden.has(m.id)
+            this.equipmentStates[m.equipment] === 'available' &&
+            !this.isMovementSuppressedByBetterGear(m) &&
+            !this.excludedMovements.has(m.id) &&
+            !forbidden.has(m.id)
         );
         if (pass2) return pass2;
 
         // Pass 3: Any movement of the SAME pattern with 'available' gear (even if suppressed or excluded) not in forbidden set
         const pass3 = MOVEMENTS_DB.find(
           m => m.pattern === mov.pattern &&
-               this.equipmentStates[m.equipment] === 'available' &&
-               !this.isMovementSuppressedByBetterGear(m) &&
-               m.difficulty === 'normal' &&
-               !forbidden.has(m.id)
+            this.equipmentStates[m.equipment] === 'available' &&
+            !this.isMovementSuppressedByBetterGear(m) &&
+            m.difficulty === 'normal' &&
+            !forbidden.has(m.id)
         );
         if (pass3) return pass3;
 
         // Pass 4: Fallback within same pattern (e.g. if Pull-up Bar is only Optional and Rings are Off, Towel Row is valid)
         const pass4 = MOVEMENTS_DB.find(
           m => m.pattern === mov.pattern &&
-               this.equipmentStates[m.equipment] === 'available' &&
-               m.difficulty === 'normal' &&
-               !forbidden.has(m.id)
+            this.equipmentStates[m.equipment] === 'available' &&
+            m.difficulty === 'normal' &&
+            !forbidden.has(m.id)
         );
         return pass4 || candidates[0] || MOVEMENTS_DB[0];
       },
@@ -4584,12 +4790,10 @@
      * 5. UI RENDERERS & INTERACTION BINDINGS
      ***************************************************************************/
     const UI = {
-      kinematicsReport: null,
-      activeLabPattern: 'ALL',
+      isOutdated: false,
 
       init() {
         AppState.loadFromStorage();
-        this.runKinematicsAudit();
         this.renderEquipmentGrid();
         this.renderMovementMatrix();
         this.renderParameterControls();
@@ -4597,71 +4801,90 @@
         this.generateAndDisplayWod();
       },
 
-      /**
-       * Runs the biomechanical invariant validator over every pose used by MOVEMENTS_DB
-       * and reports the result per movement in the header badge & Kinematics Lab.
-       */
-      runKinematicsAudit() {
-        const poseTypes = Array.from(new Set(MOVEMENTS_DB.map(m => m.poseType)));
-        this.kinematicsReport = BiomechanicalStickAnimator.validateAllPoses(poseTypes);
-        const okMovements = MOVEMENTS_DB.filter(m => this.kinematicsReport.results[m.poseType]?.ok).length;
-        const total = MOVEMENTS_DB.length;
-        const allOk = okMovements === total;
-        const violations = Object.values(this.kinematicsReport.results).reduce((n, r) => n + r.violations.length, 0);
+      markWodOutdated(isOutdated = true) {
+        this.isOutdated = isOutdated;
+        const card = document.getElementById('wodCardContainer');
+        const badge = document.getElementById('wodOutdatedBadge');
+        const floatBtn = document.getElementById('floatingGenerateBtn');
+        const mainGenBtn = document.getElementById('generateWodBtn');
+        const rerollBtn = document.getElementById('rerollWodBtn');
+        const floatLabel = document.getElementById('floatingGenerateLabel');
+        const mainLabel = document.getElementById('generateWodBtnLabel');
+        const floatSideDot = document.getElementById('floatingSideDot');
+        const mainSideDot = document.getElementById('generateWodSideDot');
+        const rerollSideDot = document.getElementById('rerollSideDot');
 
-        const badge = document.getElementById('kinematicsAuditBadge');
-        badge.textContent = `${okMovements}/${total}`;
-        badge.className = `text-[10px] font-mono font-bold px-1.5 py-0.2 rounded ${
-          allOk ? 'bg-emerald-500/20 text-emerald-300' : 'bg-rose-500/20 text-rose-300'
-        }`;
+        const sideDots = [floatSideDot, mainSideDot, rerollSideDot].filter(Boolean);
+        const actionButtons = [floatBtn, mainGenBtn, rerollBtn].filter(Boolean);
 
-        const pill = document.getElementById('kinematicsLabStatusPill');
-        pill.textContent = `${okMovements}/${total} Movements Verified (${violations} Violations)`;
-        pill.className = `text-[11px] font-mono font-bold px-2.5 py-0.5 rounded-full border ${
-          allOk
-            ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
-            : 'bg-rose-500/20 text-rose-300 border-rose-500/40'
-        }`;
+        if (isOutdated) {
+          if (card) card.classList.add('wod-outdated');
+          if (badge) {
+            badge.classList.remove('hidden');
+            badge.classList.add('flex');
+          }
+
+          // Calm state change: text to "Update Workout" + solid green dot to the side of regenerate buttons
+          if (floatLabel) floatLabel.textContent = 'Update Workout';
+          if (mainLabel) mainLabel.textContent = 'Update Workout';
+          sideDots.forEach(dot => dot.classList.remove('hidden'));
+
+          // Zero continuous shimmering/pulsing/rings
+          actionButtons.forEach(btn => {
+            btn.classList.remove('ring-4', 'ring-volt/50', 'animate-pulse');
+          });
+
+          // One-shot tactile micro-bump (slower, smooth & deliberate pop)
+          actionButtons.forEach(btn => {
+            btn.classList.remove('btn-bump');
+            void btn.offsetWidth; // Force CSS reflow to re-trigger one-shot keyframe
+            btn.classList.add('btn-bump');
+            btn.addEventListener('animationend', () => {
+              btn.classList.remove('btn-bump');
+            }, { once: true });
+          });
+        } else {
+          if (card) card.classList.remove('wod-outdated');
+          if (badge) {
+            badge.classList.add('hidden');
+            badge.classList.remove('flex');
+          }
+
+          // Reset to default "Generate Workout" and hide green side dots
+          if (floatLabel) floatLabel.textContent = 'Generate Workout';
+          if (mainLabel) mainLabel.textContent = 'Generate Workout';
+          sideDots.forEach(dot => dot.classList.add('hidden'));
+
+          actionButtons.forEach(btn => {
+            btn.classList.remove('ring-4', 'ring-volt/50', 'animate-pulse', 'btn-bump');
+          });
+        }
+        lucide.createIcons();
       },
 
-      renderKinematicsLab() {
-        const tabsEl = document.getElementById('kinematicsLabPatternTabs');
-        const categories = [{ id: 'ALL', label: 'All' }, ...Object.values(PATTERNS)];
-        tabsEl.innerHTML = categories.map(cat => `
-          <button data-labpat="${cat.id}" class="px-2.5 py-1 rounded-lg text-[11px] font-semibold transition ${
-            this.activeLabPattern === cat.id ? 'bg-volt text-slate-950' : 'bg-slate-900 text-slate-400 hover:text-slate-200'
-          }">${cat.label}</button>
-        `).join('');
+      scrollToTopAndGenerate() {
+        if (window.scrollY > 40) {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+          let fired = false;
+          const trigger = () => {
+            if (fired) return;
+            fired = true;
+            window.removeEventListener('scroll', checkArrival);
+            this.generateAndDisplayWod();
+          };
 
-        const gridEl = document.getElementById('kinematicsLabGrid');
-        const list = MOVEMENTS_DB.filter(m => this.activeLabPattern === 'ALL' || m.pattern === this.activeLabPattern);
-        gridEl.innerHTML = list.map(mov => {
-          const res = this.kinematicsReport?.results[mov.poseType];
-          const ok = res ? res.ok : false;
-          const pat = PATTERNS[mov.pattern];
-          return `
-            <div data-lab-mov="${mov.id}" class="cursor-pointer bg-slate-900/90 hover:bg-slate-800/90 border ${
-              ok ? 'border-slate-800 hover:border-volt/50' : 'border-rose-500/60'
-            } rounded-xl p-2 flex flex-col gap-1.5 transition">
-              <div class="bg-slate-950 rounded-lg border border-slate-800 flex items-center justify-center overflow-hidden">
-                <canvas data-lab-pose="${mov.poseType}" width="150" height="150" class="w-full aspect-square block"></canvas>
-              </div>
-              <div class="text-[11px] font-bold text-slate-100 leading-tight truncate" title="${mov.name}">${mov.name}</div>
-              <div class="flex items-center justify-between gap-1">
-                <span class="text-[9px] font-mono px-1.5 py-0.5 rounded border ${pat.color}">${pat.label}</span>
-                <span class="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded ${
-                  ok ? 'bg-emerald-500/15 text-emerald-300' : 'bg-rose-500/20 text-rose-300'
-                }" title="${ok ? 'All invariants hold' : (res ? res.violations.slice(0, 3).join(' | ') : 'Not validated')}">
-                  ${ok ? '✓ PASS' : `✗ ${res ? res.violations.length : '?'}`}
-                </span>
-              </div>
-            </div>
-          `;
-        }).join('');
+          const checkArrival = () => {
+            if (window.scrollY <= 15) {
+              trigger();
+            }
+          };
 
-        gridEl.querySelectorAll('canvas[data-lab-pose]').forEach(canvas => {
-          BiomechanicalStickAnimator.registerCanvas(canvas, canvas.dataset.labPose);
-        });
+          window.addEventListener('scroll', checkArrival, { passive: true });
+          // Fallback: smooth scroll finishes in ~350-480ms
+          setTimeout(trigger, 480);
+        } else {
+          this.generateAndDisplayWod();
+        }
       },
 
       renderEquipmentGrid() {
@@ -4679,9 +4902,8 @@
             <div class="rounded-xl border p-2.5 flex flex-col justify-between gap-2 transition ${cardClass}">
               <div class="flex items-center justify-between gap-2">
                 <div class="flex items-center gap-2 min-w-0">
-                  <i data-lucide="${eq.icon}" class="w-4 h-4 shrink-0 ${
-                    state === 'available' ? 'text-volt' : (state === 'optional' ? 'text-amber-300' : 'text-slate-500')
-                  }"></i>
+                  <i data-lucide="${eq.icon}" class="w-4 h-4 shrink-0 ${state === 'available' ? 'text-volt' : (state === 'optional' ? 'text-amber-300' : 'text-slate-500')
+            }"></i>
                   <span class="text-xs font-bold truncate">${eq.name}</span>
                 </div>
               </div>
@@ -4691,29 +4913,26 @@
                 <button
                   data-eq-id="${eq.id}"
                   data-eq-state="available"
-                  class="eq-state-btn py-1 rounded text-[10px] font-mono font-extrabold uppercase transition ${
-                    state === 'available'
-                      ? 'bg-volt text-slate-950 shadow'
-                      : 'text-slate-400 hover:text-slate-200'
-                  }"
+                  class="eq-state-btn py-1 rounded text-[10px] font-mono font-extrabold uppercase transition ${state === 'available'
+              ? 'bg-volt text-slate-950 shadow'
+              : 'text-slate-400 hover:text-slate-200'
+            }"
                 >HAVE</button>
                 <button
                   data-eq-id="${eq.id}"
                   data-eq-state="optional"
-                  class="eq-state-btn py-1 rounded text-[10px] font-mono font-extrabold uppercase transition ${
-                    state === 'optional'
-                      ? 'bg-amber-400 text-slate-950 shadow'
-                      : 'text-slate-400 hover:text-amber-300'
-                  }"
+                  class="eq-state-btn py-1 rounded text-[10px] font-mono font-extrabold uppercase transition ${state === 'optional'
+              ? 'bg-amber-400 text-slate-950 shadow'
+              : 'text-slate-400 hover:text-amber-300'
+            }"
                 >OPT</button>
                 <button
                   data-eq-id="${eq.id}"
                   data-eq-state="off"
-                  class="eq-state-btn py-1 rounded text-[10px] font-mono font-extrabold uppercase transition ${
-                    state === 'off'
-                      ? 'bg-slate-700 text-white'
-                      : 'text-slate-500 hover:text-slate-300'
-                  }"
+                  class="eq-state-btn py-1 rounded text-[10px] font-mono font-extrabold uppercase transition ${state === 'off'
+              ? 'bg-slate-700 text-white'
+              : 'text-slate-500 hover:text-slate-300'
+            }"
                 >OFF</button>
               </div>
             </div>
@@ -4726,8 +4945,15 @@
         const availableByEq = AppState.getAvailableMovementsByEquipment();
         const activePool = AppState.getActiveMovementPool();
 
-        // Update Top Header Summary
-        document.getElementById('activePoolSummary').textContent = `${activePool.length} / ${availableByEq.length} Movements Active`;
+        // Update Top Header Summary & Floating Badge
+        const activeSummaryEl = document.getElementById('activePoolSummary');
+        if (activeSummaryEl) {
+          activeSummaryEl.textContent = `${activePool.length} / ${availableByEq.length} Movements Active`;
+        }
+        const floatingBadge = document.getElementById('floatingActiveCountBadge');
+        if (floatingBadge) {
+          floatingBadge.textContent = `${activePool.length} Active`;
+        }
 
         // Update Hard Movements Switch & Counter
         const availableHard = availableByEq.filter(m => m.difficulty === 'hard');
@@ -4736,13 +4962,15 @@
         const hardKnob = document.getElementById('toggleHardKnob');
         const hardBadge = document.getElementById('hardCountBadge');
 
-        hardBadge.textContent = `${activeHard.length} / ${availableHard.length} Active`;
-        if (AppState.includeHardMovements && activeHard.length > 0) {
-          hardSwitch.className = 'relative inline-flex h-7 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out bg-rose-500';
-          hardKnob.className = 'pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow transition duration-200 ease-in-out translate-x-6';
-        } else {
-          hardSwitch.className = 'relative inline-flex h-7 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out bg-slate-700';
-          hardKnob.className = 'pointer-events-none inline-block h-6 w-6 transform rounded-full bg-slate-300 shadow transition duration-200 ease-in-out translate-x-0';
+        if (hardBadge) hardBadge.textContent = `${activeHard.length} / ${availableHard.length} Active`;
+        if (hardSwitch && hardKnob) {
+          if (AppState.includeHardMovements && activeHard.length > 0) {
+            hardSwitch.className = 'relative inline-flex h-7 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out bg-rose-500';
+            hardKnob.className = 'pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow transition duration-200 ease-in-out translate-x-6';
+          } else {
+            hardSwitch.className = 'relative inline-flex h-7 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out bg-slate-700';
+            hardKnob.className = 'pointer-events-none inline-block h-6 w-6 transform rounded-full bg-slate-300 shadow transition duration-200 ease-in-out translate-x-0';
+          }
         }
 
         // Highlight active Skill Preset Pill
@@ -4756,138 +4984,153 @@
 
         document.querySelectorAll('.skill-preset-btn').forEach(btn => {
           const isMatch = btn.dataset.skillpreset === activeSkillPreset;
-          btn.className = `skill-preset-btn py-1.5 px-2 rounded-lg text-[10px] font-mono font-bold border transition ${
-            isMatch
+          btn.className = `skill-preset-btn py-1.5 px-2 rounded-lg text-[10px] font-mono font-bold border transition ${isMatch
               ? 'bg-volt/20 border-volt text-volt'
               : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200'
-          }`;
+            }`;
         });
 
-        // Pattern Breakdown Pills
-        const patternSummaryEl = document.getElementById('patternSummaryPills');
-        patternSummaryEl.innerHTML = Object.values(PATTERNS).map(pat => {
-          const count = activePool.filter(m => m.pattern === pat.id).length;
-          return `
-            <span class="text-[11px] font-mono px-2.5 py-1 rounded-lg border ${
-              count > 0 ? pat.color : 'bg-slate-900 border-slate-800 text-slate-500'
-            }">
-              ${pat.label}: <strong>${count}</strong>
-            </span>
-          `;
-        }).join('');
-
-        // Category Tabs inside Drawer
+        // Category Tabs with live counts
         const tabsEl = document.getElementById('matrixCategoryTabs');
-        const categories = [{ id: 'ALL', label: 'All' }, ...Object.values(PATTERNS)];
-        tabsEl.innerHTML = categories.map(cat => {
-          const active = AppState.activeMatrixCategory === cat.id;
-          return `
-            <button
-              data-mcat="${cat.id}"
-              class="mcat-btn px-2.5 py-1 rounded-lg text-[11px] font-semibold transition ${
-                active ? 'bg-cyan-400 text-slate-950' : 'bg-slate-900 text-slate-400 hover:text-slate-200'
+        if (tabsEl) {
+          const categories = [
+            { id: 'ALL', label: `All (${availableByEq.length})` },
+            ...Object.values(PATTERNS).map(pat => {
+              const count = availableByEq.filter(m => m.pattern === pat.id).length;
+              return { id: pat.id, label: `${pat.label} (${count})` };
+            })
+          ];
+          tabsEl.innerHTML = categories.map(cat => {
+            const active = AppState.activeMatrixCategory === cat.id;
+            return `
+              <button
+                data-mcat="${cat.id}"
+                class="mcat-btn px-2.5 py-1 rounded-lg text-[11px] font-semibold transition ${active
+                ? 'bg-cyan-400 text-slate-950 font-bold'
+                : 'bg-slate-900 text-slate-400 hover:text-slate-200 border border-slate-800'
               }"
-            >
-              ${cat.label}
-            </button>
-          `;
-        }).join('');
-
-        // Movement Rows List
-        const listEl = document.getElementById('movementListContainer');
-        const filteredMovements = availableByEq.filter(m => {
-          const catMatch = AppState.activeMatrixCategory === 'ALL' || m.pattern === AppState.activeMatrixCategory;
-          const diffMatch = AppState.activeDiffFilter === 'ALL' || m.difficulty === AppState.activeDiffFilter;
-          return catMatch && diffMatch;
-        });
-
-        if (filteredMovements.length === 0) {
-          listEl.innerHTML = `
-            <div class="text-center py-6 text-xs text-slate-500">
-              No movements match this filter with your currently enabled equipment.
-            </div>
-          `;
-          return;
+              >
+                ${cat.label}
+              </button>
+            `;
+          }).join('');
         }
 
-        listEl.innerHTML = filteredMovements.map(mov => {
-          const isIncluded = !AppState.excludedMovements.has(mov.id);
-          const patInfo = PATTERNS[mov.pattern];
-          const eqInfo = EQUIPMENT_CATALOG.find(e => e.id === mov.equipment);
-          const isOptionalEq = AppState.isEquipmentOptional(mov.equipment);
-          const isHard = mov.difficulty === 'hard';
+        // Animated Movement Cards Grid
+        const gridEl = document.getElementById('movementAnimatedGrid');
+        if (gridEl) {
+          const filteredMovements = availableByEq.filter(m => {
+            const catMatch = AppState.activeMatrixCategory === 'ALL' || m.pattern === AppState.activeMatrixCategory;
+            const diffMatch = AppState.activeDiffFilter === 'ALL' || m.difficulty === AppState.activeDiffFilter;
+            return catMatch && diffMatch;
+          });
 
-          return `
-            <div class="flex items-center justify-between gap-2 p-2.5 rounded-xl border transition ${
-              isIncluded
-                ? 'bg-slate-900/90 border-slate-800 text-slate-100'
-                : 'bg-slate-950/50 border-slate-900 text-slate-500 opacity-65'
-            }">
-              <label class="flex items-center gap-3 flex-1 cursor-pointer select-none min-w-0">
-                <input
-                  type="checkbox"
-                  data-mov-toggle="${mov.id}"
-                  ${isIncluded ? 'checked' : ''}
-                  class="w-4 h-4 rounded accent-lime-400 cursor-pointer shrink-0"
-                />
-                <div class="min-w-0">
-                  <div class="flex items-center gap-1.5 flex-wrap">
-                    <span class="text-xs font-bold truncate">${mov.name}</span>
-                    <span class="text-[9px] font-mono font-extrabold uppercase px-1.5 py-0.2 rounded border ${
-                      isHard
-                        ? 'bg-rose-500/20 text-rose-300 border-rose-500/40'
-                        : 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
-                    }">${isHard ? 'HARD' : 'NORMAL'}</span>
-                    ${isOptionalEq ? `<span class="text-[9px] font-mono font-bold uppercase px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40">OPT GEAR</span>` : ''}
+          if (filteredMovements.length === 0) {
+            gridEl.innerHTML = `
+              <div class="col-span-full text-center py-10 text-sm text-slate-500 bg-slate-900/40 rounded-2xl border border-slate-800/80 p-6">
+                No movements match this filter with your currently enabled equipment. Enable more gear in Step 1 or switch categories!
+              </div>
+            `;
+          } else {
+            gridEl.innerHTML = filteredMovements.map(mov => {
+              const isIncluded = !AppState.excludedMovements.has(mov.id);
+              const patInfo = PATTERNS[mov.pattern];
+              const eqInfo = EQUIPMENT_CATALOG.find(e => e.id === mov.equipment);
+              const isOptionalEq = AppState.isEquipmentOptional(mov.equipment);
+              const isHard = mov.difficulty === 'hard';
+
+              return `
+                <div
+                  data-mov-card="${mov.id}"
+                  class="relative group rounded-xl border p-2.5 flex flex-col justify-between gap-2 transition cursor-pointer select-none ${isIncluded
+                  ? 'bg-slate-900/90 border-slate-700/80 hover:border-volt/60 shadow-md'
+                  : 'bg-slate-950/60 border-slate-850 opacity-45 hover:opacity-75 grayscale hover:grayscale-0'
+                }"
+                >
+                  <!-- Card Top: Difficulty Badge, Optional Gear Tag, and Checkbox -->
+                  <div class="flex items-center justify-between gap-1">
+                    <span class="text-[9px] font-mono font-extrabold uppercase px-1.5 py-0.5 rounded border ${isHard
+                  ? 'bg-rose-500/20 text-rose-300 border-rose-500/40'
+                  : 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
+                }">${isHard ? 'HARD' : 'NORMAL'}</span>
+
+                    <div class="flex items-center gap-1">
+                      ${isOptionalEq ? `<span class="text-[8px] font-mono font-bold uppercase px-1 py-0.2 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">OPT</span>` : ''}
+                      <input
+                        type="checkbox"
+                        data-mov-toggle="${mov.id}"
+                        ${isIncluded ? 'checked' : ''}
+                        class="w-4 h-4 rounded accent-lime-400 cursor-pointer pointer-events-none"
+                      />
+                    </div>
                   </div>
-                  <div class="flex items-center gap-1.5 mt-0.5">
-                    <span class="text-[10px] font-mono px-1.5 py-0.2 rounded border ${patInfo.color}">${patInfo.label}</span>
-                    <span class="text-[10px] font-mono text-slate-400">${eqInfo ? eqInfo.name : ''}</span>
+
+                  <!-- Animated 2D Stickman Canvas Viewport -->
+                  <div class="w-full aspect-square rounded-lg bg-slate-950 border border-slate-850 flex items-center justify-center overflow-hidden relative">
+                    <canvas
+                      data-matrix-pose="${mov.poseType}"
+                      width="130"
+                      height="130"
+                      class="w-full h-full block"
+                    ></canvas>
+                  </div>
+
+                  <!-- Movement Info -->
+                  <div class="min-w-0">
+                    <div class="text-xs font-black text-white truncate group-hover:text-volt transition" title="${mov.name}">
+                      ${mov.name}
+                    </div>
+                    <div class="flex items-center justify-between gap-1 mt-1 text-[10px] text-slate-400">
+                      <span class="text-[9px] font-mono px-1.5 py-0.5 rounded border ${patInfo.color}">
+                        ${patInfo.label}
+                      </span>
+                      <button
+                        data-demo-mov="${mov.id}"
+                        class="text-[10px] font-mono text-cyan-300 hover:text-cyan-200 hover:underline flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-slate-800/80 hover:bg-slate-800 transition"
+                        title="View form cues & execution"
+                      >
+                        <span>Cues</span>
+                        <i data-lucide="chevron-right" class="w-3 h-3"></i>
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </label>
+              `;
+            }).join('');
 
-              <button
-                data-demo-mov="${mov.id}"
-                class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-cyan-300 text-[11px] font-mono font-semibold flex items-center gap-1 transition shrink-0"
-              >
-                <i data-lucide="play-circle" class="w-3.5 h-3.5"></i>
-                <span>IK Demo</span>
-              </button>
-            </div>
-          `;
-        }).join('');
+            // Register all canvases with the animator loop
+            gridEl.querySelectorAll('canvas[data-matrix-pose]').forEach(canvas => {
+              BiomechanicalStickAnimator.registerCanvas(canvas, canvas.dataset.matrixPose);
+            });
+          }
+        }
         lucide.createIcons();
       },
 
       renderParameterControls() {
         document.querySelectorAll('.mode-btn').forEach(btn => {
           const active = btn.dataset.mode === AppState.mode;
-          btn.className = `mode-btn py-2 px-2.5 rounded-xl border text-xs font-semibold transition flex flex-col items-center text-center gap-0.5 ${
-            active
+          btn.className = `mode-btn py-2 px-2.5 rounded-xl border text-xs font-semibold transition flex flex-col items-center text-center gap-0.5 ${active
               ? 'bg-volt/15 border-volt text-volt shadow-sm'
               : 'bg-slate-900/80 border-slate-800 text-slate-400 hover:text-slate-200'
-          }`;
+            }`;
         });
 
         document.querySelectorAll('.format-btn').forEach(btn => {
           const active = btn.dataset.format === AppState.format;
-          btn.className = `format-btn py-2 px-2 rounded-xl border text-xs font-mono font-semibold transition ${
-            btn.dataset.format === 'INTERVALS' ? 'col-span-2 sm:col-span-1 ' : ''
-          }${
-            active
+          btn.className = `format-btn py-2 px-2 rounded-xl border text-xs font-mono font-semibold transition ${btn.dataset.format === 'INTERVALS' ? 'col-span-2 sm:col-span-1 ' : ''
+            }${active
               ? 'bg-cyan-500/20 border-cyan-400 text-cyan-300 shadow-sm'
               : 'bg-slate-900/80 border-slate-800 text-slate-400 hover:text-slate-200'
-          }`;
+            }`;
         });
 
         document.querySelectorAll('.duration-btn').forEach(btn => {
           const active = btn.dataset.duration === AppState.duration;
-          btn.className = `duration-btn py-2 px-2.5 rounded-xl border text-xs font-semibold transition flex flex-col items-center ${
-            active
+          btn.className = `duration-btn py-2 px-2.5 rounded-xl border text-xs font-semibold transition flex flex-col items-center ${active
               ? 'bg-volt/15 border-volt text-volt shadow-sm'
               : 'bg-slate-900/80 border-slate-800 text-slate-400 hover:text-slate-200'
-          }`;
+            }`;
         });
       },
 
@@ -4898,6 +5141,21 @@
 
       displayWod(wod) {
         AppState.currentWod = wod;
+        this.markWodOutdated(false);
+
+        // Trigger short & sweet generation animation
+        const cardContainer = document.getElementById('wodCardContainer');
+        const accentBar = document.getElementById('wodAccentBar');
+        if (cardContainer) {
+          cardContainer.classList.remove('wod-card-refresh');
+          void cardContainer.offsetWidth; // force reflow
+          cardContainer.classList.add('wod-card-refresh');
+        }
+        if (accentBar) {
+          accentBar.classList.remove('accent-glow-sweep');
+          void accentBar.offsetWidth; // force reflow
+          accentBar.classList.add('accent-glow-sweep');
+        }
 
         document.getElementById('wodBadgeType').textContent = wod.badgeType;
         document.getElementById('wodBadgeFormat').textContent = wod.badgeFormat;
@@ -4912,7 +5170,7 @@
         if (wod.items.length === 0) {
           listEl.innerHTML = `
             <div class="p-6 rounded-xl bg-slate-900/70 border border-slate-800 text-center text-sm text-slate-400">
-              No active movements selected. Set at least one equipment item to HAVE or OPT on the left!
+              No active movements selected. Set at least one equipment item to HAVE or OPT below!
             </div>
           `;
         } else {
@@ -4923,9 +5181,11 @@
             const eqInfo = EQUIPMENT_CATALOG.find(e => e.id === mov.equipment);
 
             return `
-              <div class="bg-slate-900/90 border ${
-                item.isOptionalGear ? 'border-amber-400/50' : 'border-slate-800'
-              } rounded-xl p-3 sm:p-3.5 transition space-y-2.5">
+              <div
+                class="wod-item-animated bg-slate-900/90 border ${item.isOptionalGear ? 'border-amber-400/50' : 'border-slate-800'
+              } rounded-xl p-3 sm:p-3.5 transition space-y-2.5"
+                style="animation-delay: ${index * 110}ms;"
+              >
                 <div class="flex items-center justify-between gap-3">
                   <div
                     data-demo-mov="${mov.id}"
@@ -4949,20 +5209,18 @@
                         <span class="text-[10px] font-mono px-2 py-0.5 rounded border ${pat.color}">
                           ${pat.label}
                         </span>
-                        <span class="text-[10px] font-mono font-bold uppercase px-1.5 py-0.5 rounded border ${
-                          isHard
-                            ? 'bg-rose-500/20 text-rose-300 border-rose-500/40'
-                            : 'bg-slate-800 text-slate-300 border-slate-700'
-                        }">
+                        <span class="text-[10px] font-mono font-bold uppercase px-1.5 py-0.5 rounded border ${isHard
+                ? 'bg-rose-500/20 text-rose-300 border-rose-500/40'
+                : 'bg-slate-800 text-slate-300 border-slate-700'
+              }">
                           ${isHard ? 'HARD SKILL' : 'NORMAL'}
                         </span>
-                        ${
-                          item.isOptionalGear
-                            ? `<span class="text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded bg-amber-400/20 text-amber-300 border border-amber-400/40 flex items-center gap-1">
+                        ${item.isOptionalGear
+                ? `<span class="text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded bg-amber-400/20 text-amber-300 border border-amber-400/40 flex items-center gap-1">
                                  Optional: ${eqInfo ? eqInfo.name : ''}
                                </span>`
-                            : ''
-                        }
+                : ''
+              }
                       </div>
                       <div class="text-sm sm:text-base font-extrabold text-white group-hover:text-volt transition truncate">
                         ${item.prescriptionText}
@@ -4983,9 +5241,8 @@
                 </div>
 
                 <!-- Inline Scale-Down Progression Bar (For Hard / Plyo / Skill Exercises) -->
-                ${
-                  item.scaleDown
-                    ? `
+                ${item.scaleDown
+                ? `
                       <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-cyan-500/20 bg-cyan-500/5 -mx-3 px-3 py-1.5">
                         <div class="flex items-center gap-2 text-xs text-cyan-200/90">
                           <i data-lucide="trending-down" class="w-3.5 h-3.5 text-cyan-400 shrink-0"></i>
@@ -4999,13 +5256,12 @@
                         </button>
                       </div>
                     `
-                    : ''
-                }
+                : ''
+              }
 
                 <!-- Automatic Inline Alternative Bar when Equipment is OPTIONAL -->
-                ${
-                  item.isOptionalGear && item.alternative
-                    ? `
+                ${item.isOptionalGear && item.alternative
+                ? `
                       <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-amber-500/20 bg-amber-500/5 -mx-3 -mb-3 px-3 py-2 rounded-b-xl">
                         <div class="flex items-center gap-2 text-xs text-amber-200/90">
                           <i data-lucide="repeat" class="w-3.5 h-3.5 text-amber-400 shrink-0"></i>
@@ -5019,8 +5275,8 @@
                         </button>
                       </div>
                     `
-                    : ''
-                }
+                : ''
+              }
               </div>
             `;
           }).join('');
@@ -5058,9 +5314,8 @@
 
         const diffBadge = document.getElementById('demoModalDifficultyBadge');
         diffBadge.textContent = isHard ? 'HARD / HIGH-SKILL' : 'NORMAL TIER';
-        diffBadge.className = `text-[11px] font-mono font-bold uppercase px-2.5 py-0.5 rounded-md border ${
-          isHard ? 'bg-rose-500/20 text-rose-300 border-rose-500/40' : 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
-        }`;
+        diffBadge.className = `text-[11px] font-mono font-bold uppercase px-2.5 py-0.5 rounded-md border ${isHard ? 'bg-rose-500/20 text-rose-300 border-rose-500/40' : 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
+          }`;
 
         const isFrontView = BiomechanicalStickAnimator.computePose(mov.poseType, 0).view === 'front';
         document.getElementById('demoModalCameraLabel').textContent = isFrontView
@@ -5106,20 +5361,18 @@
           return `
             <div
               data-load-benchmark="${bm.id}"
-              class="cursor-pointer bg-slate-900 hover:bg-slate-800/90 border ${
-                eligible ? 'border-volt/40' : 'border-slate-800'
-              } rounded-xl p-4 flex flex-col justify-between gap-3 transition"
+              class="cursor-pointer bg-slate-900 hover:bg-slate-800/90 border ${eligible ? 'border-volt/40' : 'border-slate-800'
+            } rounded-xl p-4 flex flex-col justify-between gap-3 transition"
             >
               <div>
                 <div class="flex items-center justify-between gap-2 mb-1">
                   <span class="font-black text-base text-white">${bm.title}</span>
                   <div class="flex items-center gap-1">
                     ${hasHard ? `<span class="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-500/30">HARD</span>` : ''}
-                    <span class="text-[10px] font-mono px-2 py-0.5 rounded border ${
-                      eligible
-                        ? 'bg-volt/15 text-volt border-volt/30'
-                        : 'bg-slate-800 text-slate-400 border-slate-700'
-                    }">
+                    <span class="text-[10px] font-mono px-2 py-0.5 rounded border ${eligible
+              ? 'bg-volt/15 text-volt border-volt/30'
+              : 'bg-slate-800 text-slate-400 border-slate-700'
+            }">
                       ${eligible ? 'Ready' : 'Filtered'}
                     </span>
                   </div>
@@ -5157,7 +5410,7 @@
           AppState.saveToStorage();
           this.renderEquipmentGrid();
           this.renderMovementMatrix();
-          this.generateAndDisplayWod();
+          this.markWodOutdated(true);
         });
 
         // Equipment Presets (Updated for 12-item split catalog)
@@ -5182,7 +5435,7 @@
             AppState.saveToStorage();
             this.renderEquipmentGrid();
             this.renderMovementMatrix();
-            this.generateAndDisplayWod();
+            this.markWodOutdated(true);
           });
         });
 
@@ -5200,7 +5453,7 @@
           });
           AppState.saveToStorage();
           this.renderMovementMatrix();
-          this.generateAndDisplayWod();
+          this.markWodOutdated(true);
         });
 
         // Quick Skill Filter Preset Buttons (Normal Only vs All Enabled vs Custom)
@@ -5217,31 +5470,18 @@
               AppState.includeHardMovements = true;
               AppState.excludedMovements.clear();
             } else if (preset === 'custom') {
-              const drawer = document.getElementById('movementMatrixDrawer');
-              if (drawer.classList.contains('hidden')) {
-                document.getElementById('toggleMatrixCollapseBtn').click();
-              }
+              document.getElementById('movementMatrixCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
               return;
             }
             AppState.saveToStorage();
             this.renderMovementMatrix();
-            this.generateAndDisplayWod();
+            this.markWodOutdated(true);
           });
         });
 
-        // Toggle Movement Matrix Drawer
-        const toggleDrawer = () => {
-          const drawer = document.getElementById('movementMatrixDrawer');
-          const icon = document.getElementById('matrixToggleIcon');
-          const isHidden = drawer.classList.contains('hidden');
-          drawer.classList.toggle('hidden', !isHidden);
-          icon.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';
-        };
-        document.getElementById('toggleMatrixCollapseBtn').addEventListener('click', toggleDrawer);
+        // Quick Jump to Movement Matrix from Header
         document.getElementById('openMatrixQuickBtn').addEventListener('click', () => {
-          const drawer = document.getElementById('movementMatrixDrawer');
-          if (drawer.classList.contains('hidden')) toggleDrawer();
-          document.getElementById('movementMatrixCard').scrollIntoView({ behavior: 'smooth' });
+          document.getElementById('movementMatrixCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
         });
 
         // Matrix Category & Difficulty Sub-Filter Tabs
@@ -5263,26 +5503,55 @@
           });
         });
 
-        // Movement Checkbox Include/Exclude & Demo Button inside Matrix
-        document.getElementById('movementListContainer').addEventListener('change', e => {
-          const cb = e.target.closest('[data-mov-toggle]');
-          if (!cb) return;
-          const movId = cb.dataset.movToggle;
-          if (cb.checked) {
-            AppState.excludedMovements.delete(movId);
-            const mov = MOVEMENTS_DB.find(m => m.id === movId);
-            if (mov && mov.difficulty === 'hard') AppState.includeHardMovements = true;
-          } else {
-            AppState.excludedMovements.add(movId);
+        // Movement Card Selection & Cues Modal inside Animated Grid
+        document.getElementById('movementAnimatedGrid').addEventListener('click', e => {
+          const cuesBtn = e.target.closest('[data-demo-mov]');
+          if (cuesBtn) {
+            e.stopPropagation();
+            this.openMovementDemoModal(cuesBtn.dataset.demoMov);
+            return;
           }
-          AppState.saveToStorage();
-          this.renderMovementMatrix();
+          const card = e.target.closest('[data-mov-card]');
+          if (card) {
+            const movId = card.dataset.movCard;
+            if (AppState.excludedMovements.has(movId)) {
+              AppState.excludedMovements.delete(movId);
+              const mov = MOVEMENTS_DB.find(m => m.id === movId);
+              if (mov && mov.difficulty === 'hard') AppState.includeHardMovements = true;
+            } else {
+              AppState.excludedMovements.add(movId);
+            }
+            AppState.saveToStorage();
+            this.renderMovementMatrix();
+            this.markWodOutdated(true);
+          }
         });
 
-        document.getElementById('movementListContainer').addEventListener('click', e => {
-          const demoBtn = e.target.closest('[data-demo-mov]');
-          if (!demoBtn) return;
-          this.openMovementDemoModal(demoBtn.dataset.demoMov);
+        // Select All Visible / Deselect All
+        document.getElementById('enableAllMovementsBtn').addEventListener('click', () => {
+          const availableByEq = AppState.getAvailableMovementsByEquipment();
+          const filtered = availableByEq.filter(m => {
+            const catMatch = AppState.activeMatrixCategory === 'ALL' || m.pattern === AppState.activeMatrixCategory;
+            const diffMatch = AppState.activeDiffFilter === 'ALL' || m.difficulty === AppState.activeDiffFilter;
+            return catMatch && diffMatch;
+          });
+          filtered.forEach(m => AppState.excludedMovements.delete(m.id));
+          AppState.saveToStorage();
+          this.renderMovementMatrix();
+          this.markWodOutdated(true);
+        });
+
+        document.getElementById('disableAllMovementsBtn').addEventListener('click', () => {
+          const availableByEq = AppState.getAvailableMovementsByEquipment();
+          const filtered = availableByEq.filter(m => {
+            const catMatch = AppState.activeMatrixCategory === 'ALL' || m.pattern === AppState.activeMatrixCategory;
+            const diffMatch = AppState.activeDiffFilter === 'ALL' || m.difficulty === AppState.activeDiffFilter;
+            return catMatch && diffMatch;
+          });
+          filtered.forEach(m => AppState.excludedMovements.add(m.id));
+          AppState.saveToStorage();
+          this.renderMovementMatrix();
+          this.markWodOutdated(true);
         });
 
         // Generator Parameter Controls
@@ -5292,7 +5561,7 @@
           AppState.mode = btn.dataset.mode;
           AppState.saveToStorage();
           this.renderParameterControls();
-          this.generateAndDisplayWod();
+          this.markWodOutdated(true);
         });
 
         document.getElementById('formatSelectorGrid').addEventListener('click', e => {
@@ -5301,7 +5570,7 @@
           AppState.format = btn.dataset.format;
           AppState.saveToStorage();
           this.renderParameterControls();
-          this.generateAndDisplayWod();
+          this.markWodOutdated(true);
         });
 
         document.getElementById('durationSelectorGrid').addEventListener('click', e => {
@@ -5310,12 +5579,12 @@
           AppState.duration = btn.dataset.duration;
           AppState.saveToStorage();
           this.renderParameterControls();
-          this.generateAndDisplayWod();
+          this.markWodOutdated(true);
         });
 
         // Generate & Re-Roll WOD Buttons
         document.getElementById('generateWodBtn').addEventListener('click', () => {
-          this.generateAndDisplayWod();
+          this.scrollToTopAndGenerate();
         });
         document.getElementById('rerollWodBtn').addEventListener('click', () => {
           this.generateAndDisplayWod();
@@ -5430,34 +5699,31 @@
           }
         });
 
-        // Reset Preferences Button
-        // Kinematics Lab (all-animations audit grid)
-        const kinLabModal = document.getElementById('kinematicsLabModal');
-        document.getElementById('openKinematicsLabBtn').addEventListener('click', () => {
-          kinLabModal.classList.remove('hidden');
-          kinLabModal.classList.add('flex');
-          this.renderKinematicsLab();
-          lucide.createIcons();
-        });
-        const closeKinLab = () => {
-          kinLabModal.classList.add('hidden');
-          kinLabModal.classList.remove('flex');
-          document.getElementById('kinematicsLabGrid').innerHTML = '';
-        };
-        document.getElementById('closeKinematicsLabBtn').addEventListener('click', closeKinLab);
-        kinLabModal.addEventListener('click', e => {
-          if (e.target.id === 'kinematicsLabModal') closeKinLab();
-        });
-        document.getElementById('kinematicsLabPatternTabs').addEventListener('click', e => {
-          const btn = e.target.closest('[data-labpat]');
-          if (!btn) return;
-          this.activeLabPattern = btn.dataset.labpat;
-          this.renderKinematicsLab();
-        });
-        document.getElementById('kinematicsLabGrid').addEventListener('click', e => {
-          const card = e.target.closest('[data-lab-mov]');
-          if (card) this.openMovementDemoModal(card.dataset.labMov);
-        });
+        // Floating "Generate Workout" Button (appears when scrolled down)
+        const floatingBar = document.getElementById('floatingGenerateBar');
+        if (floatingBar) {
+          window.addEventListener('scroll', () => {
+            if (window.scrollY > 280) {
+              floatingBar.classList.remove('opacity-0', 'translate-y-10', 'pointer-events-none');
+              floatingBar.classList.add('opacity-100', 'translate-y-0', 'pointer-events-auto');
+            } else {
+              floatingBar.classList.add('opacity-0', 'translate-y-10', 'pointer-events-none');
+              floatingBar.classList.remove('opacity-100', 'translate-y-0', 'pointer-events-auto');
+            }
+          }, { passive: true });
+
+          document.getElementById('floatingGenerateBtn').addEventListener('click', () => {
+            this.scrollToTopAndGenerate();
+          });
+        }
+
+        // Scroll to Customize Jump Button
+        const scrollToCustBtn = document.getElementById('scrollToCustomizeBtn');
+        if (scrollToCustBtn) {
+          scrollToCustBtn.addEventListener('click', () => {
+            document.getElementById('customizeSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+          });
+        }
 
         // Reset Preferences Button
         document.getElementById('resetPrefsBtn').addEventListener('click', () => {
@@ -5494,4 +5760,5 @@
     });
   </script>
 </body>
+
 </html>
