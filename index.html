@@ -165,9 +165,11 @@
       0% {
         transform: scale(1);
       }
+
       40% {
         transform: scale(1.065);
       }
+
       100% {
         transform: scale(1);
       }
@@ -368,8 +370,7 @@
       </div>
 
       <!-- Zero-Shift Outdated Floating Pill Overlay (Floats over the dimmed card at full brightness) -->
-      <div id="wodOutdatedBadge"
-        class="hidden absolute inset-0 pointer-events-none items-center justify-center z-20">
+      <div id="wodOutdatedBadge" class="hidden absolute inset-0 pointer-events-none items-center justify-center z-20">
         <div
           class="px-5 py-2.5 rounded-full bg-slate-950/95 border border-volt/40 shadow-2xl backdrop-blur-md flex items-center gap-2.5">
           <span class="w-2.5 h-2.5 rounded-full bg-volt shadow-[0_0_8px_rgba(216,255,62,0.9)]"></span>
@@ -5328,8 +5329,8 @@
         document.querySelectorAll('.skill-preset-btn').forEach(btn => {
           const isMatch = btn.dataset.skillpreset === activeSkillPreset;
           btn.className = `skill-preset-btn py-1.5 px-2 rounded-lg text-[10px] font-mono font-bold border transition ${isMatch
-              ? 'bg-volt/20 border-volt text-volt'
-              : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200'
+            ? 'bg-volt/20 border-volt text-volt'
+            : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200'
             }`;
         });
 
@@ -5454,8 +5455,8 @@
         document.querySelectorAll('.mode-btn').forEach(btn => {
           const active = btn.dataset.mode === AppState.mode;
           btn.className = `mode-btn py-2 px-2.5 rounded-xl border text-xs font-semibold transition flex flex-col items-center text-center gap-0.5 ${active
-              ? 'bg-volt/15 border-volt text-volt shadow-sm'
-              : 'bg-slate-900/80 border-slate-800 text-slate-400 hover:text-slate-200'
+            ? 'bg-volt/15 border-volt text-volt shadow-sm'
+            : 'bg-slate-900/80 border-slate-800 text-slate-400 hover:text-slate-200'
             }`;
         });
 
@@ -5471,8 +5472,8 @@
         document.querySelectorAll('.duration-btn').forEach(btn => {
           const active = btn.dataset.duration === AppState.duration;
           btn.className = `duration-btn py-2 px-2.5 rounded-xl border text-xs font-semibold transition flex flex-col items-center ${active
-              ? 'bg-volt/15 border-volt text-volt shadow-sm'
-              : 'bg-slate-900/80 border-slate-800 text-slate-400 hover:text-slate-200'
+            ? 'bg-volt/15 border-volt text-volt shadow-sm'
+            : 'bg-slate-900/80 border-slate-800 text-slate-400 hover:text-slate-200'
             }`;
         });
       },
@@ -5995,7 +5996,7 @@
           let shareUrl = '';
           try {
             shareUrl = await WorkoutSharing.createShareUrl(wod);
-          } catch (e) {}
+          } catch (e) { }
 
           const textParts = [
             `${wod.title} (${wod.badgeFormat})`,
