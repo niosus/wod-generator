@@ -403,7 +403,7 @@
               </button>
               <button data-preset="minimal"
                 class="preset-btn text-[11px] font-medium px-2.5 py-1 rounded-lg bg-slate-800/90 hover:bg-slate-700 text-slate-300 border border-slate-700 transition"
-                title="Bodyweight + Pull-up Bar HAVE; Rings, KB, BikeErg, Jump Rope OPT">
+                title="Bodyweight + Pull-up Bar HAVE; Running Area, Rings, KB, BikeErg, Jump Rope OPT">
                 Home Minimal
               </button>
               <button data-preset="full"
@@ -728,10 +728,11 @@
   <!-- APPLICATION ARCHITECTURE, 2D IK SKELETAL ENGINE & HIIT SOLVER -->
   <script>
     /***************************************************************************
-     * 1. DOMAIN DATA: 12-ITEM GRANULAR EQUIPMENT, NORMAL/HARD & PROGRESSION DB
+     * 1. DOMAIN DATA: 13-ITEM GRANULAR EQUIPMENT, NORMAL/HARD & PROGRESSION DB
      ***************************************************************************/
     const EQUIPMENT_CATALOG = [
       { id: 'bodyweight', name: 'Bodyweight / Floor', icon: 'user-check' },
+      { id: 'running_area', name: 'Running Area', icon: 'footprints' },
       { id: 'pullup_bar', name: 'Pull-Up Bar', icon: 'grip-horizontal' },
       { id: 'rings_dips', name: 'Rings / Dip Bars', icon: 'circle-dot' },
       { id: 'kettlebell', name: 'Kettlebell', icon: 'dumbbell' },
@@ -756,7 +757,7 @@
 
     /**
      * Complete Movement Database:
-     * - equipment: maps to the 12 granular equipment IDs
+     * - equipment: maps to the 13 granular equipment IDs
      * - difficulty: 'normal' | 'hard'
      * - poseType: tailored multi-view animation profile for BiomechanicalStickAnimator
      * - scaleDownId / scaleNote: progression scale-down shown right on the WOD card
@@ -1303,7 +1304,7 @@
       {
         id: 'shuttle_run',
         name: '200m / 400m Shuttle Run',
-        equipment: 'bodyweight',
+        equipment: 'running_area',
         pattern: 'CARDIO',
         difficulty: 'normal',
         poseType: 'run',
@@ -4242,14 +4243,15 @@
 
     /***************************************************************************
      * 3. APPLICATION STATE & LOCALSTORAGE PREFERENCES MANAGER
-     * Supports 12-Item 3-State Equipment & Collision-Free Substitution Engine
+     * Supports 13-Item 3-State Equipment & Collision-Free Substitution Engine
      ***************************************************************************/
     const STORAGE_KEY = 'wodforge_local_prefs_v3';
 
     const AppState = {
-      // 12-Item 3-State Equipment Map: 'available' | 'optional' | 'off'
+      // 13-Item 3-State Equipment Map: 'available' | 'optional' | 'off'
       equipmentStates: {
         bodyweight: 'available',
+        running_area: 'optional',
         pullup_bar: 'available',
         rings_dips: 'optional',
         kettlebell: 'optional',
@@ -4288,6 +4290,12 @@
           const parsed = JSON.parse(raw);
           if (parsed.equipmentStates && typeof parsed.equipmentStates === 'object') {
             this.equipmentStates = { ...this.equipmentStates, ...parsed.equipmentStates };
+            if (!('running_area' in parsed.equipmentStates)) {
+              const hadOtherGear = Object.entries(parsed.equipmentStates).some(
+                ([k, v]) => k !== 'bodyweight' && (v === 'available' || v === 'optional')
+              );
+              this.equipmentStates.running_area = hadOtherGear ? 'optional' : 'off';
+            }
           }
           if (typeof parsed.includeHardMovements === 'boolean') {
             this.includeHardMovements = parsed.includeHardMovements;
@@ -5413,7 +5421,7 @@
           this.markWodOutdated(true);
         });
 
-        // Equipment Presets (Updated for 12-item split catalog)
+        // Equipment Presets (Updated for 13-item split catalog)
         document.querySelectorAll('.preset-btn').forEach(btn => {
           btn.addEventListener('click', () => {
             const preset = btn.dataset.preset;
@@ -5423,6 +5431,7 @@
               AppState.equipmentStates.bodyweight = 'available';
             } else if (preset === 'minimal') {
               AppState.equipmentStates.bodyweight = 'available';
+              AppState.equipmentStates.running_area = 'optional';
               AppState.equipmentStates.pullup_bar = 'available';
               AppState.equipmentStates.rings_dips = 'optional';
               AppState.equipmentStates.kettlebell = 'optional';
@@ -5730,6 +5739,7 @@
           localStorage.removeItem(STORAGE_KEY);
           AppState.equipmentStates = {
             bodyweight: 'available',
+            running_area: 'optional',
             pullup_bar: 'available',
             rings_dips: 'optional',
             kettlebell: 'optional',
