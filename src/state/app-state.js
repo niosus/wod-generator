@@ -24,7 +24,9 @@ const STORAGE_KEY = 'wodforge_local_prefs_v3';
       mode: 'smart',
       format: 'ANY',
       duration: 'medium',
+      intensity: 'standard', // 'moderate' | 'standard' | 'high'
       currentWod: null,
+      recentWorkoutSignatures: [],
 
       initDefaultExclusions() {
         this.excludedMovements.clear();
@@ -59,6 +61,10 @@ const STORAGE_KEY = 'wodforge_local_prefs_v3';
           if (parsed.mode) this.mode = parsed.mode;
           if (parsed.format) this.format = parsed.format;
           if (parsed.duration) this.duration = parsed.duration;
+          if (parsed.intensity) this.intensity = parsed.intensity;
+          if (Array.isArray(parsed.recentWorkoutSignatures)) {
+            this.recentWorkoutSignatures = parsed.recentWorkoutSignatures;
+          }
         } catch (e) {
           console.warn('Could not read local preferences:', e);
         }
@@ -72,10 +78,28 @@ const STORAGE_KEY = 'wodforge_local_prefs_v3';
             excludedMovements: Array.from(this.excludedMovements),
             mode: this.mode,
             format: this.format,
-            duration: this.duration
+            duration: this.duration,
+            intensity: this.intensity,
+            recentWorkoutSignatures: this.recentWorkoutSignatures
           };
           localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
         } catch (e) { }
+      },
+
+      addRecentWorkout(sig) {
+        if (!sig) return;
+        this.recentWorkoutSignatures = this.recentWorkoutSignatures.filter(s => s !== sig);
+        this.recentWorkoutSignatures.push(sig);
+        if (this.recentWorkoutSignatures.length > 10) {
+          this.recentWorkoutSignatures = this.recentWorkoutSignatures.slice(-10);
+        }
+        this.saveToStorage();
+      },
+
+      isRecentWorkout(sig) {
+        if (!sig) return false;
+        const last5 = this.recentWorkoutSignatures.slice(-5);
+        return last5.includes(sig);
       },
 
       isEquipmentUsable(eqId) {
@@ -111,6 +135,19 @@ const STORAGE_KEY = 'wodforge_local_prefs_v3';
             !this.isMovementSuppressedByBetterGear(m) &&
             !this.excludedMovements.has(m.id)
         );
+      },
+
+      /**
+       * Returns the active pool filtered to ONLY the hardest allowed movement of each scale ladder.
+       * Prevents regression movements (knee push-ups, sprawls, table rows) from being selected
+       * when normal Rx baseline movements are available and allowed.
+       */
+      getHardestAllowedMovementPool() {
+        const pool = this.getActiveMovementPool();
+        if (globalThis.ProgressionEngine && typeof globalThis.ProgressionEngine.filterPoolToHardestLadderMovements === 'function') {
+          return globalThis.ProgressionEngine.filterPoolToHardestLadderMovements(pool);
+        }
+        return pool;
       },
 
       /**

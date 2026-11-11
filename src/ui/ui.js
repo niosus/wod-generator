@@ -327,6 +327,15 @@ const UI = {
           }).join('');
         }
 
+        // Highlight active Difficulty Filter Pill
+        document.querySelectorAll('.diff-filter-btn').forEach(btn => {
+          if (btn.dataset.difffilter === AppState.activeDiffFilter) {
+            btn.classList.add('ring-2', 'ring-volt');
+          } else {
+            btn.classList.remove('ring-2', 'ring-volt');
+          }
+        });
+
         // Animated Movement Cards Grid
         const gridEl = document.getElementById('movementAnimatedGrid');
         if (gridEl) {
@@ -360,10 +369,11 @@ const UI = {
                 >
                   <!-- Card Top: Difficulty Badge, Optional Gear Tag, and Checkbox -->
                   <div class="flex items-center justify-between gap-1">
-                    <span class="text-[9px] font-mono font-extrabold uppercase px-1.5 py-0.5 rounded border ${isHard
-                  ? 'bg-rose-500/20 text-rose-300 border-rose-500/40'
-                  : 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
-                }">${isHard ? 'HARD' : 'NORMAL'}</span>
+                    <span class="text-[9px] font-mono font-extrabold uppercase px-1.5 py-0.5 rounded border ${
+                      mov.difficulty === 'easy'
+                        ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
+                        : (isHard ? 'bg-rose-500/20 text-rose-300 border-rose-500/40' : 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30')
+                    }">${mov.difficulty.toUpperCase()}</span>
 
                     <div class="flex items-center gap-1">
                       ${isOptionalEq ? `<span class="text-[8px] font-mono font-bold uppercase px-1 py-0.2 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">OPT</span>` : ''}
@@ -440,6 +450,14 @@ const UI = {
           const active = btn.dataset.duration === AppState.duration;
           btn.className = `duration-btn py-2 px-2.5 rounded-xl border text-xs font-semibold transition flex flex-col items-center ${active
             ? 'bg-volt/15 border-volt text-volt shadow-sm'
+            : 'bg-slate-900/80 border-slate-800 text-slate-400 hover:text-slate-200'
+            }`;
+        });
+
+        document.querySelectorAll('.intensity-btn').forEach(btn => {
+          const active = btn.dataset.intensity === AppState.intensity;
+          btn.className = `intensity-btn py-2 px-2.5 rounded-xl border text-xs font-semibold transition flex flex-col items-center ${active
+            ? 'bg-amber-400/20 border-amber-400 text-amber-300 shadow-sm'
             : 'bg-slate-900/80 border-slate-800 text-slate-400 hover:text-slate-200'
             }`;
         });
@@ -647,17 +665,26 @@ const UI = {
         modal.classList.add('flex');
       },
 
-      renderBenchmarksModal(filter = 'all') {
+      renderBenchmarksModal(filter = 'all', searchQuery = '') {
         const container = document.getElementById('benchmarksListContainer');
         const list = CLASSICAL_BENCHMARKS.filter(b => {
-          if (filter === 'eligible') return AppState.isBenchmarkEligible(b);
-          return true;
+          let matchesFilter = true;
+          if (filter === 'eligible') matchesFilter = AppState.isBenchmarkEligible(b);
+          else if (filter === 'girls') matchesFilter = b.category.toLowerCase().includes('girl');
+          else if (filter === 'heroes') matchesFilter = b.category.toLowerCase().includes('hero');
+
+          if (!matchesFilter) return false;
+          if (!searchQuery) return true;
+          const q = searchQuery.toLowerCase();
+          return b.title.toLowerCase().includes(q) ||
+            b.items.some(it => it.label.toLowerCase().includes(q)) ||
+            (b.stimulus && b.stimulus.toLowerCase().includes(q));
         });
 
         if (list.length === 0) {
           container.innerHTML = `
             <div class="col-span-2 text-center py-8 text-sm text-slate-400">
-              No classical benchmarks match your current equipment and skill filter. Enable more gear or switch to "All Classics".
+              No classical benchmarks match your current filter. Enable more gear or switch filter options!
             </div>
           `;
           return;
@@ -665,10 +692,16 @@ const UI = {
 
         container.innerHTML = list.map(bm => {
           const eligible = AppState.isBenchmarkEligible(bm);
+          const isGirl = bm.category.toLowerCase().includes('girl');
+          const isHero = bm.category.toLowerCase().includes('hero');
           const hasHard = bm.items.some(it => {
             const m = MOVEMENTS_DB.find(x => x.id === it.movementId);
             return m && m.difficulty === 'hard';
           });
+
+          const catBadgeClass = isGirl
+            ? 'bg-rose-500/20 text-rose-300 border-rose-500/40'
+            : (isHero ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40' : 'bg-amber-500/20 text-amber-300 border-amber-500/40');
 
           return `
             <div
@@ -678,8 +711,13 @@ const UI = {
             >
               <div>
                 <div class="flex items-center justify-between gap-2 mb-1">
-                  <span class="font-black text-base text-white">${bm.title}</span>
-                  <div class="flex items-center gap-1">
+                  <div class="flex items-center gap-1.5 min-w-0">
+                    <span class="font-black text-base text-white truncate">${bm.title}</span>
+                    <span class="text-[9px] font-mono font-extrabold uppercase px-1.5 py-0.5 rounded border ${catBadgeClass}">
+                      ${isGirl ? 'GIRL' : (isHero ? 'HERO' : 'SPECIAL')}
+                    </span>
+                  </div>
+                  <div class="flex items-center gap-1 shrink-0">
                     ${hasHard ? `<span class="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-500/30">HARD</span>` : ''}
                     <span class="text-[10px] font-mono px-2 py-0.5 rounded border ${eligible
               ? 'bg-volt/15 text-volt border-volt/30'
@@ -701,6 +739,125 @@ const UI = {
             </div>
           `;
         }).join('');
+        lucide.createIcons();
+      },
+
+      renderScaleModal(patternFilter = 'ALL', searchQuery = '') {
+        const container = document.getElementById('scaleLaddersContainer');
+        if (!container) return;
+
+        let ladders = globalThis.SCALE_LADDERS || [];
+
+        if (patternFilter !== 'ALL') {
+          ladders = ladders.filter(l => l.pattern === patternFilter);
+        }
+
+        if (searchQuery) {
+          const q = searchQuery.toLowerCase();
+          ladders = ladders.filter(l =>
+            l.name.toLowerCase().includes(q) ||
+            l.description.toLowerCase().includes(q) ||
+            l.steps.some(s => s.label.toLowerCase().includes(q))
+          );
+        }
+
+        if (ladders.length === 0) {
+          container.innerHTML = `
+            <div class="text-center py-10 text-sm text-slate-500 bg-slate-900/40 rounded-2xl border border-slate-800/80 p-6">
+              No scale progression ladders match this filter.
+            </div>
+          `;
+          return;
+        }
+
+        container.innerHTML = ladders.map(ladder => {
+          const patInfo = PATTERNS[ladder.pattern] || { label: ladder.pattern, color: 'text-slate-300 border-slate-700' };
+
+          return `
+            <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 sm:p-5 flex flex-col gap-3 shadow-lg">
+              <!-- Ladder Header -->
+              <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800/80 pb-2.5">
+                <div class="flex items-center gap-2">
+                  <span class="text-base font-black text-white">${ladder.name}</span>
+                  <span class="text-[10px] font-mono px-2 py-0.5 rounded border ${patInfo.color}">${patInfo.label}</span>
+                </div>
+                <div class="text-[11px] text-slate-400 max-w-md">${ladder.description}</div>
+              </div>
+
+              <!-- Ladder Steps Flow with Animated Canvases -->
+              <div class="flex flex-wrap items-center gap-2.5 pt-1">
+                ${ladder.steps.map((step, idx) => {
+                  const mov = MOVEMENTS_DB.find(m => m.id === step.movementId);
+                  const isHard = step.tier === 'hard';
+                  const isEasy = step.tier === 'easy';
+
+                  const tierBadge = isEasy
+                    ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
+                    : (isHard ? 'bg-rose-500/20 text-rose-300 border-rose-500/40' : 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30');
+
+                  const isLast = idx === ladder.steps.length - 1;
+                  const pose = mov ? mov.poseType : 'squat_side';
+
+                  return `
+                    <div class="flex items-center gap-2">
+                      <div
+                        data-demo-mov="${step.movementId}"
+                        class="cursor-pointer group rounded-xl p-2.5 border bg-slate-950/80 border-slate-800 hover:border-slate-600 text-slate-200 transition flex flex-col items-center text-center w-28 sm:w-32 gap-1.5 shadow-sm hover:shadow-md"
+                        title="Click to inspect biomechanical cues & form"
+                      >
+                        <!-- Top meta: Tier & Level -->
+                        <div class="w-full flex items-center justify-between gap-1">
+                          <span class="text-[9px] font-mono font-extrabold uppercase px-1.5 py-0.5 rounded border ${tierBadge}">
+                            ${step.tier.toUpperCase()}
+                          </span>
+                          <span class="text-[9px] font-mono text-slate-400">Lvl ${step.level}</span>
+                        </div>
+
+                        <!-- Animated Stickman Viewport -->
+                        <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-center overflow-hidden relative group-hover:border-slate-700 transition">
+                          <canvas
+                            data-scale-pose="${pose}"
+                            width="96"
+                            height="96"
+                            class="w-full h-full block"
+                          ></canvas>
+                        </div>
+
+                        <!-- Movement Label & Gear -->
+                        <div class="w-full min-w-0">
+                          <div class="text-[11px] sm:text-xs font-bold text-white group-hover:text-volt transition truncate" title="${step.label}">
+                            ${step.label}
+                          </div>
+                          <div class="text-[9px] font-mono text-slate-400 truncate mt-0.5">
+                            ${mov ? (EQUIPMENT_CATALOG.find(e => e.id === mov.equipment)?.name || 'Bodyweight') : 'Bodyweight'}
+                          </div>
+                        </div>
+
+                        <!-- Cues link -->
+                        <div class="text-[9px] font-mono text-cyan-300 group-hover:text-cyan-200 flex items-center gap-0.5 pt-1 border-t border-slate-800/80 w-full justify-center">
+                          <i data-lucide="play" class="w-2.5 h-2.5"></i>
+                          <span>Cues</span>
+                        </div>
+                      </div>
+
+                      ${!isLast ? `
+                        <div class="hidden sm:flex text-slate-600 font-bold items-center">
+                          <i data-lucide="chevron-right" class="w-4 h-4 text-slate-600"></i>
+                        </div>
+                      ` : ''}
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        // Register all scale canvases with BiomechanicalStickAnimator
+        container.querySelectorAll('canvas[data-scale-pose]').forEach(canvas => {
+          BiomechanicalStickAnimator.registerCanvas(canvas, canvas.dataset.scalePose);
+        });
+
         lucide.createIcons();
       },
 
@@ -895,6 +1052,18 @@ const UI = {
           this.markWodOutdated(true);
         });
 
+        const intensityGrid = document.getElementById('intensitySelectorGrid');
+        if (intensityGrid) {
+          intensityGrid.addEventListener('click', e => {
+            const btn = e.target.closest('.intensity-btn');
+            if (!btn) return;
+            AppState.intensity = btn.dataset.intensity;
+            AppState.saveToStorage();
+            this.renderParameterControls();
+            this.markWodOutdated(true);
+          });
+        }
+
         // Generate & Re-Roll WOD Buttons
         document.getElementById('generateWodBtn').addEventListener('click', () => {
           this.scrollToTopAndGenerate();
@@ -1007,7 +1176,16 @@ const UI = {
         });
 
         // Classical Benchmarks Modal
+        this._activeBFilter = 'all';
         document.getElementById('openBenchmarksModalBtn').addEventListener('click', () => {
+          this._activeBFilter = 'all';
+          const searchInput = document.getElementById('benchmarksSearchInput');
+          if (searchInput) searchInput.value = '';
+          document.querySelectorAll('.bfilter-btn').forEach(b => {
+            b.className = b.dataset.bfilter === 'all'
+              ? 'bfilter-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-volt text-slate-950'
+              : 'bfilter-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 text-slate-300';
+          });
           this.renderBenchmarksModal('all');
           const modal = document.getElementById('benchmarksModal');
           modal.classList.remove('hidden');
@@ -1030,9 +1208,18 @@ const UI = {
               b.className = 'bfilter-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 text-slate-300';
             });
             btn.className = 'bfilter-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-volt text-slate-950';
-            this.renderBenchmarksModal(btn.dataset.bfilter);
+            this._activeBFilter = btn.dataset.bfilter;
+            const searchInput = document.getElementById('benchmarksSearchInput');
+            this.renderBenchmarksModal(this._activeBFilter, searchInput ? searchInput.value : '');
           });
         });
+
+        const benchSearch = document.getElementById('benchmarksSearchInput');
+        if (benchSearch) {
+          benchSearch.addEventListener('input', e => {
+            this.renderBenchmarksModal(this._activeBFilter || 'all', e.target.value);
+          });
+        }
 
         document.getElementById('benchmarksListContainer').addEventListener('click', e => {
           const card = e.target.closest('[data-load-benchmark]');
@@ -1044,6 +1231,71 @@ const UI = {
             closeBenchModal();
           }
         });
+
+        // Scale Progressions & Ladders Modal
+        this._activeScalePattern = 'ALL';
+        const openScaleModal = () => {
+          this._activeScalePattern = 'ALL';
+          document.querySelectorAll('.spattern-btn').forEach(b => {
+            b.className = b.dataset.spattern === 'ALL'
+              ? 'spattern-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-amber-400 text-slate-950 font-bold'
+              : 'spattern-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 text-slate-300';
+          });
+          this.renderScaleModal('ALL');
+          const modal = document.getElementById('scaleModal');
+          if (modal) {
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+          }
+        };
+
+        const scaleBtn = document.getElementById('openScaleModalBtn');
+        if (scaleBtn) scaleBtn.addEventListener('click', openScaleModal);
+
+        const closeScaleModal = () => {
+          const modal = document.getElementById('scaleModal');
+          if (modal) {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+          }
+        };
+
+        const closeScaleBtn = document.getElementById('closeScaleModalBtn');
+        if (closeScaleBtn) closeScaleBtn.addEventListener('click', closeScaleModal);
+
+        const scaleModalEl = document.getElementById('scaleModal');
+        if (scaleModalEl) {
+          scaleModalEl.addEventListener('click', e => {
+            if (e.target.id === 'scaleModal') closeScaleModal();
+          });
+        }
+
+        const scaleTabs = document.getElementById('scalePatternTabs');
+        if (scaleTabs) {
+          scaleTabs.addEventListener('click', e => {
+            const btn = e.target.closest('.spattern-btn');
+            if (!btn) return;
+            document.querySelectorAll('.spattern-btn').forEach(b => {
+              b.className = 'spattern-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 text-slate-300';
+            });
+            btn.className = 'spattern-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-amber-400 text-slate-950 font-bold';
+            this._activeScalePattern = btn.dataset.spattern;
+            this.renderScaleModal(this._activeScalePattern);
+          });
+        }
+
+        const scaleContainer = document.getElementById('scaleLaddersContainer');
+        if (scaleContainer) {
+          scaleContainer.addEventListener('click', e => {
+            const item = e.target.closest('[data-demo-mov]');
+            if (!item) return;
+            const movId = item.dataset.demoMov;
+            const mov = MOVEMENTS_DB.find(m => m.id === movId);
+            if (mov) {
+              this.openMovementDemo(mov);
+            }
+          });
+        }
 
         // Floating "Generate Workout" Button (appears when scrolled down)
         const floatingBar = document.getElementById('floatingGenerateBar');
@@ -1094,6 +1346,7 @@ const UI = {
           AppState.mode = 'smart';
           AppState.format = 'ANY';
           AppState.duration = 'medium';
+          AppState.intensity = 'standard';
           this.renderEquipmentGrid();
           this.renderMovementMatrix();
           this.renderParameterControls();

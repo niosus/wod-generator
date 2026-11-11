@@ -64,6 +64,14 @@
           <span class="hidden md:inline">Benchmarks</span>
         </button>
 
+        <!-- Scale Progressions / Ladders Button -->
+        <button id="openScaleModalBtn"
+          class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700/80 text-xs font-medium text-amber-300 transition"
+          title="View Movement Scale Progressions & Ladders">
+          <i data-lucide="git-merge" class="w-3.5 h-3.5"></i>
+          <span class="hidden md:inline">Scale Ladders</span>
+        </button>
+
         <!-- Reset Local Preferences -->
         <button id="resetPrefsBtn"
           class="p-2 rounded-xl bg-slate-900 hover:bg-rose-950/60 border border-slate-800 hover:border-rose-500/40 text-slate-400 hover:text-rose-300 transition"
@@ -371,6 +379,28 @@
               </button>
             </div>
           </div>
+
+          <!-- Target Intensity -->
+          <div>
+            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Target Intensity</label>
+            <div class="grid grid-cols-3 gap-2" id="intensitySelectorGrid">
+              <button data-intensity="moderate"
+                class="intensity-btn py-2 px-2.5 rounded-xl border text-xs font-semibold transition flex flex-col items-center">
+                <span>Moderate</span>
+                <span class="text-[10px] font-mono opacity-75">Aerobic / Paced</span>
+              </button>
+              <button data-intensity="standard"
+                class="intensity-btn py-2 px-2.5 rounded-xl border text-xs font-semibold transition flex flex-col items-center">
+                <span>Standard</span>
+                <span class="text-[10px] font-mono opacity-75">Gym Rx Benchmark</span>
+              </button>
+              <button data-intensity="high"
+                class="intensity-btn py-2 px-2.5 rounded-xl border text-xs font-semibold transition flex flex-col items-center">
+                <span>High</span>
+                <span class="text-[10px] font-mono opacity-75">Comp / Max Volume</span>
+              </button>
+            </div>
+          </div>
         </div>
 
       </div>
@@ -456,11 +486,13 @@
             <!-- Dynamically populated category buttons -->
           </div>
 
-          <div class="flex items-center gap-1.5">
+          <div class="flex items-center gap-1.5 flex-wrap">
             <span
               class="text-[10px] font-mono text-slate-400 uppercase tracking-wider mr-1 hidden sm:inline">Tier:</span>
             <button data-difffilter="ALL"
               class="diff-filter-btn px-2.5 py-1 rounded-lg text-[11px] font-mono font-bold bg-slate-800 text-white">ALL</button>
+            <button data-difffilter="easy"
+              class="diff-filter-btn px-2.5 py-1 rounded-lg text-[11px] font-mono font-bold bg-slate-900 text-amber-300 border border-amber-500/30">EASY</button>
             <button data-difffilter="normal"
               class="diff-filter-btn px-2.5 py-1 rounded-lg text-[11px] font-mono font-bold bg-slate-900 text-emerald-300 border border-emerald-500/30">NORMAL</button>
             <button data-difffilter="hard"
@@ -539,7 +571,7 @@
   <div id="benchmarksModal"
     class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
     <div
-      class="bg-slate-925 border border-slate-700 rounded-2xl max-w-3xl w-full max-h-[85vh] flex flex-col p-5 sm:p-6 shadow-2xl relative">
+      class="bg-slate-925 border border-slate-700 rounded-2xl max-w-4xl w-full max-h-[88vh] flex flex-col p-5 sm:p-6 shadow-2xl relative">
       <div class="flex items-center justify-between pb-4 border-b border-slate-800">
         <div>
           <h3 class="text-xl font-black text-white flex items-center gap-2">
@@ -547,8 +579,7 @@
             <span>Classical CrossFit, Hero & Hyrox Benchmarks</span>
           </h3>
           <p class="text-xs text-slate-400 mt-0.5">
-            Respects your Available/Optional gear and Normal/Hard skill filter. Click any benchmark to load it onto the
-            board.
+            40+ classic benchmarks honoring The Girls and fallen Heroes. Click any benchmark to load it onto the board.
           </p>
         </div>
         <button id="closeBenchmarksModalBtn"
@@ -558,16 +589,81 @@
       </div>
 
       <!-- Filter Bar -->
-      <div class="flex items-center gap-2 my-3">
-        <button data-bfilter="all"
-          class="bfilter-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-volt text-slate-950">All Classics</button>
-        <button data-bfilter="eligible"
-          class="bfilter-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 text-slate-300">Ready With My
-          Filter</button>
+      <div class="flex flex-wrap items-center justify-between gap-2.5 my-3">
+        <div class="flex flex-wrap items-center gap-1.5">
+          <button data-bfilter="all"
+            class="bfilter-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-volt text-slate-950">All
+            Classics</button>
+          <button data-bfilter="girls"
+            class="bfilter-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 text-rose-300">The
+            Girls</button>
+          <button data-bfilter="heroes"
+            class="bfilter-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 text-cyan-300">Hero
+            WODs</button>
+          <button data-bfilter="eligible"
+            class="bfilter-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 text-emerald-300">Ready With My
+            Gear</button>
+        </div>
+        <div class="relative w-full sm:w-56">
+          <input id="benchmarksSearchInput" type="text" placeholder="Search workouts..."
+            class="w-full px-3 py-1.5 text-xs bg-slate-900 border border-slate-700 rounded-xl text-slate-200 placeholder-slate-500 focus:outline-none focus:border-volt" />
+        </div>
       </div>
 
       <!-- Benchmarks List -->
       <div id="benchmarksListContainer" class="flex-1 overflow-y-auto grid grid-cols-1 sm:grid-cols-2 gap-3 pr-1">
+        <!-- Populated by JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- MOVEMENT SCALE PROGRESSIONS & LADDERS MODAL -->
+  <div id="scaleModal"
+    class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
+    <div
+      class="bg-slate-925 border border-slate-700 rounded-2xl max-w-4xl w-full max-h-[88vh] flex flex-col p-5 sm:p-6 shadow-2xl relative">
+      <div class="flex items-center justify-between pb-4 border-b border-slate-800">
+        <div>
+          <h3 class="text-xl font-black text-white flex items-center gap-2">
+            <i data-lucide="git-merge" class="w-5 h-5 text-amber-400"></i>
+            <span>Movement Scale Progressions & Ladders</span>
+          </h3>
+          <p class="text-xs text-slate-400 mt-0.5">
+            Biomechanical progression ladders from foundational regressions to elite Rx skills. Click any movement to
+            view live kinematic animation & cues.
+          </p>
+        </div>
+        <button id="closeScaleModalBtn"
+          class="w-9 h-9 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center transition">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Filter Bar -->
+      <div class="flex flex-wrap items-center justify-between gap-2.5 my-3">
+        <div id="scalePatternTabs" class="flex flex-wrap gap-1.5">
+          <button data-spattern="ALL"
+            class="spattern-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-amber-400 text-slate-950 font-bold">All
+            Patterns</button>
+          <button data-spattern="PUSH"
+            class="spattern-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 text-slate-300">Push</button>
+          <button data-spattern="PULL"
+            class="spattern-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 text-slate-300">Pull</button>
+          <button data-spattern="SQUAT"
+            class="spattern-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 text-slate-300">Squat</button>
+          <button data-spattern="HINGE_CORE"
+            class="spattern-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 text-slate-300">Hinge &
+            Core</button>
+          <button data-spattern="FULL_BODY"
+            class="spattern-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 text-slate-300">Full
+            Body</button>
+          <button data-spattern="CARDIO"
+            class="spattern-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 text-slate-300">Cardio</button>
+        </div>
+      </div>
+
+      <!-- Scale Ladders List Container -->
+      <div id="scaleLaddersContainer" class="flex-1 overflow-y-auto space-y-4 pr-1">
         <!-- Populated by JS -->
       </div>
     </div>
@@ -595,6 +691,7 @@
   <script src="src/data/equipment.js"></script>
   <script src="src/data/patterns.js"></script>
   <script src="src/data/movements.js"></script>
+  <script src="src/data/progressions.js"></script>
   <script src="src/data/benchmarks.js"></script>
   <script src="src/data/presets.js"></script>
   <script src="src/animator/constants.js"></script>
