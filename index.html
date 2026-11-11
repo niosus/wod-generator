@@ -152,6 +152,7 @@
     }
 
     .wod-outdated #wodTitleSection,
+    .wod-outdated #shareWodBtn,
     .wod-outdated #copyWodBtn,
     .wod-outdated #wodCardBody {
       opacity: 0.24;
@@ -236,6 +237,24 @@
 
     <!-- HERO SECTION: FRONT & CENTRAL GENERATED WOD BOARD -->
     <section id="heroWodSection" class="w-full relative">
+      <!-- SHARED WORKOUT NOTIFICATION BANNER -->
+      <div id="sharedWodNotice"
+        class="hidden mb-3.5 px-4 py-2.5 rounded-xl bg-slate-900/95 border border-cyan-500/40 text-xs text-cyan-200 flex items-center justify-between gap-3 shadow-lg backdrop-blur-md transition-all">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <span class="w-2.5 h-2.5 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.9)] shrink-0"></span>
+          <span class="truncate">
+            Viewing shared workout: <strong id="sharedWodTitleNotice" class="text-white font-bold"></strong>
+          </span>
+        </div>
+        <div class="flex items-center gap-2 shrink-0">
+          <button id="dismissSharedNoticeBtn"
+            class="text-slate-400 hover:text-white text-xs font-semibold px-2 py-1 rounded transition flex items-center gap-1">
+            <span>Dismiss</span>
+            <i data-lucide="x" class="w-3.5 h-3.5"></i>
+          </button>
+        </div>
+      </div>
+
       <!-- ACTIVE WOD WHITEBOARD CARD -->
       <div id="wodCardContainer"
         class="bg-slate-925/95 border border-slate-800 rounded-2xl p-5 sm:p-7 shadow-2xl relative overflow-hidden transition-all duration-300">
@@ -265,10 +284,16 @@
             </h2>
           </div>
 
-          <!-- Action Buttons: Re-roll & Copy WOD (Pinned firmly to top-right, never wraps) -->
+          <!-- Action Buttons: Share, Copy & Re-roll WOD (Pinned firmly to top-right, never wraps) -->
           <div class="shrink-0 flex items-center gap-2">
+            <button id="shareWodBtn"
+              class="px-3 sm:px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-cyan-500/30 hover:border-cyan-400/60 text-xs font-semibold text-cyan-300 hover:text-white flex items-center gap-1.5 transition"
+              title="Share Workout Link with Friends">
+              <i data-lucide="share-2" class="w-4 h-4 text-cyan-400"></i>
+              <span id="shareWodLabel">Share</span>
+            </button>
             <button id="copyWodBtn"
-              class="px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700/80 text-xs font-semibold text-slate-300 flex items-center gap-1.5 transition"
+              class="px-3 sm:px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700/80 text-xs font-semibold text-slate-300 flex items-center gap-1.5 transition"
               title="Copy Workout to Clipboard">
               <i data-lucide="copy" class="w-4 h-4"></i>
               <span id="copyWodLabel">Copy</span>
@@ -277,7 +302,7 @@
               class="hidden w-2.5 h-2.5 rounded-full bg-volt shadow-[0_0_8px_rgba(216,255,62,0.8)] border border-volt/50"
               title="Settings changed"></span>
             <button id="rerollWodBtn"
-              class="px-4 py-2 rounded-xl bg-volt hover:bg-volt-400 active:scale-[0.98] text-slate-950 font-black text-xs uppercase tracking-wider flex items-center gap-1.5 shadow-md shadow-volt/20 transition"
+              class="px-3.5 sm:px-4 py-2 rounded-xl bg-volt hover:bg-volt-400 active:scale-[0.98] text-slate-950 font-black text-xs uppercase tracking-wider flex items-center gap-1.5 shadow-md shadow-volt/20 transition"
               title="Generate Another WOD">
               <i data-lucide="refresh-cw" class="w-4 h-4 stroke-[2.5]"></i>
               <span>Re-Roll</span>
@@ -4795,18 +4820,328 @@
     };
 
     /***************************************************************************
-     * 5. UI RENDERERS & INTERACTION BINDINGS
+     * 5.5 WORKOUT LINK SHARING ENGINE (URL COMPRESSION & SERIALIZATION)
+     ***************************************************************************/
+    const WorkoutSharing = {
+      toBase64Url(uint8) {
+        let binary = '';
+        for (let i = 0; i < uint8.length; i++) {
+          binary += String.fromCharCode(uint8[i]);
+        }
+        return btoa(binary)
+          .replace(/\+/g, '-')
+          .replace(/\//g, '_')
+          .replace(/=+$/, '');
+      },
+
+      fromBase64Url(str) {
+        let base = str.replace(/-/g, '+').replace(/_/g, '/');
+        while (base.length % 4) base += '=';
+        const binary = atob(base);
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i++) {
+          bytes[i] = binary.charCodeAt(i);
+        }
+        return bytes;
+      },
+
+      async compress(jsonStr) {
+        if (typeof CompressionStream !== 'undefined') {
+          try {
+            const stream = new Blob([jsonStr]).stream().pipeThrough(new CompressionStream('deflate-raw'));
+            const buf = await new Response(stream).arrayBuffer();
+            return 'z.' + this.toBase64Url(new Uint8Array(buf));
+          } catch (e) {
+            console.warn('CompressionStream fallback:', e);
+          }
+        }
+        return 'u.' + this.toBase64Url(new TextEncoder().encode(jsonStr));
+      },
+
+      async decompress(str) {
+        if (str.startsWith('z.')) {
+          const bytes = this.fromBase64Url(str.slice(2));
+          const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
+          return await new Response(stream).text();
+        }
+        if (str.startsWith('u.')) {
+          const bytes = this.fromBase64Url(str.slice(2));
+          return new TextDecoder().decode(bytes);
+        }
+        try {
+          const bytes = this.fromBase64Url(str);
+          return new TextDecoder().decode(bytes);
+        } catch (e) {
+          return str;
+        }
+      },
+
+      async encodeWod(wod) {
+        if (!wod) return '';
+        const compact = {
+          v: 1,
+          t: wod.title,
+          bt: wod.badgeType,
+          f: wod.format,
+          m: wod.minutes,
+          bf: wod.badgeFormat,
+          dl: wod.difficultyLabel,
+          ph: wod.prescriptionHeader,
+          st: wod.stimulus,
+          lg: wod.logic,
+          ib: wod.isBenchmark ? 1 : 0,
+          it: (wod.items || []).map(i => ({
+            id: i.movement.id,
+            fk: i.formatKey,
+            si: i.stationIndex,
+            cs: i.customScheme,
+            rd: i.repsDisplay,
+            pt: i.prescriptionText,
+            og: i.isOptionalGear ? 1 : 0,
+            bcl: i.benchmarkCustomLabel || undefined,
+            alt: i.alternative ? { id: i.alternative.movement.id, txt: i.alternative.text } : null,
+            sc: i.scaleDown ? { id: i.scaleDown.movement.id, nt: i.scaleDown.note, txt: i.scaleDown.text } : null
+          }))
+        };
+        return await this.compress(JSON.stringify(compact));
+      },
+
+      async decodeWod(encodedStr) {
+        if (!encodedStr || typeof encodedStr !== 'string') return null;
+        const jsonStr = await this.decompress(encodedStr.trim());
+        const data = JSON.parse(jsonStr);
+        if (!data || !Array.isArray(data.it)) return null;
+
+        const items = data.it.map(ci => {
+          const mov = MOVEMENTS_DB.find(m => m.id === ci.id) || MOVEMENTS_DB[0];
+          return {
+            movement: mov,
+            formatKey: ci.fk || data.f,
+            stationIndex: ci.si !== undefined ? ci.si : null,
+            customScheme: ci.cs || null,
+            repsDisplay: ci.rd || '',
+            prescriptionText: ci.pt || '',
+            isOptionalGear: Boolean(ci.og),
+            benchmarkCustomLabel: ci.bcl,
+            alternative: ci.alt ? {
+              movement: MOVEMENTS_DB.find(m => m.id === ci.alt.id) || MOVEMENTS_DB[0],
+              text: ci.alt.txt
+            } : null,
+            scaleDown: ci.sc ? {
+              movement: MOVEMENTS_DB.find(m => m.id === ci.sc.id) || MOVEMENTS_DB[0],
+              note: ci.sc.nt,
+              text: ci.sc.txt
+            } : null
+          };
+        });
+
+        const restoredWod = {
+          title: data.t,
+          badgeType: data.bt,
+          format: data.f,
+          minutes: data.m,
+          badgeFormat: data.bf,
+          difficultyLabel: data.dl,
+          prescriptionHeader: data.ph,
+          stimulus: data.st,
+          logic: data.lg,
+          isBenchmark: Boolean(data.ib),
+          items
+        };
+
+        // Attach alternatives or scale-downs if missing
+        items.forEach((item) => {
+          if (!item.alternative && item.isOptionalGear) {
+            const alt = AppState.resolveUniqueAlternative(item.movement, new Set(items.map(it => it.movement.id)));
+            if (alt) {
+              item.alternative = { movement: alt, text: `${item.repsDisplay} ${alt.name}` };
+            }
+          }
+          if (!item.scaleDown) {
+            const sc = AppState.resolveScaleDown(item.movement, new Set(items.map(it => it.movement.id)));
+            if (sc) {
+              item.scaleDown = { movement: sc.movement, note: sc.note, text: `${item.repsDisplay} ${sc.movement.name}` };
+            }
+          }
+        });
+
+        return restoredWod;
+      },
+
+      getPayloadFromUrl() {
+        try {
+          const params = new URLSearchParams(window.location.search);
+          if (params.has('wod')) return params.get('wod');
+          if (params.has('share')) return params.get('share');
+
+          const hash = (window.location.hash || '').replace(/^#/, '');
+          if (hash.startsWith('wod=')) return hash.slice(4);
+          if (hash.startsWith('share=')) return hash.slice(6);
+          if (hash.startsWith('z.') || hash.startsWith('u.')) return hash;
+        } catch (e) {
+          console.warn('Error reading URL params:', e);
+        }
+        return null;
+      },
+
+      async loadWodFromUrl() {
+        const payload = this.getPayloadFromUrl();
+        if (!payload) return null;
+        try {
+          return await this.decodeWod(payload);
+        } catch (err) {
+          console.warn('Could not decode workout from URL:', err);
+          return null;
+        }
+      },
+
+      async createShareUrl(wod) {
+        const encoded = await this.encodeWod(wod);
+        const url = new URL(window.location.href);
+        if (url.protocol === 'file:') {
+          url.search = '';
+          url.hash = 'wod=' + encoded;
+        } else {
+          url.searchParams.set('wod', encoded);
+          url.hash = '';
+        }
+        return url.toString();
+      },
+
+      async copyToClipboard(text) {
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(text);
+          return;
+        }
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.left = '-9999px';
+        ta.style.top = '-9999px';
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        const ok = document.execCommand('copy');
+        document.body.removeChild(ta);
+        if (!ok) throw new Error('execCommand failed');
+      }
+    };
+
+    /***************************************************************************
+     * 6. UI RENDERERS & INTERACTION BINDINGS
      ***************************************************************************/
     const UI = {
       isOutdated: false,
 
-      init() {
+      async init() {
         AppState.loadFromStorage();
         this.renderEquipmentGrid();
         this.renderMovementMatrix();
         this.renderParameterControls();
         this.bindEvents();
-        this.generateAndDisplayWod();
+
+        const sharedWod = await WorkoutSharing.loadWodFromUrl();
+        if (sharedWod) {
+          this.displayWod(sharedWod);
+          this.showSharedNotice(sharedWod);
+        } else {
+          this.generateAndDisplayWod();
+        }
+      },
+
+      showSharedNotice(wod) {
+        const notice = document.getElementById('sharedWodNotice');
+        const noticeTitle = document.getElementById('sharedWodTitleNotice');
+        if (notice && noticeTitle) {
+          noticeTitle.textContent = wod.title;
+          notice.classList.remove('hidden');
+        }
+      },
+
+      clearSharedUrl() {
+        const notice = document.getElementById('sharedWodNotice');
+        if (notice) notice.classList.add('hidden');
+        if (window.history && window.history.replaceState) {
+          const url = new URL(window.location.href);
+          url.searchParams.delete('wod');
+          url.searchParams.delete('share');
+          if (url.hash.startsWith('#wod=') || url.hash.startsWith('#share=') || url.hash.startsWith('#z.') || url.hash.startsWith('#u.')) {
+            url.hash = '';
+          }
+          window.history.replaceState(null, '', url.toString());
+        }
+      },
+
+      showToast(message, type = 'success') {
+        let toastEl = document.getElementById('wodForgeToast');
+        if (!toastEl) {
+          toastEl = document.createElement('div');
+          toastEl.id = 'wodForgeToast';
+          toastEl.className = 'fixed bottom-6 right-6 z-50 transition-all duration-300 opacity-0 translate-y-3 pointer-events-none max-w-sm';
+          document.body.appendChild(toastEl);
+        }
+        const isVolt = type === 'success';
+        toastEl.innerHTML = `
+          <div class="px-4 py-3 rounded-xl bg-slate-900/95 border ${isVolt ? 'border-volt/40 text-slate-100' : 'border-rose-500/40 text-rose-200'} shadow-2xl backdrop-blur-md flex items-center gap-3">
+            <div class="w-2.5 h-2.5 rounded-full ${isVolt ? 'bg-volt shadow-[0_0_8px_rgba(216,255,62,0.9)]' : 'bg-rose-500'} shrink-0"></div>
+            <p class="text-xs font-semibold leading-relaxed">${message}</p>
+          </div>
+        `;
+        toastEl.classList.remove('opacity-0', 'translate-y-3', 'pointer-events-none');
+        clearTimeout(this._toastTimeout);
+        this._toastTimeout = setTimeout(() => {
+          toastEl.classList.add('opacity-0', 'translate-y-3', 'pointer-events-none');
+        }, 3200);
+      },
+
+      async shareWod(wod) {
+        if (!wod) return;
+        const shareBtn = document.getElementById('shareWodBtn');
+        const shareLabel = document.getElementById('shareWodLabel');
+        try {
+          const shareUrl = await WorkoutSharing.createShareUrl(wod);
+
+          // Update URL in browser address bar without reload
+          if (window.history && window.history.replaceState) {
+            window.history.replaceState(null, '', shareUrl);
+          }
+
+          // Use native share sheet on mobile when available
+          const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+          if (navigator.share && isMobile) {
+            try {
+              await navigator.share({
+                title: `WODFORGE: ${wod.title}`,
+                text: `${wod.title} (${wod.badgeFormat}) - ${wod.prescriptionHeader}`,
+                url: shareUrl
+              });
+              this.showToast('Workout shared successfully!');
+              return;
+            } catch (err) {
+              if (err.name === 'AbortError') return; // User closed share sheet
+            }
+          }
+
+          // Copy link to clipboard
+          await WorkoutSharing.copyToClipboard(shareUrl);
+
+          // Button feedback
+          if (shareLabel) shareLabel.textContent = 'Copied!';
+          const icon = shareBtn ? shareBtn.querySelector('i') : null;
+          if (icon) icon.setAttribute('data-lucide', 'check');
+          lucide.createIcons();
+
+          this.showToast('Workout link copied to clipboard! Anyone opening this link will see this exact workout.');
+
+          setTimeout(() => {
+            if (shareLabel) shareLabel.textContent = 'Share';
+            if (icon) icon.setAttribute('data-lucide', 'share-2');
+            lucide.createIcons();
+          }, 2200);
+        } catch (err) {
+          console.error('Share workout error:', err);
+          this.showToast('Could not copy link to clipboard', 'error');
+        }
       },
 
       markWodOutdated(isOutdated = true) {
@@ -5143,6 +5478,7 @@
       },
 
       generateAndDisplayWod() {
+        this.clearSharedUrl();
         const wod = WorkoutGenerator.generate();
         this.displayWod(wod);
       },
@@ -5633,11 +5969,35 @@
           }
         });
 
+        // Share WOD Link
+        const shareBtn = document.getElementById('shareWodBtn');
+        if (shareBtn) {
+          shareBtn.addEventListener('click', async () => {
+            const wod = AppState.currentWod;
+            if (!wod) return;
+            await this.shareWod(wod);
+          });
+        }
+
+        // Dismiss Shared Workout Notice Banner
+        const dismissNoticeBtn = document.getElementById('dismissSharedNoticeBtn');
+        if (dismissNoticeBtn) {
+          dismissNoticeBtn.addEventListener('click', () => {
+            const notice = document.getElementById('sharedWodNotice');
+            if (notice) notice.classList.add('hidden');
+          });
+        }
+
         // Copy WOD to Clipboard
-        document.getElementById('copyWodBtn').addEventListener('click', () => {
+        document.getElementById('copyWodBtn').addEventListener('click', async () => {
           const wod = AppState.currentWod;
           if (!wod) return;
-          const text = [
+          let shareUrl = '';
+          try {
+            shareUrl = await WorkoutSharing.createShareUrl(wod);
+          } catch (e) {}
+
+          const textParts = [
             `${wod.title} (${wod.badgeFormat})`,
             wod.prescriptionHeader,
             ...wod.items.map(i => {
@@ -5645,14 +6005,22 @@
               return `- ${i.prescriptionText}${subSuffix}`;
             }),
             `\nStimulus: ${wod.stimulus}`
-          ].join('\n');
+          ];
+          if (shareUrl) {
+            textParts.push(`\nWorkout Link: ${shareUrl}`);
+          }
+          const text = textParts.join('\n');
 
-          const ta = document.createElement('textarea');
-          ta.value = text;
-          document.body.appendChild(ta);
-          ta.select();
-          document.execCommand('copy');
-          document.body.removeChild(ta);
+          try {
+            await WorkoutSharing.copyToClipboard(text);
+          } catch (e) {
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand('copy');
+            document.body.removeChild(ta);
+          }
 
           const label = document.getElementById('copyWodLabel');
           label.textContent = 'Copied!';
@@ -5703,6 +6071,7 @@
           if (!card) return;
           const bm = CLASSICAL_BENCHMARKS.find(b => b.id === card.dataset.loadBenchmark);
           if (bm) {
+            this.clearSharedUrl();
             this.displayWod(WorkoutGenerator.formatBenchmarkWod(bm));
             closeBenchModal();
           }
@@ -5765,8 +6134,8 @@
       }
     };
 
-    window.addEventListener('DOMContentLoaded', () => {
-      UI.init();
+    window.addEventListener('DOMContentLoaded', async () => {
+      await UI.init();
     });
   </script>
 </body>
