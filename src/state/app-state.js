@@ -90,16 +90,21 @@ const STORAGE_KEY = 'wodforge_local_prefs_v3';
         if (!sig) return;
         this.recentWorkoutSignatures = this.recentWorkoutSignatures.filter(s => s !== sig);
         this.recentWorkoutSignatures.push(sig);
-        if (this.recentWorkoutSignatures.length > 10) {
-          this.recentWorkoutSignatures = this.recentWorkoutSignatures.slice(-10);
+        if (this.recentWorkoutSignatures.length > 25) {
+          this.recentWorkoutSignatures = this.recentWorkoutSignatures.slice(-25);
         }
         this.saveToStorage();
       },
 
-      isRecentWorkout(sig) {
+      isRecentWorkout(sig, windowSize = 5) {
         if (!sig) return false;
-        const last5 = this.recentWorkoutSignatures.slice(-5);
-        return last5.includes(sig);
+        const recent = this.recentWorkoutSignatures.slice(-windowSize);
+        return recent.includes(sig);
+      },
+
+      getRecentIndex(sig) {
+        if (!sig) return -1;
+        return this.recentWorkoutSignatures.lastIndexOf(sig);
       },
 
       isEquipmentUsable(eqId) {

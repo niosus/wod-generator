@@ -351,21 +351,52 @@ const WorkoutGenerator = {
   getWodSignature(wod) {
     if (!wod) return '';
     if (wod.isBenchmark) {
-      return `bm:${(wod.title || '').toLowerCase().replace(/[^a-z0-9]/g, '')}`;
+      const id = wod.benchmarkId || wod.id || wod.title;
+      return `bm:${String(id).toLowerCase().replace(/[^a-z0-9]/g, '')}`;
     }
-    const itemIds = (wod.items || []).map(it => it.movement?.id).filter(Boolean).sort().join('-');
-    return `${wod.format || 'AMRAP'}:${itemIds}`;
+    const itemIds = (wod.items || [])
+      .map(it => it.movement?.id)
+      .filter(Boolean)
+      .sort()
+      .join('-');
+    const format = wod.format || 'AMRAP';
+    return `${format}:${itemIds}`;
+  },
+
+  getWodMovementSignature(wod) {
+    if (!wod) return '';
+    if (wod.isBenchmark) {
+      const id = wod.benchmarkId || wod.id || wod.title;
+      return `bm:${String(id).toLowerCase().replace(/[^a-z0-9]/g, '')}`;
+    }
+    return (wod.items || [])
+      .map(it => it.movement?.id)
+      .filter(Boolean)
+      .sort()
+      .join('-');
+  },
+
+  getBenchmarkSignature(bm) {
+    if (!bm) return '';
+    const id = bm.id || bm.title;
+    return `bm:${String(id).toLowerCase().replace(/[^a-z0-9]/g, '')}`;
   },
 
   /**
    * Main Generator Entrypoint:
-   * Remembers the last 5 generated workouts and avoids duplicates if candidate pool > 5.
+   * Keeps track of the last workouts shown to the user and guarantees that:
+   * 1) The exact same workout currently displayed is NEVER repeated consecutively.
+   * 2) Any workout shown within the last 5 workouts is excluded whenever the candidate pool allows.
+   * 3) If candidate pool has fewer than 5 unique options, cycles through them via Least-Recently-Used (LRU).
    */
   generate() {
     const activePool = globalThis.AppState.getActiveMovementPool();
     if (activePool.length === 0) {
       return this.createFallbackEmptyWod();
     }
+
+    const currentWodSig = this.getWodSignature(globalThis.AppState.currentWod);
+    const currentMovSig = this.getWodMovementSignature(globalThis.AppState.currentWod);
 
     const eligibleBenchmarks = globalThis.CLASSICAL_BENCHMARKS.filter(b => {
       const matchesPool = globalThis.AppState.isBenchmarkEligible(b);
@@ -380,59 +411,103 @@ const WorkoutGenerator = {
       return matchesPool && matchesFormat;
     });
 
-    // Check recent history size to prevent repetition of the last 5 workouts
-    const maxAttempts = 20;
-
+    // 1. CLASSICS ONLY MODE
     if (globalThis.AppState.mode === 'benchmark') {
       const candidateList = eligibleBenchmarks.length > 0
         ? eligibleBenchmarks
         : (broaderBenchmarks.length > 0 ? broaderBenchmarks : globalThis.CLASSICAL_BENCHMARKS);
 
-      let chosen = this.pickRandom(candidateList);
-      if (candidateList.length > 5) {
-        const nonRecent = candidateList.filter(b => !globalThis.AppState.isRecentWorkout(`bm:${b.title.toLowerCase().replace(/[^a-z0-9]/g, '')}`));
-        if (nonRecent.length > 0) {
-          chosen = this.pickRandom(nonRecent);
-        }
+      if (candidateList.length === 0) {
+        return this.createFallbackEmptyWod();
       }
+
+      // Filter out benchmarks seen in the last 5 workouts AND exclude the currently shown workout
+      const nonRecent = candidateList.filter(b => {
+        const sig = this.getBenchmarkSignature(b);
+        return sig !== currentWodSig && !globalThis.AppState.isRecentWorkout(sig, 5);
+      });
+
+      let chosen = null;
+      if (nonRecent.length > 0) {
+        chosen = this.pickRandom(nonRecent);
+      } else {
+        // When pool <= 5, exclude current workout if possible and pick Least Recently Used (LRU)
+        const candidates = candidateList.length > 1
+          ? candidateList.filter(b => this.getBenchmarkSignature(b) !== currentWodSig)
+          : candidateList;
+
+        candidates.sort((a, b) => {
+          const idxA = globalThis.AppState.getRecentIndex(this.getBenchmarkSignature(a));
+          const idxB = globalThis.AppState.getRecentIndex(this.getBenchmarkSignature(b));
+          return idxA - idxB;
+        });
+        chosen = candidates[0];
+      }
+
       const wod = this.formatBenchmarkWod(chosen);
       globalThis.AppState.addRecentWorkout(this.getWodSignature(wod));
       return wod;
     }
 
+    // 2. SMART HYBRID MODE (Benchmark chance: 35%, but ONLY if a fresh benchmark is available)
     if (globalThis.AppState.mode === 'smart' && eligibleBenchmarks.length > 0 && Math.random() < 0.35) {
-      let chosen = this.pickRandom(eligibleBenchmarks);
-      if (eligibleBenchmarks.length > 5) {
-        const nonRecent = eligibleBenchmarks.filter(b => !globalThis.AppState.isRecentWorkout(`bm:${b.title.toLowerCase().replace(/[^a-z0-9]/g, '')}`));
-        if (nonRecent.length > 0) {
-          chosen = this.pickRandom(nonRecent);
-        }
+      const freshBenchmarks = eligibleBenchmarks.filter(b => {
+        const sig = this.getBenchmarkSignature(b);
+        return sig !== currentWodSig && !globalThis.AppState.isRecentWorkout(sig, 5);
+      });
+
+      if (freshBenchmarks.length > 0) {
+        const chosen = this.pickRandom(freshBenchmarks);
+        const wod = this.formatBenchmarkWod(chosen);
+        globalThis.AppState.addRecentWorkout(this.getWodSignature(wod));
+        return wod;
       }
-      const wod = this.formatBenchmarkWod(chosen);
-      globalThis.AppState.addRecentWorkout(this.getWodSignature(wod));
-      return wod;
+      // If all eligible benchmarks were already shown in the last 5 workouts,
+      // fall through to algorithmic generation to create a fresh custom workout!
     }
 
-    // Algorithmic WOD with last 5 workout deduplication
+    // 3. ALGORITHMIC GENERATION (Deduplicated against last 5 workouts + current WOD)
     const hardestPool = globalThis.AppState.getHardestAllowedMovementPool();
     const effectivePool = hardestPool.length > 0 ? hardestPool : activePool;
 
-    // Estimate available variation capacity
-    const canDeduplicate = effectivePool.length >= 4;
-    let chosenWod = null;
+    let bestCandidate = null;
+    let bestScore = -Infinity;
 
-    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    for (let attempt = 0; attempt < 60; attempt++) {
       const candidate = this.generateAlgorithmicWod(effectivePool);
       const sig = this.getWodSignature(candidate);
+      const movSig = this.getWodMovementSignature(candidate);
 
-      if (!canDeduplicate || !globalThis.AppState.isRecentWorkout(sig) || attempt === maxAttempts - 1) {
-        chosenWod = candidate;
-        globalThis.AppState.addRecentWorkout(sig);
+      // Strict rejection: never return the exact same workout that is currently on screen
+      if (sig === currentWodSig) {
+        continue;
+      }
+
+      const inLast5 = globalThis.AppState.isRecentWorkout(sig, 5);
+      const inLastMov = currentMovSig && movSig === currentMovSig;
+      const recentIndex = globalThis.AppState.getRecentIndex(sig);
+
+      // Ideal candidate: not in last 5 workouts AND does not duplicate the current movement set
+      if (!inLast5 && !inLastMov) {
+        bestCandidate = candidate;
         break;
+      }
+
+      // If all attempts hit recent history (e.g. tightly constrained gear), rank by LRU
+      let score = 0;
+      if (!inLast5) score += 100;
+      if (!inLastMov) score += 50;
+      score -= (recentIndex >= 0 ? recentIndex : 0);
+
+      if (score > bestScore) {
+        bestScore = score;
+        bestCandidate = candidate;
       }
     }
 
-    return chosenWod || this.generateAlgorithmicWod(effectivePool);
+    const finalWod = bestCandidate || this.generateAlgorithmicWod(effectivePool);
+    globalThis.AppState.addRecentWorkout(this.getWodSignature(finalWod));
+    return finalWod;
   },
 
   formatBenchmarkWod(bm) {

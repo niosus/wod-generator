@@ -471,6 +471,10 @@ const UI = {
 
       displayWod(wod) {
         AppState.currentWod = wod;
+        if (wod && typeof WorkoutGenerator.getWodSignature === 'function') {
+          const sig = WorkoutGenerator.getWodSignature(wod);
+          if (sig) AppState.addRecentWorkout(sig);
+        }
         this.markWodOutdated(false);
 
         // Trigger short & sweet generation animation
