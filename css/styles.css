@@ -1,0 +1,135 @@
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  background-color: #060a12;
+  color: #f8fafc;
+  overflow-x: hidden;
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0b1120;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+}
+
+/* Subtle tactical grid background */
+.bg-gym-grid {
+  background-size: 28px 28px;
+  background-image:
+    linear-gradient(to right, rgba(148, 163, 184, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(148, 163, 184, 0.04) 1px, transparent 1px);
+}
+
+/* Deliberate & Smooth Workout Reveal Animation */
+@keyframes wodReveal {
+  0% {
+    opacity: 0.55;
+    transform: translateY(8px) scale(0.99);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes rowFadeInUp {
+  0% {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes flareSweep {
+  0% {
+    transform: translateX(-100%);
+  }
+
+  100% {
+    transform: translateX(250%);
+  }
+}
+
+.wod-card-refresh {
+  animation: wodReveal 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.wod-item-animated {
+  animation: rowFadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.accent-glow-sweep {
+  position: relative;
+  overflow: hidden;
+}
+
+.accent-glow-sweep::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.95), transparent);
+  animation: flareSweep 0.85s ease-in-out;
+}
+
+.wod-outdated {
+  border-style: dashed !important;
+  border-color: rgba(148, 163, 184, 0.25) !important;
+  transition: border-color 0.35s ease;
+}
+
+.wod-outdated #wodAccentBar {
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+
+.wod-outdated #wodTitleSection,
+.wod-outdated #shareWodBtn,
+.wod-outdated #copyWodBtn,
+.wod-outdated #wodCardBody {
+  opacity: 0.24;
+  filter: grayscale(100%) contrast(75%);
+  transition: opacity 0.35s ease, filter 0.35s ease;
+}
+
+/* Tactile Micro-Bump for Button Updates (One-Shot, Deliberate & Smooth) */
+@keyframes buttonBump {
+  0% {
+    transform: scale(1);
+  }
+
+  40% {
+    transform: scale(1.065);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+.btn-bump {
+  animation: buttonBump 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+

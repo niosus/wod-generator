@@ -2,7 +2,7 @@
 /**
  * WODFORGE Biomechanical Kinematics Validator (`validate_kinematics.js`)
  *
- * Extracts `MOVEMENTS_DB` and `BiomechanicalStickAnimator` directly from `index.html`
+ * Imports `MOVEMENTS_DB` and `BiomechanicalStickAnimator` directly from modular source
  * and verifies across a 120-frame cycle (3800ms) for every movement:
  *   1. Every movement in `MOVEMENTS_DB` has a supported `poseType`.
  *   2. Rigid segment lengths never stretch or shrink:
@@ -15,37 +15,16 @@
  *   node validate_kinematics.js
  */
 
-const fs = require('fs');
-const path = require('path');
-const vm = require('vm');
+import './src/data/movements.js';
+import './src/animator/constants.js';
+import './src/animator/math.js';
+import './src/animator/poses.js';
+import './src/animator/validator.js';
+import './src/animator/renderer.js';
+import './src/animator/animator.js';
 
-const htmlPath = path.join(__dirname, 'index.html');
-const html = fs.readFileSync(htmlPath, 'utf8');
+const { MOVEMENTS_DB, BiomechanicalStickAnimator } = globalThis;
 
-const dbMatch = html.match(/const MOVEMENTS_DB = (\[[\s\S]*?\n    \]);/);
-const animMatch = html.match(/const BiomechanicalStickAnimator = \(\(\) => \{[\s\S]*?\n    \}\)\(\);/);
-
-if (!dbMatch || !animMatch) {
-  console.error('Failed to extract MOVEMENTS_DB or BiomechanicalStickAnimator from index.html');
-  process.exit(1);
-}
-
-const sandbox = {
-  console,
-  Math,
-  Map,
-  Set,
-  requestAnimationFrame: () => 1,
-  document: { body: { contains: () => false } }
-};
-
-vm.createContext(sandbox);
-vm.runInContext(
-  `${dbMatch[0]}\n${animMatch[0]}\nglobalThis.MOVEMENTS_DB = MOVEMENTS_DB;\nglobalThis.BiomechanicalStickAnimator = BiomechanicalStickAnimator;`,
-  sandbox
-);
-
-const { MOVEMENTS_DB, BiomechanicalStickAnimator } = sandbox;
 const uniquePoseTypes = [...new Set(MOVEMENTS_DB.map((m) => m.poseType))];
 
 // Ensure no poseType silently falls through to default fallback
@@ -76,4 +55,3 @@ if (report.passed !== report.total) {
 }
 
 console.log('ALL ANATOMICAL & KINEMATIC INVARIANTS PASSED (0 VIOLATIONS)!');
-

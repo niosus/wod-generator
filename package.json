@@ -1,0 +1,25 @@
+{
+  "name": "wodforge",
+  "version": "4.0.0",
+  "description": "Precision Biomechanical HIIT WOD Generator",
+  "type": "module",
+  "scripts": {
+    "test": "node validate_kinematics.js",
+    "start": "npx serve ."
+  },
+  "homepage": "https://niosus.github.io/wod-generator/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/niosus/wod-generator.git"
+  },
+  "keywords": [
+    "crossfit",
+    "hiit",
+    "wod-generator",
+    "biomechanics",
+    "kinematics"
+  ],
+  "author": "Igor Bogoslavskyi",
+  "license": "MIT"
+}
+
