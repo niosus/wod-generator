@@ -48,6 +48,16 @@ vm.runInContext(
 const { MOVEMENTS_DB, BiomechanicalStickAnimator } = sandbox;
 const uniquePoseTypes = [...new Set(MOVEMENTS_DB.map((m) => m.poseType))];
 
+// Ensure no poseType silently falls through to default fallback
+for (const pt of uniquePoseTypes) {
+  const f = BiomechanicalStickAnimator.computePose(pt, 0);
+  const hasRunTrack = f.props.some((p) => p.type === 'run_track');
+  if (pt !== 'run' && hasRunTrack) {
+    console.error(`  [FAIL] ${pt}: fell through to default fallback!`);
+    process.exit(1);
+  }
+}
+
 const report = BiomechanicalStickAnimator.validateAllPoses(uniquePoseTypes);
 
 console.log(`WODFORGE Kinematics Audit:`);
