@@ -77,7 +77,7 @@ const CLASSICAL_BENCHMARKS = [
             minutes: 14,
               prescriptionHeader: '3 Rounds For Time (14 Min Cap):',
                 items: [
-                  { movementId: 'shuttle_run', reps: 400, label: '400m Run' },
+                  { movementId: 'run', reps: 400, label: '400m Run' },
                   { movementId: 'kb_swings', reps: 21, label: '21 Kettlebell Swings (24/16 kg)' },
                   { movementId: 'pullups', reps: 12, label: '12 Pull-Ups' }
                 ],
@@ -231,7 +231,7 @@ const CLASSICAL_BENCHMARKS = [
             minutes: 26,
               prescriptionHeader: '5 Rounds For Time (26 Min Cap):',
                 items: [
-                  { movementId: 'shuttle_run', reps: 400, label: '400m Run' },
+                  { movementId: 'run', reps: 400, label: '400m Run' },
                   { movementId: 'box_jumps', reps: 30, label: '30 Box Jumps (24/20 in)' },
                   { movementId: 'wall_balls', reps: 30, label: '30 Wall Ball Shots (9/6 kg)' }
                 ],
@@ -247,7 +247,7 @@ const CLASSICAL_BENCHMARKS = [
             minutes: 30,
               prescriptionHeader: '5 Rounds For Time (30 Min Cap):',
                 items: [
-                  { movementId: 'shuttle_run', reps: 800, label: '800m Run' },
+                  { movementId: 'run', reps: 800, label: '800m Run' },
                   { movementId: 'kb_swings', reps: 30, label: '30 Heavy Kettlebell Swings (32/24 kg)' },
                   { movementId: 'pullups', reps: 30, label: '30 Pull-Ups' }
                 ],
@@ -263,7 +263,7 @@ const CLASSICAL_BENCHMARKS = [
             minutes: 16,
               prescriptionHeader: '5 Rounds For Time (16 Min Cap):',
                 items: [
-                  { movementId: 'shuttle_run', reps: 400, label: '400m Run' },
+                  { movementId: 'run', reps: 400, label: '400m Run' },
                   { movementId: 'bb_front_squats', reps: 15, label: '15 Overhead / Front Squats (43/30 kg)' }
                 ],
                   stimulus: 'Breathing heavy from the run while stabilizing a barbell overhead or in the front rack.',
@@ -293,7 +293,7 @@ const CLASSICAL_BENCHMARKS = [
             minutes: 20,
               prescriptionHeader: 'AMRAP in 20 Minutes (Score is Total Pull-Ups):',
                 items: [
-                  { movementId: 'shuttle_run', reps: 400, label: '400m Run' },
+                  { movementId: 'run', reps: 400, label: '400m Run' },
                   { movementId: 'pullups', reps: 15, label: '15 Unbroken Pull-Ups (Max Rep Set)' }
                 ],
                   stimulus: 'Run hard, jump straight onto the bar, and hold on for maximum pull-ups before resting.',
@@ -342,11 +342,11 @@ const CLASSICAL_BENCHMARKS = [
             minutes: 45,
               prescriptionHeader: 'For Time (Partition Pull-Ups, Push-Ups & Squats as 20 Rounds of 5-10-15):',
                 items: [
-                  { movementId: 'shuttle_run', reps: 1600, label: '1-Mile Run (1,600m)' },
+                  { movementId: 'run', reps: 1600, label: '1-Mile Run (1,600m)' },
                   { movementId: 'pullups', reps: 100, label: '100 Pull-Ups' },
                   { movementId: 'pushups', reps: 200, label: '200 Push-Ups' },
                   { movementId: 'air_squats', reps: 300, label: '300 Air Squats' },
-                  { movementId: 'shuttle_run', reps: 1600, label: '1-Mile Run (1,600m)' }
+                  { movementId: 'run', reps: 1600, label: '1-Mile Run (1,600m)' }
                 ],
                   stimulus: 'Honoring Lt. Michael Murphy. Pace the first mile at 75%, partition the calisthenics into 20 rounds of Cindy, and empty the tank on the final mile.',
                     logic: 'Iconic endurance test: 3.2km running bookending 600 total bodyweight gymnastics repetitions.'
@@ -408,7 +408,7 @@ const CLASSICAL_BENCHMARKS = [
             minutes: 22,
               prescriptionHeader: '3 Rounds For Time (22 Min Cap):',
                 items: [
-                  { movementId: 'shuttle_run', reps: 800, label: '800m Run' },
+                  { movementId: 'run', reps: 800, label: '800m Run' },
                   { movementId: 'superman_pulls', reps: 50, label: '50 Back Extensions / Superman Pulls' },
                   { movementId: 'situps', reps: 50, label: '50 AbMat Sit-Ups' }
                 ],
@@ -426,7 +426,7 @@ const CLASSICAL_BENCHMARKS = [
                 items: [
                   { movementId: 'bb_hang_power_clean', reps: 30, label: '30 Barbell Cleans (43/30 kg)' },
                   { movementId: 'pullups', reps: 30, label: '30 Pull-Ups' },
-                  { movementId: 'shuttle_run', reps: 800, label: '800m Run' }
+                  { movementId: 'run', reps: 800, label: '800m Run' }
                 ],
                   stimulus: 'Honoring Chief Petty Officer Mark Carter. Maintain solid grip management across 30 cleans and 30 pull-ups per round.',
                     logic: 'Olympic barbell cycling + High-volume vertical pull + Monostructural aerobic recovery run.'
@@ -475,7 +475,7 @@ const CLASSICAL_BENCHMARKS = [
                   { movementId: 'air_squats', reps: 24, label: '24 Air Squats' },
                   { movementId: 'pushups', reps: 24, label: '24 Push-Ups' },
                   { movementId: 'walking_lunges', reps: 24, label: '24 Walking Lunges' },
-                  { movementId: 'shuttle_run', reps: 400, label: '400m Run' }
+                  { movementId: 'run', reps: 400, label: '400m Run' }
                 ],
                   stimulus: 'Honoring Staff Sgt. Edwardo Loredo. Zero equipment required. High muscular endurance challenge on legs and chest.',
                     logic: 'Bilateral Squat → Horizontal Push → Unilateral Lunge → Monostructural Run.'
@@ -489,7 +489,7 @@ const CLASSICAL_BENCHMARKS = [
             minutes: 28,
               prescriptionHeader: '7 Rounds For Time (28 Min Cap):',
                 items: [
-                  { movementId: 'shuttle_run', reps: 400, label: '400m Run' },
+                  { movementId: 'run', reps: 400, label: '400m Run' },
                   { movementId: 'walking_lunges', reps: 21, label: '21 Walking Lunges' },
                   { movementId: 'pullups', reps: 15, label: '15 Pull-Ups' },
                   { movementId: 'burpees', reps: 9, label: '9 Burpees' }
@@ -527,7 +527,7 @@ const CLASSICAL_BENCHMARKS = [
               prescriptionHeader: 'For Time (32 Min Cap):',
                 items: [
                   { movementId: 'bb_push_jerk', reps: 30, label: '30 Clean and Jerks (60/42.5 kg)' },
-                  { movementId: 'shuttle_run', reps: 1600, label: '1-Mile Run (1,600m)' },
+                  { movementId: 'run', reps: 1600, label: '1-Mile Run (1,600m)' },
                   { movementId: 'burpees', reps: 100, label: '100 Burpees' }
                 ],
                   stimulus: 'Honoring Navy SEAL Glen Doherty. Opens with Grace, transitions to a mile run, and finishes with a 100-burpee grinder.',
@@ -558,7 +558,7 @@ const CLASSICAL_BENCHMARKS = [
                 items: [
                   { movementId: 'pullups', reps: 50, label: '50 Strict Pull-Ups' },
                   { movementId: 'pushups', reps: 100, label: '100 Push-Ups' },
-                  { movementId: 'shuttle_run', reps: 1600, label: '1,600m Run' }
+                  { movementId: 'run', reps: 1600, label: '1,600m Run' }
                 ],
                   stimulus: 'Honoring Sgt. Christopher Severin. Strict upper-body pulling and pressing followed by a fast mile run.',
                     logic: 'Upper Pull Volume + Horizontal Push Volume + Monostructural Run Finish.'

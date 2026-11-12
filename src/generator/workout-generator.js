@@ -78,7 +78,13 @@ const WorkoutGenerator = {
     // Fatigue modifier: reduce reps per station if multiple exercises fatigue the same muscles
     const interferenceMod = muscularOverlapCount > 0 ? (1 / (1 + 0.30 * muscularOverlapCount)) : 1.0;
 
-    // Unit-specific overrides for meters and calories
+    // Unit-specific overrides for meters, calories, and seconds
+    if (unit === 'sec') {
+      const baseSec = (mov.reps && mov.reps[formatKey === 'EMOM' ? 'emom' : (formatKey === 'FOR_TIME' ? 'forTime' : 'amrap')]) || 40;
+      const intensityFactor = intensityLevel === 'moderate' ? 0.75 : (intensityLevel === 'high' ? 1.25 : 1.0);
+      const durFactor = duration === 'short' ? 0.9 : (duration === 'long' ? 1.1 : 1.0);
+      return Math.round((baseSec * intensityFactor * durFactor) / 5) * 5;
+    }
     if (unit === 'm') {
       if (formatKey === 'EMOM') {
         if (intensityLevel === 'moderate') return 150;
@@ -188,6 +194,11 @@ const WorkoutGenerator = {
 
     let sourcePool = effectivePool.length >= count ? effectivePool : pool;
 
+    // Strict Hard Movement Protection: never select hard movements when includeHardMovements is off
+    if (!globalThis.AppState?.includeHardMovements) {
+      sourcePool = sourcePool.filter(m => m.difficulty !== 'hard');
+    }
+
     // 2. Pattern-level Easy filter:
     // Unless the athlete explicitly requested the "easy" tier,
     // never select an "easy" movement in any pattern where normal or hard movements exist.
@@ -245,11 +256,12 @@ const WorkoutGenerator = {
    */
   buildItemPrescription(mov, formatKey, stationIndex = null, customScheme = null, usedMovementIds = new Set(), context = {}) {
     const isOptionalGear = globalThis.AppState.isEquipmentOptional(mov.equipment);
+    const isMissingGear = !globalThis.AppState.isEquipmentUsable(mov.equipment);
     const repVal = customScheme !== null && customScheme !== undefined
       ? customScheme
       : this.calculateDynamicReps(mov, formatKey, context);
 
-    const unitLabel = mov.unit === 'cal' ? 'Cal' : (mov.unit === 'm' ? 'm' : '');
+    const unitLabel = mov.unit === 'cal' ? 'Cal' : (mov.unit === 'm' ? 'm' : (mov.unit === 'sec' ? 's' : ''));
     const loadSuffix = mov.load ? ` (${mov.load})` : '';
 
     let repsDisplay = `${repVal}${unitLabel ? ' ' + unitLabel : ''}`;
@@ -263,16 +275,16 @@ const WorkoutGenerator = {
       prescriptionText = `Block ${stationIndex + 1} (4 Min): 8x (20s Max ${mov.name}${loadSuffix} / 10s Rest)`;
     }
 
-    // 1. Optional Equipment Alternative (collision-free against usedMovementIds)
+    // 1. Equipment Alternative (collision-free against usedMovementIds)
     let altPrescription = null;
-    if (isOptionalGear) {
+    if (isOptionalGear || isMissingGear) {
       const altMov = globalThis.AppState.resolveUniqueAlternative(mov, usedMovementIds);
       if (altMov) {
         usedMovementIds.add(altMov.id);
         const altRepVal = customScheme !== null && customScheme !== undefined
           ? customScheme
           : this.calculateDynamicReps(altMov, formatKey, context);
-        const altUnit = altMov.unit === 'cal' ? 'Cal' : (altMov.unit === 'm' ? 'm' : '');
+        const altUnit = altMov.unit === 'cal' ? 'Cal' : (altMov.unit === 'm' ? 'm' : (altMov.unit === 'sec' ? 's' : ''));
         const altLoad = altMov.load ? ` (${altMov.load})` : '';
         altPrescription = {
           movement: altMov,
@@ -289,7 +301,7 @@ const WorkoutGenerator = {
       const scRepVal = customScheme !== null && customScheme !== undefined
         ? customScheme
         : this.calculateDynamicReps(scMov, formatKey, context);
-      const scUnit = scMov.unit === 'cal' ? 'Cal' : (scMov.unit === 'm' ? 'm' : '');
+      const scUnit = scMov.unit === 'cal' ? 'Cal' : (scMov.unit === 'm' ? 'm' : (scMov.unit === 'sec' ? 's' : ''));
       const scLoad = scMov.load ? ` (${scMov.load})` : '';
       scaleDownPrescription = {
         movement: scMov,
@@ -306,6 +318,7 @@ const WorkoutGenerator = {
       repsDisplay,
       prescriptionText,
       isOptionalGear,
+      isMissingGear,
       alternative: altPrescription,
       scaleDown: scaleDownPrescription
     };

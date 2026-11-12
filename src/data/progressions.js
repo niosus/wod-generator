@@ -31,6 +31,7 @@ const SCALE_LADDERS = [
       { movementId: 'bar_inverted_rows', level: 2, tier: 'normal', label: 'Bar Inverted Rows' },
       { movementId: 'ring_rows', level: 2, tier: 'normal', label: 'Ring Inverted Rows' },
       { movementId: 'pullups', level: 3, tier: 'normal', label: 'Strict / Kipping Pull-Ups (Rx Baseline)' },
+      { movementId: 'chin_ups', level: 3, tier: 'normal', label: 'Strict / Kipping Chin-Ups' },
       { movementId: 'bar_muscle_up', level: 4, tier: 'hard', label: 'Bar Muscle-Ups' },
       { movementId: 'ring_muscle_up', level: 4, tier: 'hard', label: 'Ring Muscle-Ups' }
     ]
@@ -63,12 +64,18 @@ const SCALE_LADDERS = [
     id: 'midline_core_ladder',
     name: 'Midline & Core Inversion Progression',
     pattern: 'HINGE_CORE',
-    description: 'Floor AbMat sit-ups scaling into tuck V-ups, hanging knee tucks, and strict toes-to-bar.',
+    description: 'Foundational knee plank scaling into floor sit-ups, forearm planks, tuck V-ups, hanging knee tucks, strict toes-to-bar, and L-sits.',
     steps: [
-      { movementId: 'situps', level: 1, tier: 'normal', label: 'AbMat / Butterfly Sit-Ups' },
-      { movementId: 'v_ups', level: 2, tier: 'normal', label: 'V-Ups / Tuck-Ups' },
-      { movementId: 'hanging_knee_raises', level: 2, tier: 'normal', label: 'Hanging Knee Raises' },
-      { movementId: 'toes_to_bar', level: 3, tier: 'hard', label: 'Toes-to-Bar (T2B)' }
+      { movementId: 'knee_plank', level: 1, tier: 'easy', label: 'Knee Plank' },
+      { movementId: 'situps', level: 2, tier: 'normal', label: 'AbMat / Butterfly Sit-Ups' },
+      { movementId: 'plank', level: 2, tier: 'normal', label: 'Forearm Plank' },
+      { movementId: 'straight_arm_plank', level: 2, tier: 'normal', label: 'Straight-Arm Plank' },
+      { movementId: 'side_plank', level: 2, tier: 'normal', label: 'Side Plank' },
+      { movementId: 'tuck_ups', level: 3, tier: 'normal', label: 'Tuck-Ups' },
+      { movementId: 'v_ups', level: 3, tier: 'normal', label: 'V-Ups' },
+      { movementId: 'hanging_knee_raises', level: 3, tier: 'normal', label: 'Hanging Knee Raises' },
+      { movementId: 'l_sit', level: 4, tier: 'hard', label: 'L-Sit Hold' },
+      { movementId: 'toes_to_bar', level: 4, tier: 'hard', label: 'Toes-to-Bar (T2B)' }
     ]
   },
   {
@@ -87,7 +94,7 @@ const SCALE_LADDERS = [
     pattern: 'CARDIO',
     description: 'Single-under bounding rhythm advancing to high-turnover double-unders.',
     steps: [
-      { movementId: 'single_unders', level: 1, tier: 'easy', label: 'Single-Unders (Jump Rope)' },
+      { movementId: 'single_unders', level: 1, tier: 'normal', label: 'Single-Unders (Jump Rope)' },
       { movementId: 'double_unders', level: 2, tier: 'hard', label: 'Double-Unders (Jump Rope)' }
     ]
   },

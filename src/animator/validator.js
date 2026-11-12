@@ -19,13 +19,17 @@ function validatePose(poseType, numSteps = 120, cycleMs = null) {
       if (f.torso.headY + 9.5 > f.floorY + 1.0) violations.push(`frame ${i}: head penetrates floor`);
       if (f.torso.shoulderY > f.floorY + 0.5 || f.torso.hipY > f.floorY + 0.5) violations.push(`frame ${i}: torso penetrates floor`);
     } else {
-      const torsoH = f.frontTorso.hipY - f.frontTorso.shoulderY;
+      const midSX = (f.frontTorso.leftShoulderX + f.frontTorso.rightShoulderX) / 2;
+      const midSY = ((f.frontTorso.leftShoulderY ?? f.frontTorso.shoulderY) + (f.frontTorso.rightShoulderY ?? f.frontTorso.shoulderY)) / 2;
+      const midHX = (f.frontTorso.leftHipX + f.frontTorso.rightHipX) / 2;
+      const midHY = ((f.frontTorso.leftHipY ?? f.frontTorso.hipY) + (f.frontTorso.rightHipY ?? f.frontTorso.hipY)) / 2;
+      const torsoH = Math.hypot(midHX - midSX, midHY - midSY);
       if (Math.abs(torsoH - L_TORSO) > 0.05) violations.push(`frame ${i}: front torso ${torsoH.toFixed(2)}px != ${L_TORSO}px`);
     }
 
     for (const limb of f.limbs) {
-      const d1 = Math.hypot(limb.jx - limb.x1, limb.jy - limb.y1);
-      const d2 = Math.hypot(limb.x2 - limb.jx, limb.y2 - limb.jy);
+      const d1 = Math.hypot(limb.jx - limb.x1, limb.jy - limb.y1, (limb.jz ?? 0) - (limb.z1 ?? 0));
+      const d2 = Math.hypot(limb.x2 - limb.jx, limb.y2 - limb.jy, (limb.z2 ?? 0) - (limb.jz ?? 0));
       const exp1 = limb.kind === 'leg' ? L_THIGH : L_UPPER_ARM;
       const exp2 = limb.kind === 'leg' ? L_SHIN : L_FOREARM;
       if (Math.abs(d1 - exp1) > 0.1 || Math.abs(d2 - exp2) > 0.1) {
@@ -56,7 +60,7 @@ function validatePose(poseType, numSteps = 120, cycleMs = null) {
         const cur = f.limbs[li];
         const prv = prevFrame.limbs[li];
         if (!prv) continue;
-        const jump = Math.hypot(cur.jx - prv.jx, cur.jy - prv.jy);
+        const jump = Math.hypot(cur.jx - prv.jx, cur.jy - prv.jy, (cur.jz ?? 0) - (prv.jz ?? 0));
         if (jump > 18) violations.push(`frame ${i} (${cur.name}): joint jumped ${jump.toFixed(1)}px`);
       }
     }

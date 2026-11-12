@@ -18,8 +18,8 @@ function _computePose (poseType, timestamp) {
           props: []          // custom equipment / environment primitives to render
         };
 
-        const addLimb = (name, kind, x1, y1, jx, jy, x2, y2, color1, color2, width, endType = 'hand', footDir = 1, surfaceY = null) => {
-          frame.limbs.push({ name, kind, x1, y1, jx, jy, x2, y2, color1, color2, width, endType, footDir, surfaceY: surfaceY ?? frame.floorY });
+        const addLimb = (name, kind, x1, y1, jx, jy, x2, y2, color1, color2, width, endType = 'hand', footDir = 1, surfaceY = null, z1 = 0, jz = 0, z2 = 0) => {
+          frame.limbs.push({ name, kind, x1, y1, jx, jy, x2, y2, color1, color2, width, endType, footDir, surfaceY: surfaceY ?? frame.floorY, z1, jz, z2 });
         };
 
         // ===========================================================================
@@ -31,34 +31,63 @@ function _computePose (poseType, timestamp) {
         //      an authentic kip & hip-to-bar pull, and transitions shoulders forward
         //      over the bar/rings with elbows bending strictly backward (never crossing!).
         // ===========================================================================
-        if (poseType === 'pullup_front') {
+        if (poseType === 'pullup_front' || poseType === 'chin_up_front') {
           frame.view = 'front';
           frame.floorY = 192;
           const barY = 16;
-          const leftHandX = 74, rightHandX = 126, handY = barY;
+          const isChinUp = poseType === 'chin_up_front';
           frame.props.push({ type: 'rig_uprights', barY, floorY: 192 });
 
-          const leftShoulderX = 85, rightShoulderX = 115;
-          const leftHipX = 91, rightHipX = 109;
-          // Full straight-arm dead hang (p=0: shoulderY=62, dist=47.3px) to chin-over-bar (p=1: shoulderY=24, headY=10)
-          const shoulderY = this.lerp(62, 24, p);
+          // Vertical range: full straight-arm dead hang (p=0: shoulderY=62) to clean chin-over-bar (p=1: shoulderY=20, headY=6, chin Y=15.8 < 16)
+          const shoulderY = this.lerp(62, 20, p);
           const hipY = shoulderY + L_TORSO;
+          const leftHipX = 91, rightHipX = 109;
 
-          frame.frontTorso = {
-            leftShoulderX, rightShoulderX, shoulderY,
-            leftHipX, rightHipX, hipY,
-            headX: 100, headY: shoulderY - 14
-          };
+          if (isChinUp) {
+            // Chin-ups: narrow underhand grip, elbows track directly in front of the ribcage staying ~20cm (20px) apart
+            const leftShoulderX = 85, rightShoulderX = 115;
+            frame.frontTorso = {
+              leftShoulderX, rightShoulderX, shoulderY,
+              leftHipX, rightHipX, hipY,
+              headX: 100, headY: shoulderY - 14
+            };
 
-          const armL = this.solveFrontArm(leftShoulderX, shoulderY, leftHandX, handY, true);
-          const armR = this.solveFrontArm(rightShoulderX, shoulderY, rightHandX, handY, false);
-          addLimb('armL', 'arm', leftShoulderX, shoulderY, armL.jx, armL.jy, armL.ex, armL.ey, '#38bdf8', '#38bdf8', 5, 'hand');
-          addLimb('armR', 'arm', rightShoulderX, shoulderY, armR.jx, armR.jy, armR.ex, armR.ey, '#38bdf8', '#38bdf8', 5, 'hand');
+            const leftHandX = 90, rightHandX = 110, handY = barY;
+            const leftElbowX = 90, rightElbowX = 110;
 
-          // Straight hanging legs (63.2px extension) that stay well above floorY=192 even at bottom of dead hang (y=171.2)
+            const elbowY = (shoulderY * shoulderY - 280) / (2 * (shoulderY - 16));
+            const remZ = 576 - Math.pow(16 - elbowY, 2);
+            const elbowZ = Math.sqrt(Math.max(0, remZ));
+
+            addLimb('armL', 'arm', leftShoulderX, shoulderY, leftElbowX, elbowY, leftHandX, handY, '#38bdf8', '#38bdf8', 5, 'hand', 1, null, 0, elbowZ, 0);
+            addLimb('armR', 'arm', rightShoulderX, shoulderY, rightElbowX, elbowY, rightHandX, handY, '#38bdf8', '#38bdf8', 5, 'hand', 1, null, 0, elbowZ, 0);
+          } else {
+            // Strict Pull-up:
+            // - Active hang at bottom (scapular elevation/upward rotation: leftShoulderX=85, rightShoulderX=115)
+            // - Scapular retraction & depression during pull (shoulders pack inward to 87 & 113)
+            // - Natural overhand grip ~1.25x biacromial width (leftHandX=76, rightHandX=124, span=48px)
+            // - Elbows drive down and laterally in the natural scapular plane, finishing beside the ribcage
+            // - Chin cleanly clears the bar (shoulderY=20, chin Y=15.8 < 16)
+            const leftShoulderX = this.lerp(85, 87, p);
+            const rightShoulderX = this.lerp(115, 113, p);
+            frame.frontTorso = {
+              leftShoulderX, rightShoulderX, shoulderY,
+              leftHipX, rightHipX, hipY,
+              headX: 100, headY: shoulderY - 14
+            };
+
+            const leftHandX = 76, rightHandX = 124, handY = barY;
+            const armL = this.solveFrontArm(leftShoulderX, shoulderY, leftHandX, handY, true);
+            const armR = this.solveFrontArm(rightShoulderX, shoulderY, rightHandX, handY, false);
+            addLimb('armL', 'arm', leftShoulderX, shoulderY, armL.jx, armL.jy, armL.ex, armL.ey, '#38bdf8', '#38bdf8', 5, 'hand');
+            addLimb('armR', 'arm', rightShoulderX, shoulderY, armR.jx, armR.jy, armR.ex, armR.ey, '#38bdf8', '#38bdf8', 5, 'hand');
+          }
+
+          // Core braced in athletic gymnastics hollow-body: zipped legs (footLX=98, footRX=102, toes pointed)
+          // 63.2px leg extension staying well above floorY=192 even at bottom of dead hang (footY=171.2 < 192)
           const targetFootY = hipY + 63.2;
-          const legL = this.solveFrontLeg(leftHipX, hipY, leftHipX, targetFootY, true);
-          const legR = this.solveFrontLeg(rightHipX, hipY, rightHipX, targetFootY, false);
+          const legL = this.solveFrontLeg(leftHipX, hipY, 98, targetFootY, true);
+          const legR = this.solveFrontLeg(rightHipX, hipY, 102, targetFootY, false);
           addLimb('legL', 'leg', leftHipX, hipY, legL.jx, legL.jy, legL.ex, legL.ey, '#bef264', '#94a3b8', 5.5, 'foot_front');
           addLimb('legR', 'leg', rightHipX, hipY, legR.jx, legR.jy, legR.ex, legR.ey, '#bef264', '#94a3b8', 5.5, 'foot_front');
           return frame;
@@ -733,9 +762,9 @@ function _computePose (poseType, timestamp) {
         }
 
         // ===========================================================================
-        // 11. ABMAT SIT-UPS & V-UPS (SIDE VIEW - SUPINE ANATOMICAL CURL)
+        // 11. ABMAT SIT-UPS, V-UPS & TUCK-UPS (SIDE VIEW - SUPINE ANATOMICAL CURL)
         // ===========================================================================
-        if (poseType === 'situp' || poseType === 'vup') {
+        if (poseType === 'situp' || poseType === 'vup' || poseType === 'tuck_up') {
           frame.floorY = 168;
 
           if (poseType === 'situp') {
@@ -756,7 +785,7 @@ function _computePose (poseType, timestamp) {
             const forearmAngle = upperArmAngle - this.lerp(0.32, 0.25, p);
             const arm = this.solveFK(shoulderX, shoulderY, upperArmAngle, forearmAngle, L_UPPER_ARM, L_FOREARM);
             addLimb('arm', 'arm', shoulderX, shoulderY, arm.jx, arm.jy, arm.ex, arm.ey, '#38bdf8', '#38bdf8', 5, 'hand');
-          } else {
+          } else if (poseType === 'vup') {
             // V-UPS: Simultaneous torso + straight-leg jackknife fold
             const hipX = 96, hipY = 160;
             const spineAngle = this.lerp(-2.96, -2.02, p);
@@ -773,8 +802,172 @@ function _computePose (poseType, timestamp) {
             const forearmAngle = upperArmAngle - this.lerp(0.28, 0.18, p);
             const arm = this.solveFK(shoulderX, shoulderY, upperArmAngle, forearmAngle, L_UPPER_ARM, L_FOREARM);
             addLimb('arm', 'arm', shoulderX, shoulderY, arm.jx, arm.jy, arm.ex, arm.ey, '#38bdf8', '#38bdf8', 5, 'hand');
+          } else {
+            // TUCK-UPS: Knees tuck tight to chest during torso fold
+            const hipX = 96, hipY = 160;
+            const spineAngle = this.lerp(-2.96, -2.00, p);
+            frame.torso = this.torsoFromHip(hipX, hipY, spineAngle, 1, 0.20 * (1 - p));
+            const { shoulderX, shoulderY } = frame.torso;
+
+            const ankleX = this.lerp(158, 122, p);
+            const ankleY = this.lerp(158, 150, p);
+            const legBack = this.solveIK(hipX - 2, hipY, ankleX - 2, ankleY, L_THIGH, L_SHIN, -1);
+            const legFront = this.solveIK(hipX, hipY, ankleX, ankleY, L_THIGH, L_SHIN, -1);
+            addLimb('legB', 'leg', hipX - 2, hipY, legBack.jx, legBack.jy, legBack.ex, legBack.ey, '#64748b', '#475569', 5.4, 'foot', 1, 200);
+            addLimb('legF', 'leg', hipX, hipY, legFront.jx, legFront.jy, legFront.ex, legFront.ey, '#bef264', '#94a3b8', 6, 'foot', 1, 200);
+
+            const upperArmAngle = this.lerp(-2.68, -0.45, p);
+            const forearmAngle = upperArmAngle - this.lerp(0.28, 0.15, p);
+            const arm = this.solveFK(shoulderX, shoulderY, upperArmAngle, forearmAngle, L_UPPER_ARM, L_FOREARM);
+            addLimb('arm', 'arm', shoulderX, shoulderY, arm.jx, arm.jy, arm.ex, arm.ey, '#38bdf8', '#38bdf8', 5, 'hand');
           }
           return frame;
+        }
+
+        // ===========================================================================
+        // CORE ISOMETRICS: FOREARM PLANK, STRAIGHT-ARM PLANK, KNEE PLANK, SIDE PLANK & L-SIT
+        // ===========================================================================
+        if (poseType === 'plank' || poseType === 'straight_arm_plank' || poseType === 'knee_plank' || poseType === 'side_plank' || poseType === 'lsit') {
+          frame.floorY = 168;
+          const breath = Math.sin(theta * 2) * 0.5;
+
+          if (poseType === 'plank') {
+            const plankAngle = -0.16;
+            const shoulderX = 142, shoulderY = 139 + breath * 0.5;
+            const hipX = shoulderX - Math.cos(plankAngle) * L_TORSO;
+            const hipY = shoulderY - Math.sin(plankAngle) * L_TORSO;
+
+            frame.torso = this.torsoFromHip(hipX, hipY, plankAngle, 1, 0);
+
+            const legLen = 62.5;
+            const ankleX = hipX - Math.cos(plankAngle) * legLen;
+            const ankleY = hipY - Math.sin(plankAngle) * legLen;
+
+            const legBack = this.solveIK(hipX - 2, hipY, ankleX - 2, ankleY, L_THIGH, L_SHIN, -1);
+            const legFront = this.solveIK(hipX, hipY, ankleX, ankleY, L_THIGH, L_SHIN, -1);
+            addLimb('legB', 'leg', hipX - 2, hipY, legBack.jx, legBack.jy, legBack.ex, legBack.ey, '#64748b', '#475569', 5.4, 'foot', 1);
+            addLimb('legF', 'leg', hipX, hipY, legFront.jx, legFront.jy, legFront.ex, legFront.ey, '#bef264', '#94a3b8', 6, 'foot', 1);
+
+            // Grounded forearms parallel to mat (exact segment lengths)
+            const elbowX = shoulderX, elbowY = shoulderY + L_UPPER_ARM;
+            const handX = elbowX + L_FOREARM, handY = elbowY;
+            addLimb('armB', 'arm', shoulderX - 2, shoulderY, elbowX - 2, elbowY, handX - 2, handY, '#64748b', '#475569', 4.8, 'hand');
+            addLimb('armF', 'arm', shoulderX, shoulderY, elbowX, elbowY, handX, handY, '#38bdf8', '#38bdf8', 5.2, 'hand');
+            return frame;
+          }
+
+          if (poseType === 'knee_plank') {
+            const kneeX = 66, kneeY = 164;
+            const plankAngle = -0.326;
+            const hipX = kneeX + Math.cos(plankAngle) * L_THIGH;
+            const hipY = kneeY + Math.sin(plankAngle) * L_THIGH;
+
+            frame.torso = this.torsoFromHip(hipX, hipY, plankAngle, 1, 0);
+            const { shoulderX, shoulderY } = frame.torso;
+
+            const elbowX = shoulderX, elbowY = shoulderY + L_UPPER_ARM;
+            const handX = elbowX + L_FOREARM, handY = elbowY;
+
+            const shinAngle = 3.82;
+            const ankleX = kneeX + Math.cos(shinAngle) * L_SHIN;
+            const ankleY = kneeY + Math.sin(shinAngle) * L_SHIN;
+
+            addLimb('legB', 'leg', hipX - 2, hipY, kneeX - 2, kneeY, ankleX - 2, ankleY, '#64748b', '#475569', 5.4, 'foot', 1);
+            addLimb('legF', 'leg', hipX, hipY, kneeX, kneeY, ankleX, ankleY, '#bef264', '#94a3b8', 6, 'foot', 1);
+            addLimb('armB', 'arm', shoulderX - 2, shoulderY, elbowX - 2, elbowY, handX - 2, handY, '#64748b', '#475569', 4.8, 'hand');
+            addLimb('armF', 'arm', shoulderX, shoulderY, elbowX, elbowY, handX, handY, '#38bdf8', '#38bdf8', 5.2, 'hand');
+            return frame;
+          }
+
+          if (poseType === 'straight_arm_plank') {
+            const plankAngle = -0.42;
+            const shoulderX = 140, shoulderY = 115 + breath * 0.4;
+            const hipX = shoulderX - Math.cos(plankAngle) * L_TORSO;
+            const hipY = shoulderY - Math.sin(plankAngle) * L_TORSO;
+
+            frame.torso = this.torsoFromHip(hipX, hipY, plankAngle, 1, 0);
+
+            const legLen = 62.5;
+            const ankleX = hipX - Math.cos(plankAngle) * legLen;
+            const ankleY = hipY - Math.sin(plankAngle) * legLen;
+
+            const legBack = this.solveIK(hipX - 2, hipY, ankleX - 2, ankleY, L_THIGH, L_SHIN, -1);
+            const legFront = this.solveIK(hipX, hipY, ankleX, ankleY, L_THIGH, L_SHIN, -1);
+            addLimb('legB', 'leg', hipX - 2, hipY, legBack.jx, legBack.jy, legBack.ex, legBack.ey, '#64748b', '#475569', 5.4, 'foot', 1);
+            addLimb('legF', 'leg', hipX, hipY, legFront.jx, legFront.jy, legFront.ex, legFront.ey, '#bef264', '#94a3b8', 6, 'foot', 1);
+
+            // Straight locked arms down to deck (exact segment lengths)
+            const elbowX = shoulderX, elbowY = shoulderY + L_UPPER_ARM;
+            const handX = elbowX, handY = elbowY + L_FOREARM;
+            addLimb('armB', 'arm', shoulderX - 2, shoulderY, elbowX - 2, elbowY, handX - 2, handY, '#64748b', '#475569', 4.8, 'hand');
+            addLimb('armF', 'arm', shoulderX, shoulderY, elbowX, elbowY, handX, handY, '#38bdf8', '#38bdf8', 5.2, 'hand');
+            return frame;
+          }
+
+          if (poseType === 'side_plank') {
+            frame.view = 'front';
+            const elbowX = 55, elbowY = 164;
+            const handX = elbowX + L_FOREARM, handY = elbowY;
+            const leftSX = elbowX, leftSY = elbowY - L_UPPER_ARM;
+            const rightSX = leftSX + 7, rightSY = leftSY - 20;
+
+            const midSX = (leftSX + rightSX) / 2;
+            const midSY = (leftSY + rightSY) / 2;
+
+            const bodyAngle = 0.35;
+            const midHX = midSX + Math.cos(bodyAngle) * L_TORSO;
+            const midHY = midSY + Math.sin(bodyAngle) * L_TORSO;
+
+            const leftHX = midHX - 3, leftHY = midHY + 7;
+            const rightHX = midHX + 3, rightHY = midHY - 7;
+
+            const topElbowX = rightSX, topElbowY = rightSY - L_UPPER_ARM;
+            const topHandX = topElbowX, topHandY = topElbowY - L_FOREARM;
+
+            const footX = 158, footY = 164;
+            const legB = this.solveIK(leftHX, leftHY, footX, footY, L_THIGH, L_SHIN, -1);
+            const legF = this.solveIK(rightHX, rightHY, footX - 2, footY - 4, L_THIGH, L_SHIN, -1);
+
+            frame.frontTorso = {
+              leftShoulderX: leftSX, leftShoulderY: leftSY,
+              rightShoulderX: rightSX, rightShoulderY: rightSY,
+              leftHipX: leftHX, leftHipY: leftHY,
+              rightHipX: rightHX, rightHipY: rightHY,
+              headX: midSX - Math.cos(bodyAngle) * L_NECK,
+              headY: midSY - Math.sin(bodyAngle) * L_NECK
+            };
+
+            // Supporting bottom arm grounded on deck
+            addLimb('armB', 'arm', leftSX, leftSY, elbowX, elbowY, handX, handY, '#64748b', '#475569', 5.0, 'hand');
+            // Bottom & top stacked legs
+            addLimb('legB', 'leg', leftHX, leftHY, legB.jx, legB.jy, legB.ex, legB.ey, '#64748b', '#475569', 5.4, 'foot_front');
+            addLimb('legF', 'leg', rightHX, rightHY, legF.jx, legF.jy, legF.ex, legF.ey, '#bef264', '#94a3b8', 6.0, 'foot_front');
+            // Top arm extended straight up to the ceiling
+            addLimb('armF', 'arm', rightSX, rightSY, topElbowX, topElbowY, topHandX, topHandY, '#38bdf8', '#38bdf8', 5.2, 'hand');
+            return frame;
+          }
+
+          if (poseType === 'lsit') {
+            const hipX = 85, hipY = 145 + breath * 0.5;
+            const spineAngle = -1.58; // Near vertical torso
+            frame.torso = this.torsoFromHip(hipX, hipY, spineAngle, 1, 0.05);
+            const { shoulderX, shoulderY } = frame.torso;
+
+            // Arms locked straight down to support blocks
+            const elbowY = shoulderY + L_UPPER_ARM;
+            const handY = elbowY + L_FOREARM;
+            addLimb('armB', 'arm', shoulderX - 2, shoulderY, shoulderX - 2, elbowY, shoulderX - 2, handY, '#64748b', '#475569', 5.0, 'hand');
+            addLimb('armF', 'arm', shoulderX, shoulderY, shoulderX, elbowY, shoulderX, handY, '#38bdf8', '#38bdf8', 5.4, 'hand');
+
+            // Both legs extended straight out horizontally parallel to deck
+            const legBack = this.solveFK(hipX - 2, hipY, 0, 0, L_THIGH, L_SHIN);
+            const legFront = this.solveFK(hipX, hipY, 0, 0, L_THIGH, L_SHIN);
+            addLimb('legB', 'leg', hipX - 2, hipY, legBack.jx, legBack.jy, legBack.ex, legBack.ey, '#64748b', '#475569', 5.4, 'foot', 1);
+            addLimb('legF', 'leg', hipX, hipY, legFront.jx, legFront.jy, legFront.ex, legFront.ey, '#bef264', '#94a3b8', 6, 'foot', 1);
+
+            frame.props.push({ type: 'parallettes', x: shoulderX, floorY: 168 });
+            return frame;
+          }
         }
 
         // ===========================================================================
@@ -1449,6 +1642,50 @@ function _computePose (poseType, timestamp) {
             rightHandX: armR.ex,
             handY: armL.ey
           });
+          return frame;
+        }
+
+        // ===========================================================================
+        // 18. JUMPING JACKS (FRONT VIEW)
+        // ===========================================================================
+        if (poseType === 'jumping_jacks') {
+          frame.view = 'front';
+          frame.floorY = 170;
+          const jumpPhase = theta * 2;
+          const spreadWave = 0.5 - 0.5 * Math.cos(jumpPhase);
+          const jumpHeight = Math.pow(Math.max(0, Math.sin(jumpPhase)), 0.8) * 6;
+
+          const shoulderY = 60 - jumpHeight;
+          const hipY = shoulderY + L_TORSO;
+          const leftShoulderX = 86, rightShoulderX = 114;
+          const leftHipX = 91, rightHipX = 109;
+
+          frame.frontTorso = {
+            leftShoulderX, rightShoulderX, shoulderY,
+            leftHipX, rightHipX, hipY,
+            headX: 100, headY: shoulderY - 14
+          };
+
+          const footSpread = this.lerp(8, 28, spreadWave);
+          const footY = 166 - jumpHeight;
+          const footLX = 100 - footSpread;
+          const footRX = 100 + footSpread;
+
+          const legL = this.solveFrontLeg(leftHipX, hipY, footLX, footY, true);
+          const legR = this.solveFrontLeg(rightHipX, hipY, footRX, footY, false);
+          addLimb('legL', 'leg', leftHipX, hipY, legL.jx, legL.jy, legL.ex, legL.ey, '#bef264', '#94a3b8', 5.5, 'foot_front');
+          addLimb('legR', 'leg', rightHipX, hipY, legR.jx, legR.jy, legR.ex, legR.ey, '#bef264', '#94a3b8', 5.5, 'foot_front');
+
+          // Arms sweep wide laterally outward from sides to clapping overhead
+          const uaL = this.lerp(1.70, Math.PI + 1.45, spreadWave);
+          const faL = this.lerp(1.70, Math.PI + 1.45 + 0.40, spreadWave);
+          const uaR = Math.PI - uaL;
+          const faR = Math.PI - faL;
+          const armL = this.solveFK(leftShoulderX, shoulderY, uaL, faL, L_UPPER_ARM, L_FOREARM);
+          const armR = this.solveFK(rightShoulderX, shoulderY, uaR, faR, L_UPPER_ARM, L_FOREARM);
+          addLimb('armL', 'arm', leftShoulderX, shoulderY, armL.jx, armL.jy, armL.ex, armL.ey, '#38bdf8', '#38bdf8', 5, 'hand');
+          addLimb('armR', 'arm', rightShoulderX, shoulderY, armR.jx, armR.jy, armR.ex, armR.ey, '#38bdf8', '#38bdf8', 5, 'hand');
+
           return frame;
         }
 

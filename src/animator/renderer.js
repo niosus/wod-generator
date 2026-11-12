@@ -112,10 +112,14 @@
         ctx.strokeStyle = '#f8fafc';
         ctx.lineWidth = 4;
         ctx.beginPath();
-        ctx.moveTo(ft.leftShoulderX, ft.shoulderY);
-        ctx.lineTo(ft.rightShoulderX, ft.shoulderY);
-        ctx.lineTo(ft.rightHipX, ft.hipY);
-        ctx.lineTo(ft.leftHipX, ft.hipY);
+        const syL = ft.leftShoulderY !== undefined ? ft.leftShoulderY : ft.shoulderY;
+        const syR = ft.rightShoulderY !== undefined ? ft.rightShoulderY : ft.shoulderY;
+        const hyR = ft.rightHipY !== undefined ? ft.rightHipY : ft.hipY;
+        const hyL = ft.leftHipY !== undefined ? ft.leftHipY : ft.hipY;
+        ctx.moveTo(ft.leftShoulderX, syL);
+        ctx.lineTo(ft.rightShoulderX, syR);
+        ctx.lineTo(ft.rightHipX, hyR);
+        ctx.lineTo(ft.leftHipX, hyL);
         ctx.closePath();
         ctx.fill();
         ctx.stroke();
@@ -491,6 +495,46 @@
               ctx.lineTo(lx - 14, 176);
               ctx.stroke();
             }
+            break;
+          }
+          case 'shuttle_track': {
+            const trackOffset = (pr.timestamp * 0.22) % 40;
+            ctx.strokeStyle = 'rgba(56, 189, 248, 0.35)';
+            ctx.lineWidth = 2;
+            for (let gx = 24; gx < 180; gx += 40) {
+              const lx = 180 - ((gx + trackOffset) % 160);
+              ctx.beginPath();
+              ctx.moveTo(lx, 176);
+              ctx.lineTo(lx - 14, 176);
+              ctx.stroke();
+            }
+            // Agility turnaround marker line & cone
+            ctx.strokeStyle = '#bef264';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(135, 162);
+            ctx.lineTo(135, 174);
+            ctx.stroke();
+            ctx.fillStyle = '#f97316';
+            ctx.beginPath();
+            ctx.moveTo(135, 161);
+            ctx.lineTo(131, 169);
+            ctx.lineTo(139, 169);
+            ctx.closePath();
+            ctx.fill();
+            break;
+          }
+          case 'parallettes': {
+            ctx.strokeStyle = '#94a3b8';
+            ctx.lineWidth = 2.5;
+            ctx.beginPath();
+            ctx.moveTo(pr.x - 14, 149);
+            ctx.lineTo(pr.x + 14, 149);
+            ctx.moveTo(pr.x - 10, 149);
+            ctx.lineTo(pr.x - 12, pr.floorY);
+            ctx.moveTo(pr.x + 10, 149);
+            ctx.lineTo(pr.x + 12, pr.floorY);
+            ctx.stroke();
             break;
           }
           case 'jump_lines':

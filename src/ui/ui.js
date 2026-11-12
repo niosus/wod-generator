@@ -541,7 +541,7 @@ const UI = {
         return `
           <div
             data-wod-row-index="${index}"
-            class="${animClass} bg-slate-900/90 border ${item.isOptionalGear ? 'border-amber-400/50' : 'border-slate-800'
+            class="${animClass} bg-slate-900/90 border ${(item.isOptionalGear || item.isMissingGear) ? 'border-amber-400/50' : 'border-slate-800'
           } rounded-xl p-3 sm:p-3.5 transition space-y-2.5"
             ${styleAttr}
           >
@@ -578,7 +578,11 @@ const UI = {
             ? `<span class="text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded bg-amber-400/20 text-amber-300 border border-amber-400/40 flex items-center gap-1 whitespace-nowrap">
                              Optional: ${eqInfo ? eqInfo.name : ''}
                            </span>`
-            : ''
+            : (item.isMissingGear
+              ? `<span class="text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-500/40 flex items-center gap-1 whitespace-nowrap">
+                             No ${eqInfo ? eqInfo.name : 'Gear'}
+                           </span>`
+              : '')
           }
                   </div>
                   <div class="text-sm sm:text-base font-extrabold text-white group-hover:text-volt transition truncate">
@@ -618,8 +622,8 @@ const UI = {
             : ''
           }
 
-            <!-- Automatic Inline Alternative Bar when Equipment is OPTIONAL -->
-            ${item.isOptionalGear && item.alternative
+            <!-- Automatic Inline Alternative Bar when Equipment is OPTIONAL or MISSING -->
+            ${(item.isOptionalGear || item.isMissingGear) && item.alternative
             ? `
                   <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-amber-500/20 bg-amber-500/5 -mx-3 -mb-3 px-3 py-2 rounded-b-xl">
                     <div class="flex items-center gap-2 text-xs text-amber-200/90">
@@ -817,15 +821,18 @@ const UI = {
         diffBadge.className = `text-[11px] font-mono font-bold uppercase px-2.5 py-0.5 rounded-md border ${isHard ? 'bg-rose-500/20 text-rose-300 border-rose-500/40' : 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
           }`;
 
-        const isFrontView = BiomechanicalStickAnimator.computePose(mov.poseType, 0).view === 'front';
-        document.getElementById('demoModalCameraLabel').textContent = isFrontView
-          ? 'Front-View Symmetrical Rig'
-          : 'Side-View Biomechanical IK Rig';
+        const camLabel = document.getElementById('demoModalCameraLabel');
+        if (camLabel) {
+          const isFrontView = BiomechanicalStickAnimator.computePose(mov.poseType, 0).view === 'front';
+          camLabel.textContent = isFrontView
+            ? 'Front-View Symmetrical Rig'
+            : 'Side-View Biomechanical IK Rig';
+        }
 
         document.getElementById('demoModalEquipBadge').textContent = eq ? eq.name : 'Bodyweight';
         document.getElementById('demoModalTitle').textContent = mov.name;
         document.getElementById('demoModalCues').textContent = mov.cues;
-        document.getElementById('demoModalScaling').textContent = `${mov.scaling} (Pattern-Matched Sub: ${altMov ? altMov.name : 'Air Squats'})`;
+        document.getElementById('demoModalScaling').textContent = mov.scaling;
 
         const modalCanvas = document.getElementById('demoModalCanvas');
         BiomechanicalStickAnimator.registerCanvas(modalCanvas, mov.poseType);
@@ -1475,7 +1482,7 @@ const UI = {
             `${wod.title} (${wod.badgeFormat})`,
             wod.prescriptionHeader,
             ...wod.items.map(i => {
-              const subSuffix = (i.isOptionalGear && i.alternative) ? ` [Or Sub: ${i.alternative.text}]` : '';
+              const subSuffix = ((i.isOptionalGear || i.isMissingGear) && i.alternative) ? ` [Or Sub: ${i.alternative.text}]` : '';
               return `- ${i.prescriptionText}${subSuffix}`;
             }),
             `\nStimulus: ${wod.stimulus}`

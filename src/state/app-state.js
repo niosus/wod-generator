@@ -58,6 +58,11 @@ const STORAGE_KEY = 'wodforge_local_prefs_v3';
           if (Array.isArray(parsed.excludedMovements)) {
             this.excludedMovements = new Set(parsed.excludedMovements);
           }
+          if (!this.includeHardMovements) {
+            globalThis.MOVEMENTS_DB.forEach(m => {
+              if (m.difficulty === 'hard') this.excludedMovements.add(m.id);
+            });
+          }
           if (parsed.mode) this.mode = parsed.mode;
           if (parsed.format) this.format = parsed.format;
           if (parsed.duration) this.duration = parsed.duration;
@@ -138,7 +143,8 @@ const STORAGE_KEY = 'wodforge_local_prefs_v3';
         return globalThis.MOVEMENTS_DB.filter(
           m => this.isEquipmentUsable(m.equipment) &&
             !this.isMovementSuppressedByBetterGear(m) &&
-            !this.excludedMovements.has(m.id)
+            !this.excludedMovements.has(m.id) &&
+            (this.includeHardMovements || m.difficulty !== 'hard')
         );
       },
 
@@ -220,14 +226,14 @@ const STORAGE_KEY = 'wodforge_local_prefs_v3';
         const primaryScale = globalThis.MOVEMENTS_DB.find(m => m.id === mov.scaleDownId);
         if (!primaryScale) return null;
 
-        if (!forbiddenMovementIds.has(primaryScale.id)) {
+        if (this.isEquipmentUsable(primaryScale.equipment) && !forbiddenMovementIds.has(primaryScale.id)) {
           return {
             movement: primaryScale,
             note: mov.scaleNote || primaryScale.name
           };
         }
 
-        // If primary scale-down is already in the WOD, find a non-colliding normal movement in the same pattern
+        // If primary scale-down requires equipment that is not usable, or is already in the WOD, find a non-colliding alternative in the same pattern with available equipment
         const backupScale = this.resolveUniqueAlternative(mov, forbiddenMovementIds);
         if (backupScale && backupScale.id !== mov.id && !forbiddenMovementIds.has(backupScale.id)) {
           return {
