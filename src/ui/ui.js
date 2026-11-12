@@ -512,112 +512,7 @@ const UI = {
             </div>
           `;
         } else {
-          listEl.innerHTML = wod.items.map((item, index) => {
-            const mov = item.movement;
-            const pat = PATTERNS[mov.pattern];
-            const isHard = mov.difficulty === 'hard';
-            const eqInfo = EQUIPMENT_CATALOG.find(e => e.id === mov.equipment);
-
-            return `
-              <div
-                class="wod-item-animated bg-slate-900/90 border ${item.isOptionalGear ? 'border-amber-400/50' : 'border-slate-800'
-              } rounded-xl p-3 sm:p-3.5 transition space-y-2.5"
-                style="animation-delay: ${index * 110}ms;"
-              >
-                <div class="flex items-center justify-between gap-3">
-                  <div
-                    data-demo-mov="${mov.id}"
-                    class="flex items-center gap-3.5 min-w-0 flex-1 cursor-pointer group"
-                  >
-                    <!-- Live 2D IK Canvas Mini Viewport -->
-                    <div class="w-16 h-16 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-center shrink-0 overflow-hidden">
-                      <canvas
-                        data-ik-pose="${mov.poseType}"
-                        width="72"
-                        height="72"
-                        class="w-16 h-16 block"
-                      ></canvas>
-                    </div>
-
-                    <div class="min-w-0 flex-1">
-                      <div class="flex flex-wrap items-center gap-1.5 mb-1">
-                        <span class="font-mono text-xs font-extrabold px-2 py-0.5 rounded bg-volt text-slate-950 whitespace-nowrap">
-                          ${item.repsDisplay}
-                        </span>
-                        <span class="text-[10px] font-mono px-2 py-0.5 rounded border ${pat.color} whitespace-nowrap">
-                          ${pat.label}
-                        </span>
-                        <span class="text-[10px] font-mono font-bold uppercase px-1.5 py-0.5 rounded border ${isHard
-                ? 'bg-rose-500/20 text-rose-300 border-rose-500/40'
-                : 'bg-slate-800 text-slate-300 border-slate-700'
-              } whitespace-nowrap">
-                          ${isHard ? 'HARD SKILL' : 'NORMAL'}
-                        </span>
-                        ${item.isOptionalGear
-                ? `<span class="text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded bg-amber-400/20 text-amber-300 border border-amber-400/40 flex items-center gap-1 whitespace-nowrap">
-                                 Optional: ${eqInfo ? eqInfo.name : ''}
-                               </span>`
-                : ''
-              }
-                      </div>
-                      <div class="text-sm sm:text-base font-extrabold text-white group-hover:text-volt transition truncate">
-                        ${item.prescriptionText}
-                      </div>
-                      <div class="text-[11px] text-slate-400 truncate mt-0.5">
-                        Tap to inspect 2D biomechanics & execution cues
-                      </div>
-                    </div>
-                  </div>
-
-                  <button
-                    data-demo-mov="${mov.id}"
-                    class="shrink-0 px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-mono text-cyan-300 flex items-center gap-1 transition"
-                  >
-                    <span class="hidden sm:inline">Form</span>
-                    <i data-lucide="chevron-right" class="w-4 h-4"></i>
-                  </button>
-                </div>
-
-                <!-- Inline Scale-Down Progression Bar (For Hard / Plyo / Skill Exercises) -->
-                ${item.scaleDown
-                ? `
-                      <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-cyan-500/20 bg-cyan-500/5 -mx-3 px-3 py-1.5">
-                        <div class="flex items-center gap-2 text-xs text-cyan-200/90">
-                          <i data-lucide="trending-down" class="w-3.5 h-3.5 text-cyan-400 shrink-0"></i>
-                          <span><strong>Scale Down:</strong> ${item.scaleDown.text}</span>
-                        </div>
-                        <button
-                          data-scale-item-index="${index}"
-                          class="px-2.5 py-1 rounded-lg bg-cyan-500/20 hover:bg-cyan-400 hover:text-slate-950 text-cyan-300 border border-cyan-400/40 font-mono font-extrabold text-[10px] uppercase tracking-wider transition"
-                        >
-                          Scale
-                        </button>
-                      </div>
-                    `
-                : ''
-              }
-
-                <!-- Automatic Inline Alternative Bar when Equipment is OPTIONAL -->
-                ${item.isOptionalGear && item.alternative
-                ? `
-                      <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-amber-500/20 bg-amber-500/5 -mx-3 -mb-3 px-3 py-2 rounded-b-xl">
-                        <div class="flex items-center gap-2 text-xs text-amber-200/90">
-                          <i data-lucide="repeat" class="w-3.5 h-3.5 text-amber-400 shrink-0"></i>
-                          <span><strong>No ${eqInfo ? eqInfo.name : 'Gear'}? Sub:</strong> ${item.alternative.text}</span>
-                        </div>
-                        <button
-                          data-swap-item-index="${index}"
-                          class="px-2.5 py-1 rounded-lg bg-amber-400 hover:bg-amber-300 text-slate-950 font-mono font-black text-[11px] uppercase tracking-wider transition shadow-sm"
-                        >
-                          Use Alternative
-                        </button>
-                      </div>
-                    `
-                : ''
-              }
-              </div>
-            `;
-          }).join('');
+          listEl.innerHTML = wod.items.map((item, index) => this.renderWodItemHtml(item, index, index * 110)).join('');
         }
 
         // Register all newly rendered mini IK canvases
@@ -632,6 +527,273 @@ const UI = {
         }).join('');
 
         lucide.createIcons();
+      },
+
+      renderWodItemHtml(item, index, animationDelay = null, isSingleRow = false) {
+        const mov = item.movement;
+        const pat = PATTERNS[mov.pattern];
+        const isHard = mov.difficulty === 'hard';
+        const eqInfo = EQUIPMENT_CATALOG.find(e => e.id === mov.equipment);
+        const delay = animationDelay !== null ? animationDelay : (index * 110);
+        const animClass = isSingleRow ? '' : 'wod-item-animated';
+        const styleAttr = isSingleRow ? '' : `style="animation-delay: ${delay}ms;"`;
+
+        return `
+          <div
+            data-wod-row-index="${index}"
+            class="${animClass} bg-slate-900/90 border ${item.isOptionalGear ? 'border-amber-400/50' : 'border-slate-800'
+          } rounded-xl p-3 sm:p-3.5 transition space-y-2.5"
+            ${styleAttr}
+          >
+            <div class="flex items-center justify-between gap-3">
+              <div
+                data-demo-mov="${mov.id}"
+                class="flex items-center gap-3.5 min-w-0 flex-1 cursor-pointer group"
+              >
+                <!-- Live 2D IK Canvas Mini Viewport -->
+                <div class="w-16 h-16 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-center shrink-0 overflow-hidden">
+                  <canvas
+                    data-ik-pose="${mov.poseType}"
+                    width="72"
+                    height="72"
+                    class="w-16 h-16 block"
+                  ></canvas>
+                </div>
+
+                <div class="min-w-0 flex-1">
+                  <div class="flex flex-wrap items-center gap-1.5 mb-1">
+                    <span class="font-mono text-xs font-extrabold px-2 py-0.5 rounded bg-volt text-slate-950 whitespace-nowrap">
+                      ${item.repsDisplay}
+                    </span>
+                    <span class="text-[10px] font-mono px-2 py-0.5 rounded border ${pat.color} whitespace-nowrap">
+                      ${pat.label}
+                    </span>
+                    <span class="text-[10px] font-mono font-bold uppercase px-1.5 py-0.5 rounded border ${isHard
+            ? 'bg-rose-500/20 text-rose-300 border-rose-500/40'
+            : 'bg-slate-800 text-slate-300 border-slate-700'
+          } whitespace-nowrap">
+                      ${isHard ? 'HARD SKILL' : 'NORMAL'}
+                    </span>
+                    ${item.isOptionalGear
+            ? `<span class="text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded bg-amber-400/20 text-amber-300 border border-amber-400/40 flex items-center gap-1 whitespace-nowrap">
+                             Optional: ${eqInfo ? eqInfo.name : ''}
+                           </span>`
+            : ''
+          }
+                  </div>
+                  <div class="text-sm sm:text-base font-extrabold text-white group-hover:text-volt transition truncate">
+                    ${item.prescriptionText}
+                  </div>
+                  <div class="text-[11px] text-slate-400 truncate mt-0.5">
+                    Tap to inspect 2D biomechanics & execution cues
+                  </div>
+                </div>
+              </div>
+
+              <button
+                data-demo-mov="${mov.id}"
+                class="shrink-0 px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-mono text-cyan-300 flex items-center gap-1 transition"
+              >
+                <span class="hidden sm:inline">Form</span>
+                <i data-lucide="chevron-right" class="w-4 h-4"></i>
+              </button>
+            </div>
+
+            <!-- Inline Scale-Down Progression Bar (For Hard / Plyo / Skill Exercises) -->
+            ${item.scaleDown
+            ? `
+                  <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-cyan-500/20 bg-cyan-500/5 -mx-3 px-3 py-1.5">
+                    <div class="flex items-center gap-2 text-xs text-cyan-200/90">
+                      <i data-lucide="trending-down" class="w-3.5 h-3.5 text-cyan-400 shrink-0"></i>
+                      <span><strong>Scale Down:</strong> ${item.scaleDown.text}</span>
+                    </div>
+                    <button
+                      data-scale-item-index="${index}"
+                      class="px-2.5 py-1 rounded-lg bg-cyan-500/20 hover:bg-cyan-400 hover:text-slate-950 text-cyan-300 border border-cyan-400/40 font-mono font-extrabold text-[10px] uppercase tracking-wider transition"
+                    >
+                      Scale
+                    </button>
+                  </div>
+                `
+            : ''
+          }
+
+            <!-- Automatic Inline Alternative Bar when Equipment is OPTIONAL -->
+            ${item.isOptionalGear && item.alternative
+            ? `
+                  <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-amber-500/20 bg-amber-500/5 -mx-3 -mb-3 px-3 py-2 rounded-b-xl">
+                    <div class="flex items-center gap-2 text-xs text-amber-200/90">
+                      <i data-lucide="repeat" class="w-3.5 h-3.5 text-amber-400 shrink-0"></i>
+                      <span><strong>No ${eqInfo ? eqInfo.name : 'Gear'}? Sub:</strong> ${item.alternative.text}</span>
+                    </div>
+                    <button
+                      data-swap-item-index="${index}"
+                      class="px-2.5 py-1 rounded-lg bg-amber-400 hover:bg-amber-300 text-slate-950 font-mono font-black text-[11px] uppercase tracking-wider transition shadow-sm"
+                    >
+                      Use Alternative
+                    </button>
+                  </div>
+                `
+            : ''
+          }
+          </div>
+        `;
+      },
+
+      updateWodRow(idx) {
+        const wod = AppState.currentWod;
+        if (!wod || !wod.items || !wod.items[idx]) return;
+
+        if (typeof WorkoutGenerator.getWodSignature === 'function') {
+          const sig = WorkoutGenerator.getWodSignature(wod);
+          if (sig) AppState.addRecentWorkout(sig);
+        }
+
+        const listEl = document.getElementById('wodMovementsList');
+        if (!listEl) return;
+
+        const rowEl = listEl.querySelector(`[data-wod-row-index="${idx}"]`) || listEl.children[idx];
+        if (!rowEl) return;
+
+        // Prevent double triggers while already transitioning this row
+        if (rowEl._isRowTransitioning) return;
+        rowEl._isRowTransitioning = true;
+        rowEl.style.pointerEvents = 'none';
+
+        // Clear any lingering CSS animation so inline transitions take full priority in cascade
+        rowEl.classList.remove('wod-item-animated');
+        rowEl.style.animation = 'none';
+        void rowEl.offsetHeight;
+
+        // 1. Quick & neat fade-out of the old exercise (~180ms)
+        rowEl.style.transition = 'opacity 0.18s ease-out, transform 0.18s ease-out';
+        rowEl.style.opacity = '0';
+        rowEl.style.transform = 'scale(0.97)';
+
+        setTimeout(() => {
+          // If row was detached or WOD re-rendered during fade-out, cleanly abort
+          if (!rowEl.parentNode || !document.body.contains(rowEl)) return;
+
+          const item = wod.items[idx];
+          const temp = document.createElement('div');
+          temp.innerHTML = this.renderWodItemHtml(item, idx, 0, true);
+          const newRowEl = temp.firstElementChild;
+          if (!newRowEl) return;
+
+          // Collect all affected other rows and sections below this row
+          const affectedElements = [
+            ...Array.from(listEl.children).slice(idx + 1),
+            ...(listEl.nextElementSibling ? [listEl.nextElementSibling] : [])
+          ];
+
+          // FIRST: Record initial document-relative positions before DOM content changes
+          // Strip any residual entrance animation on affected siblings so keyframes never override transforms
+          const firstTops = new Map();
+          affectedElements.forEach(el => {
+            el.classList.remove('wod-item-animated');
+            el.style.animation = 'none';
+            const top = typeof el.getBoundingClientRect === 'function'
+              ? el.getBoundingClientRect().top + window.scrollY
+              : el.offsetTop;
+            firstTops.set(el, top);
+          });
+
+          // CHANGE: Swap content and classes into rowEl while invisible at opacity: 0
+          // Because rowEl stays in the DOM, its opacity 0 state is rock solid across all browsers
+          rowEl.innerHTML = newRowEl.innerHTML;
+          rowEl.className = newRowEl.className;
+          rowEl.classList.remove('wod-item-animated');
+          rowEl.style.animation = 'none';
+
+          // LAST & INVERT: Measure new document positions and invert using translateY
+          const animatingElements = [];
+          affectedElements.forEach(el => {
+            const firstTop = firstTops.get(el);
+            const lastTop = typeof el.getBoundingClientRect === 'function'
+              ? el.getBoundingClientRect().top + window.scrollY
+              : el.offsetTop;
+            const deltaY = firstTop - lastTop;
+            if (Math.abs(deltaY) > 0.5) {
+              el.classList.remove('wod-item-animated');
+              el.style.animation = 'none';
+              el.style.transition = 'none';
+              el.style.transform = `translateY(${deltaY}px)`;
+              animatingElements.push(el);
+            }
+          });
+
+          // Reflow to ensure inverted transforms and opacity: 0 are committed by the browser
+          void listEl.offsetHeight;
+
+          // PLAY: Smoothly glide affected other rows to their new home and fade in rowEl
+          requestAnimationFrame(() => {
+            rowEl.style.transition = 'opacity 0.28s ease-out, transform 0.28s cubic-bezier(0.16, 1, 0.3, 1)';
+            rowEl.style.opacity = '1';
+            rowEl.style.transform = 'scale(1)';
+            rowEl.style.pointerEvents = '';
+
+            animatingElements.forEach(el => {
+              el.style.transition = 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)';
+              el.style.transform = 'translateY(0)';
+            });
+          });
+
+          let cleanedUp = false;
+          const cleanup = () => {
+            if (cleanedUp) return;
+            cleanedUp = true;
+            animatingElements.forEach(el => {
+              el.style.transition = '';
+              el.style.transform = '';
+            });
+            rowEl.style.transition = '';
+            rowEl.style.opacity = '';
+            rowEl.style.transform = '';
+            rowEl.style.pointerEvents = '';
+            rowEl._isRowTransitioning = false;
+          };
+
+          setTimeout(cleanup, 450);
+
+          const canvas = rowEl.querySelector('canvas[data-ik-pose]');
+          if (canvas) {
+            BiomechanicalStickAnimator.registerCanvas(canvas, canvas.dataset.ikPose);
+          }
+
+          const uniquePatterns = Array.from(new Set(wod.items.map(i => i.movement.pattern)));
+          const patternTagsEl = document.getElementById('wodPatternTags');
+          if (patternTagsEl) {
+            patternTagsEl.innerHTML = uniquePatterns.map(pid => {
+              const pat = PATTERNS[pid];
+              return `<span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded border ${pat.color}">${pat.label}</span>`;
+            }).join('');
+          }
+
+          if (typeof lucide !== 'undefined' && lucide.createIcons) {
+            lucide.createIcons();
+          }
+        }, 140);
+      },
+
+      _activeModalCount: 0,
+
+      lockBodyScroll() {
+        this._activeModalCount++;
+        if (this._activeModalCount === 1) {
+          const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+          document.body.style.overflow = 'hidden';
+          if (scrollbarWidth > 0 && window.innerWidth === document.documentElement.clientWidth) {
+            document.body.style.paddingRight = `${scrollbarWidth}px`;
+          }
+        }
+      },
+
+      unlockBodyScroll() {
+        this._activeModalCount = Math.max(0, this._activeModalCount - 1);
+        if (this._activeModalCount === 0) {
+          document.body.style.overflow = '';
+          document.body.style.paddingRight = '';
+        }
       },
 
       openMovementDemoModal(movementId) {
@@ -669,8 +831,175 @@ const UI = {
         BiomechanicalStickAnimator.registerCanvas(modalCanvas, mov.poseType);
 
         const modal = document.getElementById('movementDemoModal');
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
+        const card = document.getElementById('movementDemoCard') || modal.firstElementChild;
+
+        if (modal._closeTimer) {
+          clearTimeout(modal._closeTimer);
+          modal._closeTimer = null;
+        }
+        modal._isClosing = false;
+
+        modal.classList.remove('hidden', 'backdrop-fade-out');
+        modal.classList.add('flex', 'backdrop-fade-in');
+
+        if (card) {
+          card.classList.remove('modal-fade-out');
+          card.classList.remove('modal-open-anim');
+          void card.offsetWidth; // trigger reflow for animation restart
+          card.classList.add('modal-open-anim');
+        }
+
+        this.lockBodyScroll();
+      },
+
+      closeMovementDemoModal() {
+        const modal = document.getElementById('movementDemoModal');
+        if (!modal || modal.classList.contains('hidden') || modal._isClosing) return;
+
+        const card = document.getElementById('movementDemoCard') || modal.firstElementChild;
+        modal._isClosing = true;
+
+        modal.classList.remove('backdrop-fade-in');
+        modal.classList.add('backdrop-fade-out');
+
+        if (card) {
+          card.classList.remove('modal-open-anim');
+          void card.offsetWidth;
+          card.classList.add('modal-fade-out');
+        }
+
+        modal._closeTimer = setTimeout(() => {
+          modal.classList.add('hidden');
+          modal.classList.remove('flex', 'backdrop-fade-in', 'backdrop-fade-out');
+          if (card) {
+            card.classList.remove('modal-open-anim', 'modal-fade-out');
+          }
+          this.unlockBodyScroll();
+          modal._isClosing = false;
+          modal._closeTimer = null;
+        }, 280);
+      },
+
+      openBenchmarksModal(filter = 'all') {
+        const modal = document.getElementById('benchmarksModal');
+        if (!modal) return;
+        const card = document.getElementById('benchmarksModalCard') || modal.firstElementChild;
+
+        if (modal._closeTimer) {
+          clearTimeout(modal._closeTimer);
+          modal._closeTimer = null;
+        }
+        modal._isClosing = false;
+
+        this._activeBFilter = filter;
+        const searchInput = document.getElementById('benchmarksSearchInput');
+        if (searchInput) searchInput.value = '';
+        document.querySelectorAll('.bfilter-btn').forEach(b => {
+          b.className = b.dataset.bfilter === filter
+            ? 'bfilter-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-volt text-slate-950'
+            : 'bfilter-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 text-slate-300';
+        });
+        this.renderBenchmarksModal(filter);
+
+        modal.classList.remove('hidden', 'backdrop-fade-out');
+        modal.classList.add('flex', 'backdrop-fade-in');
+
+        if (card) {
+          card.classList.remove('modal-fade-out');
+          card.classList.remove('modal-open-anim');
+          void card.offsetWidth;
+          card.classList.add('modal-open-anim');
+        }
+
+        this.lockBodyScroll();
+      },
+
+      closeBenchmarksModal() {
+        const modal = document.getElementById('benchmarksModal');
+        if (!modal || modal.classList.contains('hidden') || modal._isClosing) return;
+
+        const card = document.getElementById('benchmarksModalCard') || modal.firstElementChild;
+        modal._isClosing = true;
+
+        modal.classList.remove('backdrop-fade-in');
+        modal.classList.add('backdrop-fade-out');
+
+        if (card) {
+          card.classList.remove('modal-open-anim');
+          void card.offsetWidth;
+          card.classList.add('modal-fade-out');
+        }
+
+        modal._closeTimer = setTimeout(() => {
+          modal.classList.add('hidden');
+          modal.classList.remove('flex', 'backdrop-fade-in', 'backdrop-fade-out');
+          if (card) {
+            card.classList.remove('modal-open-anim', 'modal-fade-out');
+          }
+          this.unlockBodyScroll();
+          modal._isClosing = false;
+          modal._closeTimer = null;
+        }, 280);
+      },
+
+      openScaleModal(pattern = 'ALL') {
+        const modal = document.getElementById('scaleModal');
+        if (!modal) return;
+        const card = document.getElementById('scaleModalCard') || modal.firstElementChild;
+
+        if (modal._closeTimer) {
+          clearTimeout(modal._closeTimer);
+          modal._closeTimer = null;
+        }
+        modal._isClosing = false;
+
+        this._activeScalePattern = pattern;
+        document.querySelectorAll('.spattern-btn').forEach(b => {
+          b.className = b.dataset.spattern === pattern
+            ? 'spattern-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-amber-400 text-slate-950 font-bold'
+            : 'spattern-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 text-slate-300';
+        });
+        this.renderScaleModal(pattern);
+
+        modal.classList.remove('hidden', 'backdrop-fade-out');
+        modal.classList.add('flex', 'backdrop-fade-in');
+
+        if (card) {
+          card.classList.remove('modal-fade-out');
+          card.classList.remove('modal-open-anim');
+          void card.offsetWidth;
+          card.classList.add('modal-open-anim');
+        }
+
+        this.lockBodyScroll();
+      },
+
+      closeScaleModal() {
+        const modal = document.getElementById('scaleModal');
+        if (!modal || modal.classList.contains('hidden') || modal._isClosing) return;
+
+        const card = document.getElementById('scaleModalCard') || modal.firstElementChild;
+        modal._isClosing = true;
+
+        modal.classList.remove('backdrop-fade-in');
+        modal.classList.add('backdrop-fade-out');
+
+        if (card) {
+          card.classList.remove('modal-open-anim');
+          void card.offsetWidth;
+          card.classList.add('modal-fade-out');
+        }
+
+        modal._closeTimer = setTimeout(() => {
+          modal.classList.add('hidden');
+          modal.classList.remove('flex', 'backdrop-fade-in', 'backdrop-fade-out');
+          if (card) {
+            card.classList.remove('modal-open-anim', 'modal-fade-out');
+          }
+          this.unlockBodyScroll();
+          modal._isClosing = false;
+          modal._closeTimer = null;
+        }, 280);
       },
 
       renderBenchmarksModal(filter = 'all', searchQuery = '') {
@@ -1090,7 +1419,7 @@ const UI = {
               AppState.currentWod.items[idx].movement = currentItem.alternative.movement;
               delete AppState.currentWod.items[idx].benchmarkCustomLabel;
               WorkoutGenerator.refreshWodCollisionFreeMetadata(AppState.currentWod);
-              this.displayWod(AppState.currentWod);
+              this.updateWodRow(idx);
             }
             return;
           }
@@ -1103,7 +1432,7 @@ const UI = {
               AppState.currentWod.items[idx].movement = currentItem.scaleDown.movement;
               delete AppState.currentWod.items[idx].benchmarkCustomLabel;
               WorkoutGenerator.refreshWodCollisionFreeMetadata(AppState.currentWod);
-              this.displayWod(AppState.currentWod);
+              this.updateWodRow(idx);
             }
             return;
           }
@@ -1174,40 +1503,85 @@ const UI = {
 
         // Close Movement Demo Modal
         const closeDemoModal = () => {
-          const modal = document.getElementById('movementDemoModal');
-          modal.classList.add('hidden');
-          modal.classList.remove('flex');
+          this.closeMovementDemoModal();
         };
         document.getElementById('closeDemoModalBtn').addEventListener('click', closeDemoModal);
         document.getElementById('movementDemoModal').addEventListener('click', e => {
           if (e.target.id === 'movementDemoModal') closeDemoModal();
         });
 
+        // Touch & Scroll Handling for Movement Demo Modal on Phones/Mobile:
+        // Trying to scroll when a move visualization is open closes it rather than scrolling underlying content.
+        let touchStartX = null;
+        let touchStartY = null;
+        let scrollingClosedDemoModal = false;
+
+        window.addEventListener('touchstart', (e) => {
+          const modal = document.getElementById('movementDemoModal');
+          if (!modal || modal.classList.contains('hidden')) {
+            scrollingClosedDemoModal = false;
+            return;
+          }
+          if (e.touches && e.touches.length > 0) {
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+            scrollingClosedDemoModal = false;
+          }
+        }, { passive: true });
+
+        window.addEventListener('touchmove', (e) => {
+          if (scrollingClosedDemoModal) {
+            if (e.cancelable) e.preventDefault();
+            return;
+          }
+
+          const modal = document.getElementById('movementDemoModal');
+          if (!modal || modal.classList.contains('hidden') || modal._isClosing) return;
+
+          if (touchStartX !== null && touchStartY !== null && e.touches && e.touches.length > 0) {
+            const deltaX = Math.abs(e.touches[0].clientX - touchStartX);
+            const deltaY = Math.abs(e.touches[0].clientY - touchStartY);
+
+            if (deltaY > 8 || deltaX > 8) {
+              if (e.cancelable) e.preventDefault();
+              scrollingClosedDemoModal = true;
+              touchStartX = null;
+              touchStartY = null;
+
+              // Fade away gracefully just like when clicking X
+              this.closeMovementDemoModal();
+            }
+          }
+        }, { passive: false });
+
+        const resetTouchState = () => {
+          touchStartX = null;
+          touchStartY = null;
+          scrollingClosedDemoModal = false;
+        };
+        window.addEventListener('touchend', resetTouchState, { passive: true });
+        window.addEventListener('touchcancel', resetTouchState, { passive: true });
+
+        // Wheel scroll handling on desktop or wheel-enabled devices
+        window.addEventListener('wheel', (e) => {
+          const modal = document.getElementById('movementDemoModal');
+          if (modal && !modal.classList.contains('hidden') && !modal._isClosing) {
+            if (e.cancelable) e.preventDefault();
+            this.closeMovementDemoModal();
+          }
+        }, { passive: false });
+
         // Classical Benchmarks Modal
         this._activeBFilter = 'all';
         document.getElementById('openBenchmarksModalBtn').addEventListener('click', () => {
-          this._activeBFilter = 'all';
-          const searchInput = document.getElementById('benchmarksSearchInput');
-          if (searchInput) searchInput.value = '';
-          document.querySelectorAll('.bfilter-btn').forEach(b => {
-            b.className = b.dataset.bfilter === 'all'
-              ? 'bfilter-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-volt text-slate-950'
-              : 'bfilter-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 text-slate-300';
-          });
-          this.renderBenchmarksModal('all');
-          const modal = document.getElementById('benchmarksModal');
-          modal.classList.remove('hidden');
-          modal.classList.add('flex');
+          this.openBenchmarksModal(this._activeBFilter || 'all');
         });
 
-        const closeBenchModal = () => {
-          const modal = document.getElementById('benchmarksModal');
-          modal.classList.add('hidden');
-          modal.classList.remove('flex');
-        };
-        document.getElementById('closeBenchmarksModalBtn').addEventListener('click', closeBenchModal);
+        document.getElementById('closeBenchmarksModalBtn').addEventListener('click', () => {
+          this.closeBenchmarksModal();
+        });
         document.getElementById('benchmarksModal').addEventListener('click', e => {
-          if (e.target.id === 'benchmarksModal') closeBenchModal();
+          if (e.target.id === 'benchmarksModal') this.closeBenchmarksModal();
         });
 
         document.querySelectorAll('.bfilter-btn').forEach(btn => {
@@ -1219,6 +1593,8 @@ const UI = {
             this._activeBFilter = btn.dataset.bfilter;
             const searchInput = document.getElementById('benchmarksSearchInput');
             this.renderBenchmarksModal(this._activeBFilter, searchInput ? searchInput.value : '');
+            const container = document.getElementById('benchmarksListContainer');
+            if (container) container.scrollTop = 0;
           });
         });
 
@@ -1226,6 +1602,8 @@ const UI = {
         if (benchSearch) {
           benchSearch.addEventListener('input', e => {
             this.renderBenchmarksModal(this._activeBFilter || 'all', e.target.value);
+            const container = document.getElementById('benchmarksListContainer');
+            if (container) container.scrollTop = 0;
           });
         }
 
@@ -1236,47 +1614,53 @@ const UI = {
           if (bm) {
             this.clearSharedUrl();
             this.displayWod(WorkoutGenerator.formatBenchmarkWod(bm));
-            closeBenchModal();
+            this.closeBenchmarksModal();
           }
         });
 
         // Scale Progressions & Ladders Modal
         this._activeScalePattern = 'ALL';
-        const openScaleModal = () => {
-          this._activeScalePattern = 'ALL';
-          document.querySelectorAll('.spattern-btn').forEach(b => {
-            b.className = b.dataset.spattern === 'ALL'
-              ? 'spattern-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-amber-400 text-slate-950 font-bold'
-              : 'spattern-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 text-slate-300';
-          });
-          this.renderScaleModal('ALL');
-          const modal = document.getElementById('scaleModal');
-          if (modal) {
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-          }
-        };
-
         const scaleBtn = document.getElementById('openScaleModalBtn');
-        if (scaleBtn) scaleBtn.addEventListener('click', openScaleModal);
-
-        const closeScaleModal = () => {
-          const modal = document.getElementById('scaleModal');
-          if (modal) {
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-          }
-        };
+        if (scaleBtn) {
+          scaleBtn.addEventListener('click', () => {
+            this.openScaleModal(this._activeScalePattern || 'ALL');
+          });
+        }
 
         const closeScaleBtn = document.getElementById('closeScaleModalBtn');
-        if (closeScaleBtn) closeScaleBtn.addEventListener('click', closeScaleModal);
+        if (closeScaleBtn) {
+          closeScaleBtn.addEventListener('click', () => {
+            this.closeScaleModal();
+          });
+        }
 
         const scaleModalEl = document.getElementById('scaleModal');
         if (scaleModalEl) {
           scaleModalEl.addEventListener('click', e => {
-            if (e.target.id === 'scaleModal') closeScaleModal();
+            if (e.target.id === 'scaleModal') this.closeScaleModal();
           });
         }
+
+        // Global Escape Key listener to gracefully close active modal
+        window.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape') {
+            const demoModal = document.getElementById('movementDemoModal');
+            if (demoModal && !demoModal.classList.contains('hidden') && !demoModal._isClosing) {
+              this.closeMovementDemoModal();
+              return;
+            }
+            const scaleModal = document.getElementById('scaleModal');
+            if (scaleModal && !scaleModal.classList.contains('hidden') && !scaleModal._isClosing) {
+              this.closeScaleModal();
+              return;
+            }
+            const benchModal = document.getElementById('benchmarksModal');
+            if (benchModal && !benchModal.classList.contains('hidden') && !benchModal._isClosing) {
+              this.closeBenchmarksModal();
+              return;
+            }
+          }
+        });
 
         const scaleTabs = document.getElementById('scalePatternTabs');
         if (scaleTabs) {
@@ -1300,7 +1684,7 @@ const UI = {
             const movId = item.dataset.demoMov;
             const mov = MOVEMENTS_DB.find(m => m.id === movId);
             if (mov) {
-              this.openMovementDemo(mov);
+              this.openMovementDemoModal(mov.id);
             }
           });
         }

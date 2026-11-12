@@ -2,6 +2,21 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+html {
+  scrollbar-gutter: stable;
+}
+
+#scaleLaddersContainer,
+#benchmarksListContainer {
+  scrollbar-gutter: stable;
+  overscroll-behavior: contain;
+}
+
+#scaleModal,
+#benchmarksModal {
+  overscroll-behavior: contain;
+}
+
 body {
   background-color: #060a12;
   color: #f8fafc;
@@ -75,7 +90,60 @@ body {
 }
 
 .wod-item-animated {
-  animation: rowFadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: rowFadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+
+#movementDemoModal {
+  touch-action: none;
+  overscroll-behavior: contain;
+}
+
+/* Movement View Open & Close Animations with Directional Fly-Out */
+.backdrop-fade-in {
+  animation: backdropFadeIn 0.28s ease-out both;
+}
+
+.backdrop-fade-out {
+  animation: backdropFadeOut 0.28s ease-out both !important;
+}
+
+@keyframes backdropFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes backdropFadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+.modal-open-anim {
+  animation: modalScaleIn 0.32s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes modalScaleIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.92) translateY(24px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.modal-fade-out {
+  transform: scale(0.94) translateY(12px) !important;
+  opacity: 0 !important;
+  transition: transform 0.28s cubic-bezier(0.2, 0.9, 0.3, 1), opacity 0.24s ease-out !important;
 }
 
 .accent-glow-sweep {

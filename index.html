@@ -155,7 +155,7 @@
         </div>
 
         <!-- Outdated-Muted Card Body Wrapper -->
-        <div id="wodCardBody" class="transition-all duration-300">
+        <div id="wodCardBody" class="transition-opacity duration-300">
           <!-- Workout Prescription Banner -->
           <div
             class="my-4 flex items-center justify-between bg-slate-900/90 border border-slate-800/90 rounded-xl px-4 py-3">
@@ -506,8 +506,8 @@
 
   <!-- MOVEMENT DEMO & 2D INVERSE KINEMATICS MODAL -->
   <div id="movementDemoModal"
-    class="fixed inset-0 z-[60] hidden items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
-    <div class="bg-slate-925 border border-slate-700 rounded-2xl max-w-lg w-full p-5 sm:p-6 shadow-2xl relative">
+    class="fixed inset-0 z-[60] hidden items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md touch-none">
+    <div id="movementDemoCard" class="bg-slate-925 border border-slate-700 rounded-2xl max-w-lg w-full p-5 sm:p-6 shadow-2xl relative">
       <!-- Close Button -->
       <button id="closeDemoModalBtn"
         class="absolute top-4 right-4 w-9 h-9 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center transition">
@@ -564,7 +564,7 @@
   <!-- CLASSICAL BENCHMARKS BROWSER MODAL -->
   <div id="benchmarksModal"
     class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
-    <div
+    <div id="benchmarksModalCard"
       class="bg-slate-925 border border-slate-700 rounded-2xl max-w-4xl w-full max-h-[88vh] flex flex-col p-5 sm:p-6 shadow-2xl relative">
       <div class="flex items-center justify-between pb-4 border-b border-slate-800">
         <div>
@@ -614,7 +614,7 @@
   <!-- MOVEMENT SCALE PROGRESSIONS & LADDERS MODAL -->
   <div id="scaleModal"
     class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
-    <div
+    <div id="scaleModalCard"
       class="bg-slate-925 border border-slate-700 rounded-2xl max-w-4xl w-full max-h-[88vh] flex flex-col p-5 sm:p-6 shadow-2xl relative">
       <div class="flex items-center justify-between pb-4 border-b border-slate-800">
         <div>
