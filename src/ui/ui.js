@@ -256,18 +256,14 @@ const UI = {
         const availableByEq = AppState.getAvailableMovementsByEquipment();
         const activePool = AppState.getActiveMovementPool();
 
-        // Update Top Header Summary & Floating Badge
+        // Update Top Header Summary
         const activeSummaryEl = document.getElementById('activePoolSummary');
         if (activeSummaryEl) {
           activeSummaryEl.innerHTML = `
             <span class="font-bold text-white">${activePool.length}/${availableByEq.length}</span>
             <span class="hidden sm:inline text-slate-400">Movements</span>
-            <span class="text-slate-300">Active</span>
+            <span class="hidden sm:inline text-slate-300">Active</span>
           `;
-        }
-        const floatingBadge = document.getElementById('floatingActiveCountBadge');
-        if (floatingBadge) {
-          floatingBadge.textContent = `${activePool.length} Active`;
         }
 
         // Update Hard Movements Switch & Counter
@@ -320,7 +316,7 @@ const UI = {
             return `
               <button
                 data-mcat="${cat.id}"
-                class="mcat-btn px-2.5 py-1 rounded-lg text-[11px] font-semibold transition ${active
+                class="mcat-btn px-2.5 py-1 rounded-lg text-[11px] font-semibold transition whitespace-nowrap shrink-0 ${active
                 ? 'bg-cyan-400 text-slate-950 font-bold'
                 : 'bg-slate-900 text-slate-400 hover:text-slate-200 border border-slate-800'
               }"
@@ -406,12 +402,12 @@ const UI = {
                       ${mov.name}
                     </div>
                     <div class="flex items-center justify-between gap-1 mt-1 text-[10px] text-slate-400">
-                      <span class="text-[9px] font-mono px-1.5 py-0.5 rounded border ${patInfo.color}">
+                      <span class="text-[8.5px] sm:text-[9px] font-mono px-1 sm:px-1.5 py-0.5 rounded border whitespace-nowrap shrink-0 ${patInfo.color}">
                         ${patInfo.label}
                       </span>
                       <button
                         data-demo-mov="${mov.id}"
-                        class="text-[10px] font-mono text-cyan-300 hover:text-cyan-200 hover:underline flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-slate-800/80 hover:bg-slate-800 transition"
+                        class="text-[9px] sm:text-[10px] font-mono text-cyan-300 hover:text-cyan-200 hover:underline flex items-center gap-0.5 px-1 sm:px-1.5 py-0.5 rounded bg-slate-800/80 hover:bg-slate-800 transition shrink-0"
                         title="View form cues & execution"
                       >
                         <span>Cues</span>
@@ -523,7 +519,7 @@ const UI = {
         const uniquePatterns = Array.from(new Set(wod.items.map(i => i.movement.pattern)));
         document.getElementById('wodPatternTags').innerHTML = uniquePatterns.map(pid => {
           const pat = PATTERNS[pid];
-          return `<span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded border ${pat.color}">${pat.label}</span>`;
+          return `<span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded border whitespace-nowrap shrink-0 ${pat.color}">${pat.label}</span>`;
         }).join('');
 
         lucide.createIcons();
@@ -814,7 +810,7 @@ const UI = {
 
         const patBadge = document.getElementById('demoModalPatternBadge');
         patBadge.textContent = pat.label;
-        patBadge.className = `text-[11px] font-mono font-bold uppercase px-2.5 py-0.5 rounded-md border ${pat.color}`;
+        patBadge.className = `text-[11px] font-mono font-bold uppercase px-2.5 py-0.5 rounded-md border whitespace-nowrap shrink-0 ${pat.color}`;
 
         const diffBadge = document.getElementById('demoModalDifficultyBadge');
         diffBadge.textContent = isHard ? 'HARD / HIGH-SKILL' : 'NORMAL TIER';
@@ -903,8 +899,8 @@ const UI = {
         if (searchInput) searchInput.value = '';
         document.querySelectorAll('.bfilter-btn').forEach(b => {
           b.className = b.dataset.bfilter === filter
-            ? 'bfilter-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-volt text-slate-950'
-            : 'bfilter-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 text-slate-300';
+            ? 'bfilter-btn px-2.5 sm:px-3 py-1.5 rounded-xl text-[11px] sm:text-xs font-semibold bg-volt text-slate-950'
+            : 'bfilter-btn px-2.5 sm:px-3 py-1.5 rounded-xl text-[11px] sm:text-xs font-semibold bg-slate-800 text-slate-300';
         });
         this.renderBenchmarksModal(filter);
 
@@ -963,8 +959,8 @@ const UI = {
         this._activeScalePattern = pattern;
         document.querySelectorAll('.spattern-btn').forEach(b => {
           b.className = b.dataset.spattern === pattern
-            ? 'spattern-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-amber-400 text-slate-950 font-bold'
-            : 'spattern-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 text-slate-300';
+            ? 'spattern-btn px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl text-[11px] sm:text-xs font-semibold bg-amber-400 text-slate-950 font-bold whitespace-nowrap'
+            : 'spattern-btn px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl text-[11px] sm:text-xs font-semibold bg-slate-800 text-slate-300 whitespace-nowrap';
         });
         this.renderScaleModal(pattern);
 
@@ -1051,12 +1047,12 @@ const UI = {
             <div
               data-load-benchmark="${bm.id}"
               class="cursor-pointer bg-slate-900 hover:bg-slate-800/90 border ${eligible ? 'border-volt/40' : 'border-slate-800'
-            } rounded-xl p-4 flex flex-col justify-between gap-3 transition"
+            } rounded-xl p-3.5 sm:p-4 flex flex-col justify-between gap-2.5 sm:gap-3 transition"
             >
               <div>
-                <div class="flex items-center justify-between gap-2 mb-1">
-                  <div class="flex items-center gap-1.5 min-w-0">
-                    <span class="font-black text-base text-white truncate">${bm.title}</span>
+                <div class="flex items-start sm:items-center justify-between gap-2 mb-1.5">
+                  <div class="flex flex-wrap items-center gap-1.5 min-w-0">
+                    <span class="font-black text-sm sm:text-base text-white">${bm.title}</span>
                     <span class="text-[9px] font-mono font-extrabold uppercase px-1.5 py-0.5 rounded border ${catBadgeClass}">
                       ${isGirl ? 'GIRL' : (isHero ? 'HERO' : 'SPECIAL')}
                     </span>
@@ -1071,12 +1067,12 @@ const UI = {
                     </span>
                   </div>
                 </div>
-                <div class="text-[11px] font-mono text-cyan-300 mb-2">${bm.prescriptionHeader}</div>
-                <ul class="text-xs text-slate-300 space-y-1">
+                <div class="text-[11px] font-mono text-cyan-300 mb-1.5 sm:mb-2">${bm.prescriptionHeader}</div>
+                <ul class="text-xs text-slate-300 space-y-0.5 sm:space-y-1">
                   ${bm.items.map(it => `<li>• ${it.label}</li>`).join('')}
                 </ul>
               </div>
-              <div class="text-[11px] font-mono text-volt flex items-center justify-end gap-1 pt-2 border-t border-slate-800/80">
+              <div class="text-[11px] font-mono text-volt flex items-center justify-end gap-1 pt-2 border-t border-slate-800/80 mt-1">
                 <span>Load onto WOD Board</span>
                 <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
               </div>
@@ -1118,18 +1114,18 @@ const UI = {
           const patInfo = PATTERNS[ladder.pattern] || { label: ladder.pattern, color: 'text-slate-300 border-slate-700' };
 
           return `
-            <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 sm:p-5 flex flex-col gap-3 shadow-lg">
+            <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-3 sm:p-5 flex flex-col gap-2.5 sm:gap-3 shadow-lg">
               <!-- Ladder Header -->
-              <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800/80 pb-2.5">
-                <div class="flex items-center gap-2">
-                  <span class="text-base font-black text-white">${ladder.name}</span>
-                  <span class="text-[10px] font-mono px-2 py-0.5 rounded border ${patInfo.color}">${patInfo.label}</span>
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 sm:gap-2 border-b border-slate-800/80 pb-2 sm:pb-2.5">
+                <div class="flex items-center justify-between sm:justify-start gap-2 w-full sm:w-auto">
+                  <span class="text-sm sm:text-base font-black text-white leading-snug">${ladder.name}</span>
+                  <span class="text-[10px] font-mono px-2 py-0.5 rounded border whitespace-nowrap shrink-0 ${patInfo.color}">${patInfo.label}</span>
                 </div>
                 <div class="text-[11px] text-slate-400 max-w-md">${ladder.description}</div>
               </div>
 
               <!-- Ladder Steps Flow with Animated Canvases -->
-              <div class="flex flex-wrap items-center gap-2.5 pt-1">
+              <div class="grid grid-cols-2 sm:flex sm:flex-wrap sm:items-center gap-2 sm:gap-2.5 pt-1">
                 ${ladder.steps.map((step, idx) => {
                   const mov = MOVEMENTS_DB.find(m => m.id === step.movementId);
                   const isHard = step.tier === 'hard';
@@ -1143,14 +1139,14 @@ const UI = {
                   const pose = mov ? mov.poseType : 'squat_side';
 
                   return `
-                    <div class="flex items-center gap-2">
+                    <div class="flex items-center gap-1.5 sm:gap-2 w-full sm:w-auto">
                       <div
                         data-demo-mov="${step.movementId}"
-                        class="cursor-pointer group rounded-xl p-2.5 border bg-slate-950/80 border-slate-800 hover:border-slate-600 text-slate-200 transition flex flex-col items-center text-center w-28 sm:w-32 gap-1.5 shadow-sm hover:shadow-md"
+                        class="cursor-pointer group rounded-xl p-2 sm:p-2.5 border bg-slate-950/80 border-slate-800 hover:border-slate-600 text-slate-200 transition flex flex-col items-center text-center w-full sm:w-32 h-[210px] sm:h-[236px] gap-1.5 shadow-sm hover:shadow-md flex-1 min-w-0"
                         title="Click to inspect biomechanical cues & form"
                       >
                         <!-- Top meta: Tier & Level -->
-                        <div class="w-full flex items-center justify-between gap-1">
+                        <div class="w-full flex items-center justify-between gap-1 shrink-0">
                           <span class="text-[9px] font-mono font-extrabold uppercase px-1.5 py-0.5 rounded border ${tierBadge}">
                             ${step.tier.toUpperCase()}
                           </span>
@@ -1158,7 +1154,7 @@ const UI = {
                         </div>
 
                         <!-- Animated Stickman Viewport -->
-                        <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-center overflow-hidden relative group-hover:border-slate-700 transition">
+                        <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-center overflow-hidden relative group-hover:border-slate-700 transition mx-auto shrink-0">
                           <canvas
                             data-scale-pose="${pose}"
                             width="96"
@@ -1168,9 +1164,11 @@ const UI = {
                         </div>
 
                         <!-- Movement Label & Gear -->
-                        <div class="w-full min-w-0">
-                          <div class="text-[11px] sm:text-xs font-bold text-white group-hover:text-volt transition truncate" title="${step.label}">
-                            ${step.label}
+                        <div class="w-full min-w-0 px-0.5 flex flex-col justify-center">
+                          <div class="h-8 sm:h-9 flex items-center justify-center text-center">
+                            <span class="text-[11px] sm:text-xs font-bold text-white group-hover:text-volt transition line-clamp-2 leading-snug" title="${step.label}">
+                              ${step.label}
+                            </span>
                           </div>
                           <div class="text-[9px] font-mono text-slate-400 truncate mt-0.5">
                             ${mov ? (EQUIPMENT_CATALOG.find(e => e.id === mov.equipment)?.name || 'Bodyweight') : 'Bodyweight'}
@@ -1178,14 +1176,14 @@ const UI = {
                         </div>
 
                         <!-- Cues link -->
-                        <div class="text-[9px] font-mono text-cyan-300 group-hover:text-cyan-200 flex items-center gap-0.5 pt-1 border-t border-slate-800/80 w-full justify-center">
+                        <div class="text-[9px] font-mono text-cyan-300 group-hover:text-cyan-200 flex items-center gap-0.5 pt-1 border-t border-slate-800/80 w-full justify-center mt-auto shrink-0">
                           <i data-lucide="play" class="w-2.5 h-2.5"></i>
                           <span>Cues</span>
                         </div>
                       </div>
 
                       ${!isLast ? `
-                        <div class="hidden sm:flex text-slate-600 font-bold items-center">
+                        <div class="hidden sm:flex text-slate-600 font-bold items-center shrink-0 self-center">
                           <i data-lucide="chevron-right" class="w-4 h-4 text-slate-600"></i>
                         </div>
                       ` : ''}

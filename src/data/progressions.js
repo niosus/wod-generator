@@ -27,7 +27,7 @@ const SCALE_LADDERS = [
     steps: [
       { movementId: 'superman_pulls', level: 1, tier: 'easy', label: 'Prone Superman Lat Pull-Downs' },
       { movementId: 'doorway_towel_rows', level: 1, tier: 'easy', label: 'Doorway Towel Rows' },
-      { movementId: 'table_rows', level: 1, tier: 'easy', label: 'Sturdy Table Inverted Rows' },
+      { movementId: 'table_rows', level: 1, tier: 'easy', label: 'Table Inverted Rows' },
       { movementId: 'bar_inverted_rows', level: 2, tier: 'normal', label: 'Bar Inverted Rows' },
       { movementId: 'ring_rows', level: 2, tier: 'normal', label: 'Ring Inverted Rows' },
       { movementId: 'pullups', level: 3, tier: 'normal', label: 'Strict / Kipping Pull-Ups (Rx Baseline)' },
@@ -61,18 +61,26 @@ const SCALE_LADDERS = [
     ]
   },
   {
-    id: 'midline_core_ladder',
-    name: 'Midline & Core Inversion Progression',
+    id: 'plank_ladder',
+    name: 'Plank & Isometric Core Progression',
     pattern: 'HINGE_CORE',
-    description: 'Foundational knee plank scaling into floor sit-ups, forearm planks, tuck V-ups, hanging knee tucks, strict toes-to-bar, and L-sits.',
+    description: 'Foundational knee plank advancing to standard forearm plank, straight-arm plank, and rotational side plank hold.',
     steps: [
       { movementId: 'knee_plank', level: 1, tier: 'easy', label: 'Knee Plank' },
-      { movementId: 'situps', level: 2, tier: 'normal', label: 'AbMat / Butterfly Sit-Ups' },
       { movementId: 'plank', level: 2, tier: 'normal', label: 'Forearm Plank' },
-      { movementId: 'straight_arm_plank', level: 2, tier: 'normal', label: 'Straight-Arm Plank' },
-      { movementId: 'side_plank', level: 2, tier: 'normal', label: 'Side Plank' },
-      { movementId: 'tuck_ups', level: 3, tier: 'normal', label: 'Tuck-Ups' },
-      { movementId: 'v_ups', level: 3, tier: 'normal', label: 'V-Ups' },
+      { movementId: 'straight_arm_plank', level: 3, tier: 'normal', label: 'Straight-Arm Plank' },
+      { movementId: 'side_plank', level: 3, tier: 'normal', label: 'Side Plank' }
+    ]
+  },
+  {
+    id: 'midline_core_ladder',
+    name: 'Midline & Dynamic Core Progression',
+    pattern: 'HINGE_CORE',
+    description: 'Floor sit-ups progressing through tuck V-ups, hanging knee raises, strict toes-to-bar, and L-sits.',
+    steps: [
+      { movementId: 'situps', level: 1, tier: 'normal', label: 'AbMat / Butterfly Sit-Ups' },
+      { movementId: 'tuck_ups', level: 2, tier: 'normal', label: 'Tuck-Ups' },
+      { movementId: 'v_ups', level: 2, tier: 'normal', label: 'V-Ups' },
       { movementId: 'hanging_knee_raises', level: 3, tier: 'normal', label: 'Hanging Knee Raises' },
       { movementId: 'l_sit', level: 4, tier: 'hard', label: 'L-Sit Hold' },
       { movementId: 'toes_to_bar', level: 4, tier: 'hard', label: 'Toes-to-Bar (T2B)' }

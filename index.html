@@ -32,7 +32,8 @@
           class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-volt flex items-center justify-center text-slate-950 font-black shadow-lg shadow-volt/20 group-hover:scale-105 transition-transform shrink-0">
           <i data-lucide="zap" class="w-5 h-5 sm:w-6 sm:h-6 stroke-[2.5]"></i>
         </div>
-        <h1 class="font-black tracking-tight text-xl sm:text-2xl text-white">WOD<span class="text-volt">FORGE</span></h1>
+        <h1 class="font-black tracking-tight text-xl sm:text-2xl text-white">WOD<span class="text-volt">FORGE</span>
+        </h1>
       </a>
 
       <!-- Quick Status & Actions -->
@@ -45,7 +46,7 @@
           <span id="activePoolSummary" class="flex items-center gap-1 font-mono">
             <span class="font-bold text-white">0/0</span>
             <span class="hidden sm:inline text-slate-400">Movements</span>
-            <span class="text-slate-300">Active</span>
+            <span class="hidden sm:inline text-slate-300">Active</span>
           </span>
           <i data-lucide="sliders-horizontal" class="w-3.5 h-3.5 text-slate-400 shrink-0 hidden sm:inline"></i>
         </button>
@@ -107,7 +108,8 @@
         </div>
 
         <!-- WOD Header (Responsive layout: stacks cleanly on mobile, side-by-side on desktop) -->
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 pb-4 border-b border-slate-800/90">
+        <div
+          class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 pb-4 border-b border-slate-800/90">
           <div id="wodTitleSection" class="min-w-0 flex-1 transition-all duration-300">
             <div class="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-1.5">
               <span id="wodBadgeType"
@@ -354,7 +356,8 @@
 
           <!-- Time Domain -->
           <div>
-            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Time Domain</label>
+            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Time
+              Domain</label>
             <div class="grid grid-cols-3 gap-2" id="durationSelectorGrid">
               <button data-duration="short"
                 class="duration-btn py-2 px-2.5 rounded-xl border text-xs font-semibold transition flex flex-col items-center">
@@ -376,7 +379,8 @@
 
           <!-- Target Intensity -->
           <div>
-            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Target Intensity</label>
+            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Target
+              Intensity</label>
             <div class="grid grid-cols-3 gap-2" id="intensitySelectorGrid">
               <button data-intensity="moderate"
                 class="intensity-btn py-2 px-2.5 rounded-xl border text-xs font-semibold transition flex flex-col items-center">
@@ -506,8 +510,9 @@
 
   <!-- MOVEMENT DEMO & 2D INVERSE KINEMATICS MODAL -->
   <div id="movementDemoModal"
-    class="fixed inset-0 z-[60] hidden items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md touch-none">
-    <div id="movementDemoCard" class="bg-slate-925 border border-slate-700 rounded-2xl max-w-lg w-full p-5 sm:p-6 shadow-2xl relative">
+    class="fixed inset-0 z-[60] hidden items-center justify-center p-2 sm:p-4 bg-slate-950/80 backdrop-blur-md touch-none">
+    <div id="movementDemoCard"
+      class="bg-slate-925 border border-slate-700 rounded-2xl max-w-lg w-full max-h-[94vh] sm:max-h-[88vh] overflow-y-auto p-4 sm:p-6 shadow-2xl relative">
       <!-- Close Button -->
       <button id="closeDemoModalBtn"
         class="absolute top-4 right-4 w-9 h-9 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center transition">
@@ -554,39 +559,42 @@
 
   <!-- CLASSICAL BENCHMARKS BROWSER MODAL -->
   <div id="benchmarksModal"
-    class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
+    class="fixed inset-0 z-50 hidden items-center justify-center p-2 sm:p-4 bg-slate-950/80 backdrop-blur-md">
     <div id="benchmarksModalCard"
-      class="bg-slate-925 border border-slate-700 rounded-2xl max-w-4xl w-full max-h-[88vh] flex flex-col p-5 sm:p-6 shadow-2xl relative">
-      <div class="flex items-center justify-between pb-4 border-b border-slate-800">
+      class="bg-slate-925 border border-slate-700 rounded-2xl max-w-4xl w-full max-h-[92vh] sm:max-h-[88vh] flex flex-col shadow-2xl relative overflow-hidden">
+      <div
+        class="flex items-center justify-between px-4 sm:px-6 pt-4 sm:pt-6 pb-3 sm:pb-4 border-b border-slate-800 shrink-0">
         <div>
-          <h3 class="text-xl font-black text-white flex items-center gap-2">
+          <h3 class="text-lg sm:text-xl font-black text-white flex items-center gap-2">
             <i data-lucide="trophy" class="w-5 h-5 text-volt"></i>
             <span>Classical CrossFit, Hero & Hyrox Benchmarks</span>
           </h3>
-          <p class="text-xs text-slate-400 mt-0.5">
-            40+ classic benchmarks honoring The Girls and fallen Heroes. Click any benchmark to load it onto the board.
+          <p class="text-[11px] sm:text-xs text-slate-400 mt-0.5">
+            40+ classic benchmarks honoring The Girls and fallen Heroes. Click any benchmark to load it onto the
+            board.
           </p>
         </div>
         <button id="closeBenchmarksModalBtn"
-          class="w-9 h-9 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center transition">
+          class="w-9 h-9 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center transition shrink-0 ml-2">
           <i data-lucide="x" class="w-5 h-5"></i>
         </button>
       </div>
 
       <!-- Filter Bar -->
-      <div class="flex flex-wrap items-center justify-between gap-2.5 my-3">
-        <div class="flex flex-wrap items-center gap-1.5">
+      <div class="flex flex-wrap items-center justify-between gap-2 px-4 sm:px-6 my-2.5 sm:my-3 shrink-0">
+        <div class="flex flex-wrap items-center gap-1 sm:gap-1.5">
           <button data-bfilter="all"
-            class="bfilter-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-volt text-slate-950">All
+            class="bfilter-btn px-2.5 sm:px-3 py-1.5 rounded-xl text-[11px] sm:text-xs font-semibold bg-volt text-slate-950">All
             Classics</button>
           <button data-bfilter="girls"
-            class="bfilter-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 text-rose-300">The
+            class="bfilter-btn px-2.5 sm:px-3 py-1.5 rounded-xl text-[11px] sm:text-xs font-semibold bg-slate-800 text-rose-300">The
             Girls</button>
           <button data-bfilter="heroes"
-            class="bfilter-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 text-cyan-300">Hero
+            class="bfilter-btn px-2.5 sm:px-3 py-1.5 rounded-xl text-[11px] sm:text-xs font-semibold bg-slate-800 text-cyan-300">Hero
             WODs</button>
           <button data-bfilter="eligible"
-            class="bfilter-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 text-emerald-300">Ready With My
+            class="bfilter-btn px-2.5 sm:px-3 py-1.5 rounded-xl text-[11px] sm:text-xs font-semibold bg-slate-800 text-emerald-300">Ready
+            With My
             Gear</button>
         </div>
         <div class="relative w-full sm:w-56">
@@ -596,7 +604,8 @@
       </div>
 
       <!-- Benchmarks List -->
-      <div id="benchmarksListContainer" class="flex-1 overflow-y-auto grid grid-cols-1 sm:grid-cols-2 gap-3 pr-1">
+      <div id="benchmarksListContainer"
+        class="flex-1 overflow-y-auto px-4 sm:px-6 pb-4 sm:pb-6 grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3">
         <!-- Populated by JS -->
       </div>
     </div>
@@ -604,51 +613,53 @@
 
   <!-- MOVEMENT SCALE PROGRESSIONS & LADDERS MODAL -->
   <div id="scaleModal"
-    class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
+    class="fixed inset-0 z-50 hidden items-center justify-center p-2 sm:p-4 bg-slate-950/80 backdrop-blur-md">
     <div id="scaleModalCard"
-      class="bg-slate-925 border border-slate-700 rounded-2xl max-w-4xl w-full max-h-[88vh] flex flex-col p-5 sm:p-6 shadow-2xl relative">
-      <div class="flex items-center justify-between pb-4 border-b border-slate-800">
+      class="bg-slate-925 border border-slate-700 rounded-2xl max-w-4xl w-full max-h-[92vh] sm:max-h-[88vh] flex flex-col shadow-2xl relative overflow-hidden">
+      <div
+        class="flex items-center justify-between px-4 sm:px-6 pt-4 sm:pt-6 pb-3 sm:pb-4 border-b border-slate-800 shrink-0">
         <div>
-          <h3 class="text-xl font-black text-white flex items-center gap-2">
+          <h3 class="text-lg sm:text-xl font-black text-white flex items-center gap-2">
             <i data-lucide="git-merge" class="w-5 h-5 text-amber-400"></i>
             <span>Movement Scale Progressions & Ladders</span>
           </h3>
-          <p class="text-xs text-slate-400 mt-0.5">
-            Biomechanical progression ladders from foundational regressions to elite Rx skills. Click any movement to
+          <p class="text-[11px] sm:text-xs text-slate-400 mt-0.5">
+            Biomechanical progression ladders from foundational regressions to elite Rx skills. Click any movement
+            to
             view live kinematic animation & cues.
           </p>
         </div>
         <button id="closeScaleModalBtn"
-          class="w-9 h-9 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center transition">
+          class="w-9 h-9 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center transition shrink-0 ml-2">
           <i data-lucide="x" class="w-5 h-5"></i>
         </button>
       </div>
 
       <!-- Filter Bar -->
-      <div class="flex flex-wrap items-center justify-between gap-2.5 my-3">
-        <div id="scalePatternTabs" class="flex flex-wrap gap-1.5">
+      <div class="flex flex-wrap items-center justify-between gap-2 px-4 sm:px-6 my-2.5 sm:my-3 shrink-0">
+        <div id="scalePatternTabs" class="flex flex-wrap gap-1 sm:gap-1.5">
           <button data-spattern="ALL"
-            class="spattern-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-amber-400 text-slate-950 font-bold">All
+            class="spattern-btn px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl text-[11px] sm:text-xs font-semibold bg-amber-400 text-slate-950 font-bold whitespace-nowrap">All
             Patterns</button>
           <button data-spattern="PUSH"
-            class="spattern-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 text-slate-300">Push</button>
+            class="spattern-btn px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl text-[11px] sm:text-xs font-semibold bg-slate-800 text-slate-300 whitespace-nowrap">Push</button>
           <button data-spattern="PULL"
-            class="spattern-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 text-slate-300">Pull</button>
+            class="spattern-btn px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl text-[11px] sm:text-xs font-semibold bg-slate-800 text-slate-300 whitespace-nowrap">Pull</button>
           <button data-spattern="SQUAT"
-            class="spattern-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 text-slate-300">Squat</button>
+            class="spattern-btn px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl text-[11px] sm:text-xs font-semibold bg-slate-800 text-slate-300 whitespace-nowrap">Squat</button>
           <button data-spattern="HINGE_CORE"
-            class="spattern-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 text-slate-300">Hinge &
-            Core</button>
+            class="spattern-btn px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl text-[11px] sm:text-xs font-semibold bg-slate-800 text-slate-300 whitespace-nowrap">Hinge
+            & Core</button>
           <button data-spattern="FULL_BODY"
-            class="spattern-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 text-slate-300">Full
+            class="spattern-btn px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl text-[11px] sm:text-xs font-semibold bg-slate-800 text-slate-300 whitespace-nowrap">Full
             Body</button>
           <button data-spattern="CARDIO"
-            class="spattern-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 text-slate-300">Cardio</button>
+            class="spattern-btn px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl text-[11px] sm:text-xs font-semibold bg-slate-800 text-slate-300 whitespace-nowrap">Cardio</button>
         </div>
       </div>
 
       <!-- Scale Ladders List Container -->
-      <div id="scaleLaddersContainer" class="flex-1 overflow-y-auto space-y-4 pr-1">
+      <div id="scaleLaddersContainer" class="flex-1 overflow-y-auto px-4 sm:px-6 pb-4 sm:pb-6 space-y-3 sm:space-y-4">
         <!-- Populated by JS -->
       </div>
     </div>
@@ -662,11 +673,9 @@
         class="hidden w-3 h-3 rounded-full bg-volt shadow-[0_0_10px_rgba(216,255,62,0.9)] border border-volt/50"
         title="Settings changed"></span>
       <button id="floatingGenerateBtn"
-        class="flex items-center gap-2.5 px-6 py-3.5 rounded-full bg-volt hover:bg-volt-400 active:scale-95 text-slate-950 font-black text-sm tracking-wide uppercase shadow-2xl shadow-volt/30 border border-volt/50 transition">
+        class="flex items-center gap-2 px-5 py-3 sm:px-6 sm:py-3.5 rounded-full bg-volt hover:bg-volt-400 active:scale-95 text-slate-950 font-black text-xs sm:text-sm tracking-wide uppercase shadow-2xl shadow-volt/30 border border-volt/50 transition">
         <i data-lucide="shuffle" class="w-4 h-4 stroke-[2.5]"></i>
         <span id="floatingGenerateLabel">Generate Workout</span>
-        <span id="floatingActiveCountBadge"
-          class="bg-slate-950/20 text-slate-950 text-xs px-2.5 py-0.5 rounded-full font-mono font-bold">0 Active</span>
         <i data-lucide="arrow-up" class="w-4 h-4 stroke-[2.5]"></i>
       </button>
     </div>
