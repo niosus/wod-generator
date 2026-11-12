@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>WODFORGE v4 // Precision Biomechanical HIIT WOD Generator</title>
+  <title>WODFORGE // Precision HIIT WOD Generator</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Tailwind Configuration -->
@@ -26,39 +26,33 @@
   <!-- TOP NAVIGATION BAR -->
   <header class="sticky top-0 z-30 backdrop-blur-xl bg-slate-950/90 border-b border-slate-800/80">
     <div class="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
-      <!-- Brand Identity -->
-      <div class="flex items-center gap-3">
+      <!-- Brand Identity: Logo Only -->
+      <a href="#" class="flex items-center gap-2.5 shrink-0 group" title="WODFORGE">
         <div
-          class="w-10 h-10 rounded-xl bg-volt flex items-center justify-center text-slate-950 font-black shadow-lg shadow-volt/20">
-          <i data-lucide="zap" class="w-6 h-6 stroke-[2.5]"></i>
+          class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-volt flex items-center justify-center text-slate-950 font-black shadow-lg shadow-volt/20 group-hover:scale-105 transition-transform shrink-0">
+          <i data-lucide="zap" class="w-5 h-5 sm:w-6 sm:h-6 stroke-[2.5]"></i>
         </div>
-        <div>
-          <div class="flex items-center gap-2">
-            <h1 class="font-black tracking-tight text-lg sm:text-xl text-white">WOD<span class="text-volt">FORGE</span>
-            </h1>
-            <span
-              class="text-[10px] font-mono uppercase tracking-widest px-2 py-0.5 rounded-full bg-slate-800 text-volt border border-volt/30">v4
-              Kinematic Engine</span>
-          </div>
-          <p class="text-xs text-slate-400 hidden sm:block">12-Gear Split • Collision-Free Sub & Scale Engine • Visual
-            Biomechanical Library</p>
-        </div>
-      </div>
+        <h1 class="font-black tracking-tight text-xl sm:text-2xl text-white">WOD<span class="text-volt">FORGE</span></h1>
+      </a>
 
       <!-- Quick Status & Actions -->
-      <div class="flex items-center gap-2 sm:gap-3">
+      <div class="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
         <!-- Active Pool Badge / Jump to Movements -->
         <button id="openMatrixQuickBtn"
-          class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700/80 text-xs font-medium text-slate-200 transition"
+          class="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-700/80 text-xs font-medium text-slate-200 transition shrink-0 whitespace-nowrap"
           title="Jump to Movement Library">
-          <span class="w-2 h-2 rounded-full bg-volt"></span>
-          <span id="activePoolSummary">0 Movements Active</span>
-          <i data-lucide="sliders-horizontal" class="w-3.5 h-3.5 text-slate-400"></i>
+          <span class="w-2 h-2 rounded-full bg-volt shrink-0 shadow-[0_0_6px_rgba(216,255,62,0.6)]"></span>
+          <span id="activePoolSummary" class="flex items-center gap-1 font-mono">
+            <span class="font-bold text-white">0/0</span>
+            <span class="hidden sm:inline text-slate-400">Movements</span>
+            <span class="text-slate-300">Active</span>
+          </span>
+          <i data-lucide="sliders-horizontal" class="w-3.5 h-3.5 text-slate-400 shrink-0 hidden sm:inline"></i>
         </button>
 
         <!-- Benchmark Library Button -->
         <button id="openBenchmarksModalBtn"
-          class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700/80 text-xs font-medium text-cyan-300 transition"
+          class="flex items-center gap-1.5 px-2.5 py-1.5 sm:px-3 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700/80 text-xs font-medium text-cyan-300 transition shrink-0"
           title="Browse Classical Benchmarks">
           <i data-lucide="trophy" class="w-3.5 h-3.5"></i>
           <span class="hidden md:inline">Benchmarks</span>
@@ -66,7 +60,7 @@
 
         <!-- Scale Progressions / Ladders Button -->
         <button id="openScaleModalBtn"
-          class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700/80 text-xs font-medium text-amber-300 transition"
+          class="flex items-center gap-1.5 px-2.5 py-1.5 sm:px-3 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700/80 text-xs font-medium text-amber-300 transition shrink-0"
           title="View Movement Scale Progressions & Ladders">
           <i data-lucide="git-merge" class="w-3.5 h-3.5"></i>
           <span class="hidden md:inline">Scale Ladders</span>
@@ -74,9 +68,9 @@
 
         <!-- Reset Local Preferences -->
         <button id="resetPrefsBtn"
-          class="p-2 rounded-xl bg-slate-900 hover:bg-rose-950/60 border border-slate-800 hover:border-rose-500/40 text-slate-400 hover:text-rose-300 transition"
+          class="p-2 sm:px-2.5 sm:py-1.5 rounded-xl bg-slate-900 hover:bg-rose-950/60 border border-slate-800 hover:border-rose-500/40 text-slate-400 hover:text-rose-300 transition shrink-0"
           title="Reset Local Preferences to Default">
-          <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+          <i data-lucide="rotate-ccw" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i>
         </button>
       </div>
     </div>
@@ -107,54 +101,54 @@
 
       <!-- ACTIVE WOD WHITEBOARD CARD -->
       <div id="wodCardContainer"
-        class="bg-slate-925/95 border border-slate-800 rounded-2xl p-5 sm:p-7 shadow-2xl relative overflow-hidden transition-all duration-300">
+        class="bg-slate-925/95 border border-slate-800 rounded-2xl p-4 sm:p-7 shadow-2xl relative overflow-hidden transition-all duration-300">
         <!-- Decorative Top Accent Bar with animation sweep -->
         <div id="wodAccentBar" class="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-volt via-cyan-400 to-volt">
         </div>
 
-        <!-- WOD Header (Stable non-wrapping flex layout) -->
-        <div class="flex items-center justify-between gap-4 pb-4 border-b border-slate-800/90">
+        <!-- WOD Header (Responsive layout: stacks cleanly on mobile, side-by-side on desktop) -->
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 pb-4 border-b border-slate-800/90">
           <div id="wodTitleSection" class="min-w-0 flex-1 transition-all duration-300">
-            <div class="flex flex-wrap items-center gap-2 mb-1.5">
+            <div class="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-1.5">
               <span id="wodBadgeType"
-                class="px-2.5 py-0.5 rounded-md text-[11px] font-mono font-bold uppercase bg-volt/15 text-volt border border-volt/30">
+                class="px-2.5 py-0.5 rounded-md text-[11px] font-mono font-bold uppercase bg-volt/15 text-volt border border-volt/30 whitespace-nowrap">
                 ALGORITHMIC METCON
               </span>
               <span id="wodBadgeFormat"
-                class="px-2.5 py-0.5 rounded-md text-[11px] font-mono font-bold uppercase bg-cyan-500/15 text-cyan-300 border border-cyan-500/30">
+                class="px-2.5 py-0.5 rounded-md text-[11px] font-mono font-bold uppercase bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 whitespace-nowrap">
                 15 MIN AMRAP
               </span>
               <span id="wodBadgeDifficulty"
-                class="px-2.5 py-0.5 rounded-md text-[11px] font-mono uppercase bg-slate-800 text-slate-300">
+                class="px-2.5 py-0.5 rounded-md text-[11px] font-mono uppercase bg-slate-800 text-slate-300 whitespace-nowrap">
                 Balanced Triplet
               </span>
             </div>
-            <h2 id="wodTitle" class="text-2xl sm:text-4xl font-black tracking-tight text-white truncate">
+            <h2 id="wodTitle" class="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-white break-words">
               "IRON ENGINE"
             </h2>
           </div>
 
-          <!-- Action Buttons: Share, Copy & Re-roll WOD (Pinned firmly to top-right, never wraps) -->
-          <div class="shrink-0 flex items-center gap-2">
+          <!-- Action Buttons: Share, Copy & Re-roll WOD (Full width on mobile, side-by-side on desktop) -->
+          <div class="flex items-center gap-2 w-full sm:w-auto sm:shrink-0 pt-1 sm:pt-0">
             <button id="shareWodBtn"
-              class="px-3 sm:px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-cyan-500/30 hover:border-cyan-400/60 text-xs font-semibold text-cyan-300 hover:text-white flex items-center gap-1.5 transition"
+              class="flex-1 sm:flex-none justify-center px-3 sm:px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-cyan-500/30 hover:border-cyan-400/60 text-xs font-semibold text-cyan-300 hover:text-white flex items-center gap-1.5 transition whitespace-nowrap"
               title="Share Workout Link with Friends">
-              <i data-lucide="share-2" class="w-4 h-4 text-cyan-400"></i>
+              <i data-lucide="share-2" class="w-4 h-4 text-cyan-400 shrink-0"></i>
               <span id="shareWodLabel">Share</span>
             </button>
             <button id="copyWodBtn"
-              class="px-3 sm:px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700/80 text-xs font-semibold text-slate-300 flex items-center gap-1.5 transition"
+              class="flex-1 sm:flex-none justify-center px-3 sm:px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700/80 text-xs font-semibold text-slate-300 flex items-center gap-1.5 transition whitespace-nowrap"
               title="Copy Workout to Clipboard">
-              <i data-lucide="copy" class="w-4 h-4"></i>
+              <i data-lucide="copy" class="w-4 h-4 shrink-0"></i>
               <span id="copyWodLabel">Copy</span>
             </button>
             <span id="rerollSideDot"
-              class="hidden w-2.5 h-2.5 rounded-full bg-volt shadow-[0_0_8px_rgba(216,255,62,0.8)] border border-volt/50"
+              class="hidden w-2.5 h-2.5 rounded-full bg-volt shadow-[0_0_8px_rgba(216,255,62,0.8)] border border-volt/50 shrink-0"
               title="Settings changed"></span>
             <button id="rerollWodBtn"
-              class="px-3.5 sm:px-4 py-2 rounded-xl bg-volt hover:bg-volt-400 active:scale-[0.98] text-slate-950 font-black text-xs uppercase tracking-wider flex items-center gap-1.5 shadow-md shadow-volt/20 transition"
+              class="flex-1 sm:flex-none justify-center px-3.5 sm:px-4 py-2 rounded-xl bg-volt hover:bg-volt-400 active:scale-[0.98] text-slate-950 font-black text-xs uppercase tracking-wider flex items-center gap-1.5 shadow-md shadow-volt/20 transition whitespace-nowrap"
               title="Generate Another WOD">
-              <i data-lucide="refresh-cw" class="w-4 h-4 stroke-[2.5]"></i>
+              <i data-lucide="refresh-cw" class="w-4 h-4 stroke-[2.5] shrink-0"></i>
               <span>Re-Roll</span>
             </button>
           </div>

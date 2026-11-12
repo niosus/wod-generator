@@ -259,7 +259,11 @@ const UI = {
         // Update Top Header Summary & Floating Badge
         const activeSummaryEl = document.getElementById('activePoolSummary');
         if (activeSummaryEl) {
-          activeSummaryEl.textContent = `${activePool.length} / ${availableByEq.length} Movements Active`;
+          activeSummaryEl.innerHTML = `
+            <span class="font-bold text-white">${activePool.length}/${availableByEq.length}</span>
+            <span class="hidden sm:inline text-slate-400">Movements</span>
+            <span class="text-slate-300">Active</span>
+          `;
         }
         const floatingBadge = document.getElementById('floatingActiveCountBadge');
         if (floatingBadge) {
@@ -537,20 +541,20 @@ const UI = {
 
                     <div class="min-w-0 flex-1">
                       <div class="flex flex-wrap items-center gap-1.5 mb-1">
-                        <span class="font-mono text-xs font-extrabold px-2 py-0.5 rounded bg-volt text-slate-950">
+                        <span class="font-mono text-xs font-extrabold px-2 py-0.5 rounded bg-volt text-slate-950 whitespace-nowrap">
                           ${item.repsDisplay}
                         </span>
-                        <span class="text-[10px] font-mono px-2 py-0.5 rounded border ${pat.color}">
+                        <span class="text-[10px] font-mono px-2 py-0.5 rounded border ${pat.color} whitespace-nowrap">
                           ${pat.label}
                         </span>
                         <span class="text-[10px] font-mono font-bold uppercase px-1.5 py-0.5 rounded border ${isHard
                 ? 'bg-rose-500/20 text-rose-300 border-rose-500/40'
                 : 'bg-slate-800 text-slate-300 border-slate-700'
-              }">
+              } whitespace-nowrap">
                           ${isHard ? 'HARD SKILL' : 'NORMAL'}
                         </span>
                         ${item.isOptionalGear
-                ? `<span class="text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded bg-amber-400/20 text-amber-300 border border-amber-400/40 flex items-center gap-1">
+                ? `<span class="text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded bg-amber-400/20 text-amber-300 border border-amber-400/40 flex items-center gap-1 whitespace-nowrap">
                                  Optional: ${eqInfo ? eqInfo.name : ''}
                                </span>`
                 : ''
