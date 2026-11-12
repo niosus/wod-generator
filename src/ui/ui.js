@@ -1422,6 +1422,9 @@ const UI = {
             const currentItem = AppState.currentWod.items[idx];
             if (currentItem && currentItem.alternative) {
               AppState.currentWod.items[idx].movement = currentItem.alternative.movement;
+              if (currentItem.alternative.repVal !== undefined) {
+                AppState.currentWod.items[idx].customScheme = currentItem.alternative.repVal;
+              }
               delete AppState.currentWod.items[idx].benchmarkCustomLabel;
               WorkoutGenerator.refreshWodCollisionFreeMetadata(AppState.currentWod);
               this.updateWodRow(idx);
@@ -1435,6 +1438,9 @@ const UI = {
             const currentItem = AppState.currentWod.items[idx];
             if (currentItem && currentItem.scaleDown) {
               AppState.currentWod.items[idx].movement = currentItem.scaleDown.movement;
+              if (currentItem.scaleDown.repVal !== undefined) {
+                AppState.currentWod.items[idx].customScheme = currentItem.scaleDown.repVal;
+              }
               delete AppState.currentWod.items[idx].benchmarkCustomLabel;
               WorkoutGenerator.refreshWodCollisionFreeMetadata(AppState.currentWod);
               this.updateWodRow(idx);

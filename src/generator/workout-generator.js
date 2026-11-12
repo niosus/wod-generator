@@ -251,6 +251,77 @@ const WorkoutGenerator = {
   },
 
   /**
+   * Intelligently scales or converts a custom repetition/distance/calorie scheme
+   * between two movements (e.g. when substituting an alternative or scale-down).
+   *
+   * Prevents unit mismatches such as substituting a 1,600m run with 1,600 jumping jacks.
+   */
+  convertCustomScheme(sourceMov, targetMov, formatKey, customScheme, context = {}) {
+    if (customScheme === null || customScheme === undefined) {
+      return this.calculateDynamicReps(targetMov, formatKey, context);
+    }
+
+    const srcUnit = (sourceMov && sourceMov.unit) || 'reps';
+    const tgtUnit = (targetMov && targetMov.unit) || 'reps';
+
+    if (typeof customScheme === 'string') {
+      if (/^\d+(\s*-\s*\d+)+$/.test(customScheme)) {
+        if (sourceMov?.id === 'double_unders' && targetMov?.id === 'single_unders') {
+          return customScheme.split('-').map(n => Math.round(Number(n.trim()) * 2)).join('-');
+        }
+        if (sourceMov?.id === 'single_unders' && targetMov?.id === 'double_unders') {
+          return customScheme.split('-').map(n => Math.max(5, Math.round(Number(n.trim()) / 2))).join('-');
+        }
+        if (srcUnit === tgtUnit) return customScheme;
+      }
+      const numVal = parseFloat(customScheme);
+      if (!isNaN(numVal) && String(numVal) === customScheme.trim()) {
+        customScheme = numVal;
+      } else {
+        return srcUnit === tgtUnit ? customScheme : this.calculateDynamicReps(targetMov, formatKey, context);
+      }
+    }
+
+    if (typeof customScheme === 'number') {
+      // 1. Same units: retain scheme (with specific jump-rope scale adjustments)
+      if (srcUnit === tgtUnit) {
+        if (sourceMov?.id === 'double_unders' && targetMov?.id === 'single_unders') {
+          return Math.round(customScheme * 2);
+        }
+        if (sourceMov?.id === 'single_unders' && targetMov?.id === 'double_unders') {
+          return Math.max(5, Math.round((customScheme / 2) / 5) * 5);
+        }
+        return customScheme;
+      }
+
+      // 2. Different units: convert based on relative work volume
+      const repKey = formatKey === 'EMOM' ? 'emom' : (formatKey === 'FOR_TIME' ? 'forTime' : 'amrap');
+      const srcBase = (sourceMov?.reps && sourceMov.reps[repKey]) || (sourceMov?.reps && sourceMov.reps.forTime) || (sourceMov?.reps && sourceMov.reps.amrap) || 15;
+      const tgtBase = (targetMov?.reps && targetMov.reps[repKey]) || (targetMov?.reps && targetMov.reps.forTime) || (targetMov?.reps && targetMov.reps.amrap) || 15;
+      const ratio = tgtBase / srcBase;
+      const rawVal = customScheme * ratio;
+
+      if (tgtUnit === 'm') {
+        if (rawVal >= 400) return Math.round(rawVal / 100) * 100;
+        return Math.max(50, Math.round(rawVal / 50) * 50);
+      }
+      if (tgtUnit === 'cal') {
+        if (rawVal >= 30) return Math.round(rawVal / 5) * 5;
+        return Math.max(5, Math.round(rawVal));
+      }
+      if (tgtUnit === 'sec') {
+        return Math.max(10, Math.round(rawVal / 5) * 5);
+      }
+      // Target is standard repetitions
+      if (rawVal >= 100) return Math.round(rawVal / 10) * 10;
+      if (rawVal >= 20) return Math.round(rawVal / 5) * 5;
+      return Math.max(3, Math.round(rawVal));
+    }
+
+    return customScheme;
+  },
+
+  /**
    * Formats a single movement prescription and attaches collision-free
    * Optional Equipment alternatives and Scale-Down progressions.
    */
@@ -264,12 +335,13 @@ const WorkoutGenerator = {
     const unitLabel = mov.unit === 'cal' ? 'Cal' : (mov.unit === 'm' ? 'm' : (mov.unit === 'sec' ? 's' : ''));
     const loadSuffix = mov.load ? ` (${mov.load})` : '';
 
-    let repsDisplay = `${repVal}${unitLabel ? ' ' + unitLabel : ''}`;
-    let prescriptionText = `${repVal} ${unitLabel} ${mov.name}${loadSuffix}`.replace(/\s+/g, ' ').trim();
+    const hasTrailingUnit = unitLabel && typeof repVal === 'string' && repVal.trim().endsWith(unitLabel);
+    let repsDisplay = `${repVal}${unitLabel && !hasTrailingUnit ? ' ' + unitLabel : ''}`;
+    let prescriptionText = `${repVal} ${unitLabel && !hasTrailingUnit ? unitLabel : ''} ${mov.name}${loadSuffix}`.replace(/\s+/g, ' ').trim();
 
     if (formatKey === 'EMOM' && stationIndex !== null) {
-      repsDisplay = `MIN ${stationIndex + 1}: ${repVal}${unitLabel ? ' ' + unitLabel : ''}`;
-      prescriptionText = `Minute ${stationIndex + 1}: ${repVal} ${unitLabel} ${mov.name}${loadSuffix}`.replace(/\s+/g, ' ').trim();
+      repsDisplay = `MIN ${stationIndex + 1}: ${repVal}${unitLabel && !hasTrailingUnit ? ' ' + unitLabel : ''}`;
+      prescriptionText = `Minute ${stationIndex + 1}: ${repVal} ${unitLabel && !hasTrailingUnit ? unitLabel : ''} ${mov.name}${loadSuffix}`.replace(/\s+/g, ' ').trim();
     } else if (formatKey === 'INTERVALS' && stationIndex !== null) {
       repsDisplay = `8x 20s:10s`;
       prescriptionText = `Block ${stationIndex + 1} (4 Min): 8x (20s Max ${mov.name}${loadSuffix} / 10s Rest)`;
@@ -281,13 +353,12 @@ const WorkoutGenerator = {
       const altMov = globalThis.AppState.resolveUniqueAlternative(mov, usedMovementIds);
       if (altMov) {
         usedMovementIds.add(altMov.id);
-        const altRepVal = customScheme !== null && customScheme !== undefined
-          ? customScheme
-          : this.calculateDynamicReps(altMov, formatKey, context);
+        const altRepVal = this.convertCustomScheme(mov, altMov, formatKey, customScheme, context);
         const altUnit = altMov.unit === 'cal' ? 'Cal' : (altMov.unit === 'm' ? 'm' : (altMov.unit === 'sec' ? 's' : ''));
         const altLoad = altMov.load ? ` (${altMov.load})` : '';
         altPrescription = {
           movement: altMov,
+          repVal: altRepVal,
           text: `${altRepVal} ${altUnit} ${altMov.name}${altLoad}`.replace(/\s+/g, ' ').trim()
         };
       }
@@ -298,13 +369,12 @@ const WorkoutGenerator = {
     const scaleResolved = globalThis.AppState.resolveScaleDown(mov, usedMovementIds);
     if (scaleResolved && (!altPrescription || scaleResolved.movement.id !== altPrescription.movement.id)) {
       const scMov = scaleResolved.movement;
-      const scRepVal = customScheme !== null && customScheme !== undefined
-        ? customScheme
-        : this.calculateDynamicReps(scMov, formatKey, context);
+      const scRepVal = this.convertCustomScheme(mov, scMov, formatKey, customScheme, context);
       const scUnit = scMov.unit === 'cal' ? 'Cal' : (scMov.unit === 'm' ? 'm' : (scMov.unit === 'sec' ? 's' : ''));
       const scLoad = scMov.load ? ` (${scMov.load})` : '';
       scaleDownPrescription = {
         movement: scMov,
+        repVal: scRepVal,
         note: scaleResolved.note,
         text: `${scRepVal} ${scUnit} ${scMov.name}${scLoad}`.replace(/\s+/g, ' ').trim()
       };

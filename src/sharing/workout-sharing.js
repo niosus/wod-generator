@@ -75,8 +75,8 @@ const WorkoutSharing = {
             pt: i.prescriptionText,
             og: i.isOptionalGear ? 1 : 0,
             bcl: i.benchmarkCustomLabel || undefined,
-            alt: i.alternative ? { id: i.alternative.movement.id, txt: i.alternative.text } : null,
-            sc: i.scaleDown ? { id: i.scaleDown.movement.id, nt: i.scaleDown.note, txt: i.scaleDown.text } : null
+            alt: i.alternative ? { id: i.alternative.movement.id, txt: i.alternative.text, rv: i.alternative.repVal } : null,
+            sc: i.scaleDown ? { id: i.scaleDown.movement.id, nt: i.scaleDown.note, txt: i.scaleDown.text, rv: i.scaleDown.repVal } : null
           }))
         };
         return await this.compress(JSON.stringify(compact));
@@ -101,12 +101,14 @@ const WorkoutSharing = {
             benchmarkCustomLabel: ci.bcl,
             alternative: ci.alt ? {
               movement: globalThis.MOVEMENTS_DB.find(m => m.id === ci.alt.id) || globalThis.MOVEMENTS_DB[0],
-              text: ci.alt.txt
+              text: ci.alt.txt,
+              repVal: ci.alt.rv
             } : null,
             scaleDown: ci.sc ? {
               movement: globalThis.MOVEMENTS_DB.find(m => m.id === ci.sc.id) || globalThis.MOVEMENTS_DB[0],
               note: ci.sc.nt,
-              text: ci.sc.txt
+              text: ci.sc.txt,
+              repVal: ci.sc.rv
             } : null
           };
         });
@@ -130,13 +132,21 @@ const WorkoutSharing = {
           if (!item.alternative && item.isOptionalGear) {
             const alt = globalThis.AppState.resolveUniqueAlternative(item.movement, new Set(items.map(it => it.movement.id)));
             if (alt) {
-              item.alternative = { movement: alt, text: `${item.repsDisplay} ${alt.name}` };
+              const repVal = globalThis.WorkoutGenerator?.convertCustomScheme
+                ? globalThis.WorkoutGenerator.convertCustomScheme(item.movement, alt, item.formatKey, item.customScheme)
+                : item.repsDisplay;
+              const unit = alt.unit === 'cal' ? 'Cal' : (alt.unit === 'm' ? 'm' : (alt.unit === 'sec' ? 's' : ''));
+              item.alternative = { movement: alt, repVal, text: `${repVal} ${unit} ${alt.name}`.replace(/\s+/g, ' ').trim() };
             }
           }
           if (!item.scaleDown) {
             const sc = globalThis.AppState.resolveScaleDown(item.movement, new Set(items.map(it => it.movement.id)));
             if (sc) {
-              item.scaleDown = { movement: sc.movement, note: sc.note, text: `${item.repsDisplay} ${sc.movement.name}` };
+              const repVal = globalThis.WorkoutGenerator?.convertCustomScheme
+                ? globalThis.WorkoutGenerator.convertCustomScheme(item.movement, sc.movement, item.formatKey, item.customScheme)
+                : item.repsDisplay;
+              const unit = sc.movement.unit === 'cal' ? 'Cal' : (sc.movement.unit === 'm' ? 'm' : (sc.movement.unit === 'sec' ? 's' : ''));
+              item.scaleDown = { movement: sc.movement, repVal, note: sc.note, text: `${repVal} ${unit} ${sc.movement.name}`.replace(/\s+/g, ' ').trim() };
             }
           }
         });

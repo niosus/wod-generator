@@ -86,9 +86,9 @@ const MOVEMENTS_DB = [
     poseType: 'ring_dip',
     unit: 'reps',
     reps: { emom: 10, amrap: 12, forTime: 15 },
-    scaleDownId: 'pushups',
-    scaleNote: 'Push-Ups',
-    fallbackCandidates: ['pushups', 'pike_pushups', 'db_push_press'],
+    scaleDownId: 'pike_pushups',
+    scaleNote: 'Pike Push-Ups',
+    fallbackCandidates: ['pike_pushups', 'pushups', 'db_push_press'],
     cues: 'Start in locked-out support on rings or parallel bars. Lean torso slightly forward while elbows hinge backward behind the torso until shoulders drop below the elbow crease, then press to support.',
     scaling: 'Sub Push-Ups or Pike Push-Ups.'
   },
@@ -146,7 +146,7 @@ const MOVEMENTS_DB = [
     reps: { emom: 10, amrap: 10, forTime: 15 },
     scaleDownId: 'ring_rows',
     scaleNote: 'Ring / Bar Inverted Rows',
-    fallbackCandidates: ['table_rows', 'doorway_towel_rows', 'ring_rows', 'db_renegade_row', 'superman_pulls'],
+    fallbackCandidates: ['ring_rows', 'table_rows', 'doorway_towel_rows', 'db_renegade_row', 'superman_pulls'],
     cues: 'Grip the overhead bar outside shoulder width. From a full dead hang, drive elbows down and outward to pull your chin clearly above the horizontal bar.',
     scaling: 'Scale to Doorway Towel Rows, Table Rows, or Ring Inverted Rows if you have no bar.'
   },
@@ -164,7 +164,7 @@ const MOVEMENTS_DB = [
     reps: { emom: 10, amrap: 10, forTime: 14 },
     scaleDownId: 'ring_rows',
     scaleNote: 'Ring / Bar Inverted Rows',
-    fallbackCandidates: ['pullups', 'table_rows', 'doorway_towel_rows', 'ring_rows', 'db_renegade_row', 'superman_pulls'],
+    fallbackCandidates: ['ring_rows', 'table_rows', 'doorway_towel_rows', 'db_renegade_row', 'superman_pulls'],
     cues: 'Grip overhead bar shoulder-width with underhand supinated grip (palms facing athlete). Pull chin clearly above bar while pulling elbows down into ribs.',
     scaling: 'Scale down to Banded Chin-Ups, Doorway Towel Rows, Table Rows, or Ring Inverted Rows if you have no bar.'
   },
