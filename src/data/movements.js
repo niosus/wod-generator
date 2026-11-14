@@ -17,7 +17,7 @@ const MOVEMENTS_DB = [
     reps: { emom: 15, amrap: 15, forTime: 20 },
     scaleDownId: 'knee_pushups',
     scaleNote: 'Knee Push-Ups',
-    fallbackCandidates: ['knee_pushups', 'pike_pushups', 'ring_dips', 'db_push_press'],
+    fallbackCandidates: ['ring_dips', 'db_push_press', 'pike_pushups', 'knee_pushups'],
     cues: 'Hands planted under shoulders. Maintain a rigid straight plank from ankles through knees, hips, and shoulders; elbows bend backward at 45° until chest touches the deck.',
     scaling: 'Scale down to Knee Push-Ups or Incline Push-Ups.'
   },
@@ -52,7 +52,7 @@ const MOVEMENTS_DB = [
     reps: { emom: 10, amrap: 12, forTime: 15 },
     scaleDownId: 'pushups',
     scaleNote: 'Standard Push-Ups',
-    fallbackCandidates: ['pushups', 'db_push_press', 'ring_dips'],
+    fallbackCandidates: ['ring_dips', 'db_push_press', 'pushups'],
     cues: 'Hike hips high into an inverted V-shape with straight legs. Lower the crown of the head forward in front of the hands with elbows tracking backward, then press back to the inverted V.',
     scaling: 'Scale down to Standard Push-Ups.'
   },
@@ -70,7 +70,7 @@ const MOVEMENTS_DB = [
     reps: { emom: 8, amrap: 8, forTime: 12 },
     scaleDownId: 'pike_pushups',
     scaleNote: 'Pike Push-Ups',
-    fallbackCandidates: ['pike_pushups', 'pushups', 'db_push_press'],
+    fallbackCandidates: ['ring_dips', 'pike_pushups', 'db_push_press', 'pushups'],
     cues: 'Kick up vertical against the wall. Lower head controlled into a tripod in front of hands with elbows bending backward, then drive up to full overhead lockout.',
     scaling: 'Scale down to Pike Push-Ups or Dumbbell Push Press.'
   },
@@ -88,7 +88,7 @@ const MOVEMENTS_DB = [
     reps: { emom: 10, amrap: 12, forTime: 15 },
     scaleDownId: 'pike_pushups',
     scaleNote: 'Pike Push-Ups',
-    fallbackCandidates: ['pike_pushups', 'pushups', 'db_push_press'],
+    fallbackCandidates: ['pike_pushups', 'db_push_press', 'pushups'],
     cues: 'Start in locked-out support on rings or parallel bars. Lean torso slightly forward while elbows hinge backward behind the torso until shoulders drop below the elbow crease, then press to support.',
     scaling: 'Sub Push-Ups or Pike Push-Ups.'
   },
@@ -105,9 +105,9 @@ const MOVEMENTS_DB = [
     unit: 'reps',
     load: '2x22.5/15 kg',
     reps: { emom: 12, amrap: 12, forTime: 15 },
-    scaleDownId: 'pushups',
-    scaleNote: 'Pike Push-Ups or Push-Ups',
-    fallbackCandidates: ['pike_pushups', 'pushups', 'ring_dips'],
+    scaleDownId: 'pike_pushups',
+    scaleNote: 'Pike Push-Ups',
+    fallbackCandidates: ['ring_dips', 'pike_pushups', 'pushups'],
     cues: 'Vertical torso dip of 3 inches, rapid hip and knee extension, and punch the dumbbells straight overhead to locked-out arms.',
     scaling: 'Sub Pike Push-Ups or Push-Ups.'
   },
@@ -126,7 +126,7 @@ const MOVEMENTS_DB = [
     reps: { emom: 10, amrap: 10, forTime: 12 },
     scaleDownId: 'db_push_press',
     scaleNote: 'Dumbbell Push Press',
-    fallbackCandidates: ['db_push_press', 'pike_pushups', 'pushups'],
+    fallbackCandidates: ['ring_dips', 'db_push_press', 'pike_pushups', 'pushups'],
     cues: 'Dip vertical, drive the bar off the front rack, drop under into a partial quarter squat with locked elbows, and stand to complete the rep.',
     scaling: 'Sub Dumbbell Push Press or Pike Push-Ups.'
   },
@@ -146,7 +146,7 @@ const MOVEMENTS_DB = [
     reps: { emom: 10, amrap: 10, forTime: 15 },
     scaleDownId: 'ring_rows',
     scaleNote: 'Ring / Bar Inverted Rows',
-    fallbackCandidates: ['ring_rows', 'table_rows', 'doorway_towel_rows', 'db_renegade_row', 'superman_pulls'],
+    fallbackCandidates: ['db_renegade_row', 'ring_rows', 'bar_inverted_rows', 'table_rows', 'doorway_towel_rows', 'superman_pulls'],
     cues: 'Grip the overhead bar outside shoulder width. From a full dead hang, drive elbows down and outward to pull your chin clearly above the horizontal bar.',
     scaling: 'Scale to Doorway Towel Rows, Table Rows, or Ring Inverted Rows if you have no bar.'
   },
@@ -164,7 +164,7 @@ const MOVEMENTS_DB = [
     reps: { emom: 10, amrap: 10, forTime: 14 },
     scaleDownId: 'ring_rows',
     scaleNote: 'Ring / Bar Inverted Rows',
-    fallbackCandidates: ['ring_rows', 'table_rows', 'doorway_towel_rows', 'db_renegade_row', 'superman_pulls'],
+    fallbackCandidates: ['pullups', 'db_renegade_row', 'ring_rows', 'bar_inverted_rows', 'table_rows', 'doorway_towel_rows', 'superman_pulls'],
     cues: 'Grip overhead bar shoulder-width with underhand supinated grip (palms facing athlete). Pull chin clearly above bar while pulling elbows down into ribs.',
     scaling: 'Scale down to Banded Chin-Ups, Doorway Towel Rows, Table Rows, or Ring Inverted Rows if you have no bar.'
   },
@@ -182,7 +182,7 @@ const MOVEMENTS_DB = [
     reps: { emom: 5, amrap: 5, forTime: 7 },
     scaleDownId: 'pullups',
     scaleNote: 'Strict / Kipping Pull-Ups',
-    fallbackCandidates: ['pullups', 'ring_rows', 'table_rows', 'doorway_towel_rows', 'superman_pulls'],
+    fallbackCandidates: ['ring_muscle_up', 'pullups', 'chin_ups', 'db_renegade_row', 'ring_rows', 'bar_inverted_rows', 'table_rows', 'doorway_towel_rows', 'superman_pulls'],
     cues: 'Initiate a powerful kip swing, press straight arms down into the bar to elevate hips, transition shoulders forward over the bar, and press to locked-out top support.',
     scaling: 'Scale down to Pull-Ups or Inverted Rows.'
   },
@@ -200,7 +200,7 @@ const MOVEMENTS_DB = [
     reps: { emom: 4, amrap: 5, forTime: 7 },
     scaleDownId: 'pullups',
     scaleNote: 'Pull-Ups or Ring Rows',
-    fallbackCandidates: ['pullups', 'ring_rows', 'table_rows', 'doorway_towel_rows', 'superman_pulls'],
+    fallbackCandidates: ['bar_muscle_up', 'pullups', 'chin_ups', 'db_renegade_row', 'ring_rows', 'bar_inverted_rows', 'table_rows', 'doorway_towel_rows', 'superman_pulls'],
     cues: 'Pull rings tight to sternum, transition rapidly through the bottom of a deep ring dip, and lock out into full support.',
     scaling: 'Scale down to Pull-Ups or Ring Rows.'
   },
@@ -218,7 +218,7 @@ const MOVEMENTS_DB = [
     reps: { emom: 14, amrap: 15, forTime: 18 },
     scaleDownId: 'table_rows',
     scaleNote: 'Table Rows or Doorway Towel Rows',
-    fallbackCandidates: ['bar_inverted_rows', 'table_rows', 'doorway_towel_rows', 'db_renegade_row', 'superman_pulls'],
+    fallbackCandidates: ['db_renegade_row', 'bar_inverted_rows', 'table_rows', 'doorway_towel_rows', 'superman_pulls'],
     cues: 'Plant heels on the floor and hang beneath the rings at a 40° angle with arms fully extended and a rigid straight plank. Pull chest to the rings driving elbows straight back behind the torso.',
     scaling: 'Walk feet higher to lessen angle, or scale down to Bar Inverted Rows, Table Rows, or Doorway Towel Rows.'
   },
@@ -236,7 +236,7 @@ const MOVEMENTS_DB = [
     reps: { emom: 14, amrap: 15, forTime: 18 },
     scaleDownId: 'table_rows',
     scaleNote: 'Table Rows or Doorway Towel Rows',
-    fallbackCandidates: ['ring_rows', 'table_rows', 'doorway_towel_rows', 'db_renegade_row', 'superman_pulls'],
+    fallbackCandidates: ['db_renegade_row', 'ring_rows', 'table_rows', 'doorway_towel_rows', 'superman_pulls'],
     cues: 'Rack a barbell at waist height in a squat rack. Grip hands shoulder-width apart, hang underneath with arms fully extended and body in a rigid straight plank from ankles to shoulders, and row your chest directly to the bar.',
     scaling: 'Sub Ring Inverted Rows, Table Rows, or Doorway Towel Rows.'
   },
@@ -255,7 +255,7 @@ const MOVEMENTS_DB = [
     reps: { emom: 12, amrap: 14, forTime: 16 },
     scaleDownId: 'doorway_towel_rows',
     scaleNote: 'Doorway Towel Rows',
-    fallbackCandidates: ['ring_rows', 'bar_inverted_rows', 'doorway_towel_rows', 'pullups', 'superman_pulls'],
+    fallbackCandidates: ['pullups', 'db_renegade_row', 'ring_rows', 'bar_inverted_rows', 'doorway_towel_rows', 'superman_pulls'],
     cues: 'Lie underneath a heavy, sturdy table and grip the table edge shoulder-width apart. Maintain a rigid straight plank from heels through hips and row your chest up to the underside of the tabletop.',
     scaling: 'Scale down to Doorway Towel Rows or Prone Superman Pull-Downs.'
   },
@@ -274,7 +274,7 @@ const MOVEMENTS_DB = [
     reps: { emom: 14, amrap: 15, forTime: 18 },
     scaleDownId: 'superman_pulls',
     scaleNote: 'Prone Superman Pull-Downs',
-    fallbackCandidates: ['table_rows', 'ring_rows', 'bar_inverted_rows', 'pullups', 'superman_pulls'],
+    fallbackCandidates: ['pullups', 'db_renegade_row', 'ring_rows', 'bar_inverted_rows', 'table_rows', 'superman_pulls'],
     cues: 'Tie a knot in a bath towel and anchor it firmly in a closed door jamb. Grip towel with both hands, lean back to 45°, and row chest toward the door frame.',
     scaling: 'Adjust foot distance closer to door for less resistance, or sub Prone Superman Pull-Downs.'
   },
@@ -291,7 +291,7 @@ const MOVEMENTS_DB = [
     suppressedWhenAnyAvailable: ['pullup_bar', 'rings_dips'],
     unit: 'reps',
     reps: { emom: 16, amrap: 18, forTime: 20 },
-    fallbackCandidates: ['doorway_towel_rows', 'table_rows', 'ring_rows'],
+    fallbackCandidates: ['ring_rows', 'table_rows', 'doorway_towel_rows'],
     cues: 'Lie flat on your belly with legs extended. Raise chest, head, and feet 3 inches off floor. Reach arms forward overhead, then vigorously pull elbows down toward hips while pinching shoulder blades together.',
     scaling: 'Foundation floor pulling movement.'
   },
@@ -308,9 +308,9 @@ const MOVEMENTS_DB = [
     unit: 'reps',
     load: '2x15/10 kg',
     reps: { emom: 14, amrap: 14, forTime: 16 },
-    scaleDownId: 'table_rows',
-    scaleNote: 'Doorway Towel Rows or Table Rows',
-    fallbackCandidates: ['ring_rows', 'bar_inverted_rows', 'doorway_towel_rows', 'table_rows'],
+    scaleDownId: 'ring_rows',
+    scaleNote: 'Ring / Bar Inverted Rows or Table Rows',
+    fallbackCandidates: ['ring_rows', 'bar_inverted_rows', 'table_rows', 'doorway_towel_rows'],
     cues: 'Hinge forward at hips to 45° with a flat neutral back and knees slightly unlocked. Row dumbbells up to hip pockets driving elbows toward the ceiling.',
     scaling: 'Sub Doorway Towel Rows or Ring Rows.'
   },
@@ -329,7 +329,7 @@ const MOVEMENTS_DB = [
     reps: { emom: 10, amrap: 10, forTime: 12 },
     scaleDownId: 'bb_deadlifts',
     scaleNote: 'Deadlifts or DB Rows',
-    fallbackCandidates: ['db_renegade_row', 'bb_deadlifts', 'ring_rows'],
+    fallbackCandidates: ['bb_deadlifts', 'db_renegade_row', 'ring_rows'],
     cues: 'Hinge barbell to just above kneecaps with vertical shins. Violently extend hips and knees, shrug shoulders high, pull under, and snap elbows forward into a crisp front rack catch in a quarter squat.',
     scaling: 'Sub Dumbbell Cleans or Deadlifts.'
   },
@@ -348,7 +348,7 @@ const MOVEMENTS_DB = [
     unit: 'reps',
     reps: { emom: 20, amrap: 20, forTime: 25 },
     scaleNote: 'Box / Chair Squats',
-    fallbackCandidates: ['walking_lunges', 'jumping_lunges'],
+    fallbackCandidates: ['jumping_lunges', 'walking_lunges'],
     cues: 'Feet shoulder-width apart with toes flared slightly outward. Initiate by sending hips backward and down; maintain upright chest and neutral spine until hip crease clearly drops below the top of knees. Drive through midfoot to full standing lockout.',
     scaling: 'Squat to a 16-20" box or bench to control depth.'
   },
@@ -366,7 +366,7 @@ const MOVEMENTS_DB = [
     reps: { emom: 16, amrap: 16, forTime: 20 },
     scaleDownId: 'air_squats',
     scaleNote: 'Air Squats',
-    fallbackCandidates: ['air_squats', 'jumping_lunges'],
+    fallbackCandidates: ['jumping_lunges', 'air_squats'],
     cues: 'Step forward landing heel first, drop vertical until trailing knee kisses the floor softly with both knees at 90° angles, then drive through lead heel back to full standing extension.',
     scaling: 'Scale down to Air Squats or reduce step depth.'
   },
@@ -384,7 +384,7 @@ const MOVEMENTS_DB = [
     reps: { emom: 14, amrap: 14, forTime: 16 },
     scaleDownId: 'walking_lunges',
     scaleNote: 'Walking Lunges',
-    fallbackCandidates: ['walking_lunges', 'air_squats'],
+    fallbackCandidates: ['pistol_squats', 'walking_lunges', 'air_squats'],
     cues: 'Explode vertically out of bottom lunge, switch leg positions in mid-air, and descend smoothly into opposite-leg lunge with controlled deceleration.',
     scaling: 'Scale down to Walking Lunges.'
   },
@@ -400,9 +400,9 @@ const MOVEMENTS_DB = [
     poseType: 'pistol_squat',
     unit: 'reps',
     reps: { emom: 8, amrap: 8, forTime: 10 },
-    scaleDownId: 'walking_lunges',
-    scaleNote: 'Walking Lunges or Box Step-Downs',
-    fallbackCandidates: ['walking_lunges', 'air_squats', 'jumping_lunges'],
+    scaleDownId: 'jumping_lunges',
+    scaleNote: 'Alternating Jumping Lunges',
+    fallbackCandidates: ['jumping_lunges', 'walking_lunges', 'air_squats'],
     cues: 'Balance on single working leg, extend free leg straight forward. Lower hips back until hamstring rests on calf below parallel, then drive through heel to stand.',
     scaling: 'Scale down to Walking Lunges or Elevated Box Step-Downs.'
   },
@@ -419,9 +419,9 @@ const MOVEMENTS_DB = [
     unit: 'reps',
     load: '24/16 kg',
     reps: { emom: 14, amrap: 14, forTime: 18 },
-    scaleDownId: 'air_squats',
-    scaleNote: 'Air Squats',
-    fallbackCandidates: ['air_squats', 'walking_lunges', 'db_front_squats'],
+    scaleDownId: 'walking_lunges',
+    scaleNote: 'Walking Lunges or Air Squats',
+    fallbackCandidates: ['db_front_squats', 'walking_lunges', 'air_squats'],
     cues: 'Hold kettlebell horns tight against sternum with elbows pinned down. Squat deep keeping torso proud until hip crease drops below knees.',
     scaling: 'Scale down to Air Squats.'
   },
@@ -438,9 +438,9 @@ const MOVEMENTS_DB = [
     unit: 'reps',
     load: '2x15/10 kg',
     reps: { emom: 12, amrap: 12, forTime: 15 },
-    scaleDownId: 'air_squats',
-    scaleNote: 'Air Squats',
-    fallbackCandidates: ['air_squats', 'walking_lunges', 'goblet_squats'],
+    scaleDownId: 'goblet_squats',
+    scaleNote: 'Kettlebell Goblet Squats or Air Squats',
+    fallbackCandidates: ['goblet_squats', 'walking_lunges', 'air_squats'],
     cues: 'Rest back bell of each dumbbell on front shoulder shelf with elbows driven high. Squat below parallel and drive midfoot to lockout.',
     scaling: 'Scale down to Air Squats.'
   },
@@ -457,9 +457,9 @@ const MOVEMENTS_DB = [
     unit: 'reps',
     load: '60/42.5 kg',
     reps: { emom: 10, amrap: 10, forTime: 12 },
-    scaleDownId: 'air_squats',
-    scaleNote: 'Air Squats or DB Front Squats',
-    fallbackCandidates: ['db_front_squats', 'goblet_squats', 'air_squats'],
+    scaleDownId: 'db_front_squats',
+    scaleNote: 'Dumbbell Front Squats or Goblet Squats',
+    fallbackCandidates: ['db_front_squats', 'goblet_squats', 'walking_lunges', 'air_squats'],
     cues: 'Bar secured across front deltoid shelf, fingertips gripping bar, elbows punched high and parallel to floor. Descend below parallel and stand with chest proud.',
     scaling: 'Sub Dumbbell Front Squats or Air Squats.'
   },
@@ -495,7 +495,7 @@ const MOVEMENTS_DB = [
     reps: { emom: 14, amrap: 14, forTime: 16 },
     scaleDownId: 'tuck_ups',
     scaleNote: 'Tuck-Ups',
-    fallbackCandidates: ['tuck_ups', 'situps', 'plank', 'hanging_knee_raises'],
+    fallbackCandidates: ['hanging_knee_raises', 'tuck_ups', 'situps', 'plank'],
     cues: 'Lie flat on back in hollow position. Simultaneously fold at hips bringing straight legs and straight arms up to meet toes in a sharp V-shape.',
     scaling: 'Scale down to Tuck-Ups or AbMat Sit-Ups.'
   },
@@ -513,7 +513,7 @@ const MOVEMENTS_DB = [
     reps: { emom: 14, amrap: 16, forTime: 18 },
     scaleDownId: 'situps',
     scaleNote: 'AbMat Sit-Ups',
-    fallbackCandidates: ['situps', 'v_ups', 'plank'],
+    fallbackCandidates: ['v_ups', 'situps', 'plank'],
     cues: 'From hollow position, curl torso up while bending knees tight into chest, wrapping arms toward shins.',
     scaling: 'Scale down to AbMat Sit-Ups.'
   },
@@ -547,7 +547,7 @@ const MOVEMENTS_DB = [
     reps: { emom: 40, amrap: 45, forTime: 45 },
     scaleDownId: 'knee_plank',
     scaleNote: 'Knee Plank',
-    fallbackCandidates: ['straight_arm_plank', 'knee_plank', 'side_plank', 'situps', 'tuck_ups', 'mountain_climbers'],
+    fallbackCandidates: ['tuck_ups', 'straight_arm_plank', 'side_plank', 'situps', 'knee_plank', 'mountain_climbers'],
     cues: 'Forearms on the deck with elbows stacked under shoulders. Squeeze glutes, brace abdominals, and maintain a rigid straight line from head to heels.',
     scaling: 'Drop knees to floor for Knee Plank or sub AbMat Sit-Ups.'
   },
@@ -565,7 +565,7 @@ const MOVEMENTS_DB = [
     reps: { emom: 40, amrap: 45, forTime: 45 },
     scaleDownId: 'plank',
     scaleNote: 'Forearm Plank',
-    fallbackCandidates: ['plank', 'knee_plank', 'side_plank', 'situps', 'tuck_ups'],
+    fallbackCandidates: ['tuck_ups', 'side_plank', 'plank', 'situps', 'knee_plank'],
     cues: 'Palms flat on deck directly under shoulders with arms locked straight. Squeeze glutes, engage lats, and hold a hollow, rigid plank line.',
     scaling: 'Scale down to Forearm Plank or Knee Plank.'
   },
@@ -583,7 +583,7 @@ const MOVEMENTS_DB = [
     reps: { emom: 30, amrap: 30, forTime: 30 },
     scaleDownId: 'plank',
     scaleNote: 'Forearm Plank',
-    fallbackCandidates: ['straight_arm_plank', 'plank', 'knee_plank', 'situps', 'tuck_ups'],
+    fallbackCandidates: ['tuck_ups', 'straight_arm_plank', 'plank', 'situps', 'knee_plank'],
     cues: 'Stack feet, place supporting elbow directly under shoulder, lift hips until body forms a straight diagonal line, and extend top arm straight up. Alternate sides between rounds or switch at the halfway mark.',
     scaling: 'Bend bottom knee to floor or scale down to Forearm Plank.'
   },
@@ -599,9 +599,9 @@ const MOVEMENTS_DB = [
     poseType: 'lsit',
     unit: 'sec',
     reps: { emom: 20, amrap: 20, forTime: 30 },
-    scaleDownId: 'v_ups',
-    scaleNote: 'V-Ups or Tuck L-Sit',
-    fallbackCandidates: ['v_ups', 'tuck_ups', 'hanging_knee_raises', 'plank', 'situps'],
+    scaleDownId: 'hanging_knee_raises',
+    scaleNote: 'Hanging Knee Raises or V-Ups',
+    fallbackCandidates: ['toes_to_bar', 'hanging_knee_raises', 'v_ups', 'tuck_ups', 'situps', 'plank'],
     cues: 'Lock elbows straight down beside hips, depress shoulders, lift hips off deck, and extend legs straight out horizontally parallel to deck with pointed toes.',
     scaling: 'Tuck L-Sit (knees bent), Single-Leg L-Sit, or V-Ups.'
   },
@@ -617,9 +617,9 @@ const MOVEMENTS_DB = [
     poseType: 'knee_raise_side',
     unit: 'reps',
     reps: { emom: 12, amrap: 12, forTime: 15 },
-    scaleDownId: 'situps',
-    scaleNote: 'AbMat Sit-Ups',
-    fallbackCandidates: ['v_ups', 'situps', 'toes_to_bar'],
+    scaleDownId: 'v_ups',
+    scaleNote: 'V-Ups or Tuck-Ups',
+    fallbackCandidates: ['toes_to_bar', 'v_ups', 'tuck_ups', 'situps'],
     cues: 'Hang from pull-up bar with arms straight and active shoulders. Engage lats and compress abs to tuck knees firmly into chest above hip crease.',
     scaling: 'Sub V-Ups or AbMat Sit-Ups.'
   },
@@ -656,7 +656,7 @@ const MOVEMENTS_DB = [
     reps: { emom: 16, amrap: 16, forTime: 20 },
     scaleDownId: 'kb_deadlifts',
     scaleNote: 'Kettlebell Deadlifts',
-    fallbackCandidates: ['kb_deadlifts', 'bb_deadlifts', 'air_squats'],
+    fallbackCandidates: ['bb_deadlifts', 'kb_deadlifts', 'air_squats'],
     cues: 'Hinge hips back with soft knees, hike kettlebell high between upper thighs, and violently snap hips forward to float kettlebell to eye level.',
     scaling: 'Reduce kettlebell weight or sub Kettlebell Deadlifts.'
   },
@@ -675,7 +675,7 @@ const MOVEMENTS_DB = [
     reps: { emom: 15, amrap: 15, forTime: 18 },
     scaleDownId: 'air_squats',
     scaleNote: 'Air Squats',
-    fallbackCandidates: ['kb_swings', 'air_squats', 'bb_deadlifts'],
+    fallbackCandidates: ['bb_deadlifts', 'kb_swings', 'air_squats'],
     cues: 'Stand over kettlebell with shins close. Hinge hips back with a flat back, grip handle, and drive floor away to full hip and knee lockout.',
     scaling: 'Sub Air Squats or reduce load.'
   },
@@ -712,7 +712,7 @@ const MOVEMENTS_DB = [
     poseType: 'bike_erg',
     unit: 'cal',
     reps: { emom: 15, amrap: 15, forTime: 18 },
-    fallbackCandidates: ['row_erg_cal', 'shuttle_run', 'mountain_climbers'],
+    fallbackCandidates: ['row_erg_cal', 'ski_erg_cal', 'mountain_climbers', 'shuttle_run'],
     cues: 'Maintain steady stroke rhythm, breathe rhythmically, and drive legs and arms synchronously.',
     scaling: 'Scale calories down by 25% or sub Shuttle Runs.'
   },
@@ -728,7 +728,7 @@ const MOVEMENTS_DB = [
     poseType: 'row_erg',
     unit: 'cal',
     reps: { emom: 14, amrap: 14, forTime: 18 },
-    fallbackCandidates: ['bike_erg_cal', 'shuttle_run', 'mountain_climbers'],
+    fallbackCandidates: ['bike_erg_cal', 'ski_erg_cal', 'mountain_climbers', 'shuttle_run'],
     cues: 'Drive through heels, open hips, and pull handle to sternum with smooth relaxed recovery.',
     scaling: 'Scale calories down by 25% or sub Shuttle Runs.'
   },
@@ -744,7 +744,7 @@ const MOVEMENTS_DB = [
     poseType: 'ski_erg',
     unit: 'cal',
     reps: { emom: 14, amrap: 14, forTime: 18 },
-    fallbackCandidates: ['bike_erg_cal', 'row_erg_cal', 'shuttle_run'],
+    fallbackCandidates: ['bike_erg_cal', 'row_erg_cal', 'mountain_climbers', 'shuttle_run'],
     cues: 'Reach tall on toes, crunch abs downward, bend knees slightly, and butterfly arms past hips.',
     scaling: 'Scale calories down by 25% or sub Shuttle Runs.'
   },
@@ -762,7 +762,7 @@ const MOVEMENTS_DB = [
     reps: { emom: 35, amrap: 40, forTime: 50 },
     scaleDownId: 'single_unders',
     scaleNote: 'Single-Unders (2x Reps)',
-    fallbackCandidates: ['single_unders', 'mountain_climbers', 'shuttle_run'],
+    fallbackCandidates: ['single_unders', 'jumping_jacks', 'mountain_climbers', 'shuttle_run'],
     cues: 'Elbows tight to ribs, flick wrists twice per vertical jump while keeping toes pointed and torso vertical.',
     scaling: 'Scale to Single-Unders (2x reps) or Mountain Climbers.'
   },
@@ -778,7 +778,7 @@ const MOVEMENTS_DB = [
     poseType: 'single_unders',
     unit: 'reps',
     reps: { emom: 60, amrap: 60, forTime: 75 },
-    fallbackCandidates: ['jumping_jacks', 'mountain_climbers', 'shuttle_run'],
+    fallbackCandidates: ['mountain_climbers', 'jumping_jacks', 'shuttle_run'],
     cues: 'Relaxed shoulders, soft bounding on balls of feet, smooth single wrist rotation per jump.',
     scaling: 'Sub Jumping Jacks or Mountain Climbers.'
   },
@@ -794,7 +794,7 @@ const MOVEMENTS_DB = [
     poseType: 'jumping_jacks',
     unit: 'reps',
     reps: { emom: 35, amrap: 40, forTime: 50 },
-    fallbackCandidates: ['single_unders', 'mountain_climbers', 'shuttle_run'],
+    fallbackCandidates: ['mountain_climbers', 'single_unders', 'shuttle_run'],
     cues: 'Jump feet out laterally outside shoulder width while clapping hands overhead, then rebound feet together with arms at sides.',
     scaling: 'Step-out jacks or Mountain Climbers.'
   },
@@ -810,7 +810,7 @@ const MOVEMENTS_DB = [
     poseType: 'run',
     unit: 'm',
     reps: { emom: 100, amrap: 200, forTime: 400 },
-    fallbackCandidates: ['shuttle_run', 'bike_erg_cal', 'row_erg_cal', 'jumping_jacks', 'mountain_climbers'],
+    fallbackCandidates: ['row_erg_cal', 'bike_erg_cal', 'shuttle_run', 'mountain_climbers', 'jumping_jacks'],
     cues: 'Maintain tall upright posture, drive knees forward, land softly under center of mass, and breathe rhythmically.',
     scaling: 'Scale distance down by 25-50% or sub Shuttle Runs, Row, or Bike.'
   },
@@ -826,7 +826,7 @@ const MOVEMENTS_DB = [
     poseType: 'run',
     unit: 'm',
     reps: { emom: 100, amrap: 150, forTime: 200 },
-    fallbackCandidates: ['run', 'bike_erg_cal', 'row_erg_cal', 'jumping_jacks', 'mountain_climbers'],
+    fallbackCandidates: ['row_erg_cal', 'bike_erg_cal', 'run', 'mountain_climbers', 'jumping_jacks'],
     cues: 'Sprint hard between markers, decelerate by dropping hips low, touch the floor line at the turnaround, and pivot sharply to sprint back.',
     scaling: 'Reduce distance or sub Mountain Climbers or Jumping Jacks.'
   },
@@ -842,7 +842,7 @@ const MOVEMENTS_DB = [
     poseType: 'mountain_climber',
     unit: 'reps',
     reps: { emom: 24, amrap: 24, forTime: 30 },
-    fallbackCandidates: ['shuttle_run', 'situps'],
+    fallbackCandidates: ['situps', 'shuttle_run'],
     cues: 'Rigid plank position. Alternatingly drive knees toward chest at high cadence without letting hips bounce toward the ceiling.',
     scaling: 'Slow down cadence to marching plank.'
   },
@@ -862,7 +862,7 @@ const MOVEMENTS_DB = [
     reps: { emom: 12, amrap: 12, forTime: 15 },
     scaleDownId: 'athletic_up_downs',
     scaleNote: 'Athletic Up-Downs (No Push-Up)',
-    fallbackCandidates: ['athletic_up_downs', 'mountain_climbers'],
+    fallbackCandidates: ['devil_press', 'athletic_up_downs', 'mountain_climbers'],
     cues: '1) Stand tall, 2) Squat & plant hands on floor, 3) Sprawl feet back to plank, 4) Lower chest & thighs to floor, 5) Press & frog-jump feet wide to hands, 6) Jump & clap overhead.',
     scaling: 'Scale down to Athletic Up-Downs (sprawl to straight-arm plank and stand).'
   },
@@ -896,7 +896,7 @@ const MOVEMENTS_DB = [
     reps: { emom: 12, amrap: 12, forTime: 15 },
     scaleDownId: 'box_step_ups',
     scaleNote: 'Box Step-Ups',
-    fallbackCandidates: ['box_step_ups', 'air_squats', 'jumping_lunges'],
+    fallbackCandidates: ['jumping_lunges', 'box_step_ups', 'air_squats'],
     cues: 'Two-foot takeoff with athletic arm swing. Land softly with both feet flat on top of box with knees bent; stand to full hip lockout before stepping down.',
     scaling: 'Scale down to Box Step-Ups.'
   },
@@ -931,9 +931,9 @@ const MOVEMENTS_DB = [
     unit: 'reps',
     load: '9/6 kg (20/14 lb)',
     reps: { emom: 15, amrap: 15, forTime: 20 },
-    scaleDownId: 'air_squats',
-    scaleNote: 'Air Squats or Thrusters',
-    fallbackCandidates: ['db_thrusters', 'air_squats', 'goblet_squats'],
+    scaleDownId: 'goblet_squats',
+    scaleNote: 'Kettlebell Goblet Squats or Air Squats',
+    fallbackCandidates: ['db_thrusters', 'goblet_squats', 'air_squats'],
     cues: 'Hold medicine ball in front of chest. Descend below parallel in a front squat, explode upward, and launch the ball to the 10ft/9ft target mark.',
     scaling: 'Sub Light Dumbbell Thrusters or Air Squats.'
   },
@@ -988,9 +988,9 @@ const MOVEMENTS_DB = [
     unit: 'reps',
     load: '2x15/10 kg',
     reps: { emom: 10, amrap: 12, forTime: 15 },
-    scaleDownId: 'air_squats',
-    scaleNote: 'Air Squats + Push-Ups',
-    fallbackCandidates: ['bb_thrusters', 'wall_balls', 'air_squats'],
+    scaleDownId: 'wall_balls',
+    scaleNote: 'Wall Ball Shots or Goblet Squats',
+    fallbackCandidates: ['bb_thrusters', 'wall_balls', 'goblet_squats', 'air_squats'],
     cues: 'Dumbbells racked on shoulders. Full front squat below parallel, explode out of hole, and punch dumbbells overhead to locked arms in one fluid movement.',
     scaling: 'Scale weight down or sub Wall Ball Shots / Air Squats.'
   },
@@ -1009,7 +1009,7 @@ const MOVEMENTS_DB = [
     reps: { emom: 10, amrap: 10, forTime: 12 },
     scaleDownId: 'db_thrusters',
     scaleNote: 'Dumbbell Thrusters or Wall Balls',
-    fallbackCandidates: ['db_thrusters', 'wall_balls', 'db_push_press'],
+    fallbackCandidates: ['db_thrusters', 'db_push_press', 'wall_balls'],
     cues: 'Barbell resting in front rack with elbows up. Sink into a full deep front squat, accelerate upward out of the bottom, and drive the barbell overhead in one continuous path.',
     scaling: 'Sub Dumbbell Thrusters or Wall Ball Shots.'
   },
@@ -1028,7 +1028,7 @@ const MOVEMENTS_DB = [
     reps: { emom: 6, amrap: 6, forTime: 8 },
     scaleDownId: 'kb_snatch',
     scaleNote: 'Kettlebell Snatches or Swings',
-    fallbackCandidates: ['kb_snatch', 'bb_hang_power_clean', 'kb_swings'],
+    fallbackCandidates: ['bb_hang_power_clean', 'kb_snatch', 'kb_swings'],
     cues: 'Wide snatch grip. Lift bar from floor with active back, explosively extend hips, pull body rapidly under the barbell into a deep overhead squat, and stand to lockout.',
     scaling: 'Sub Kettlebell Snatches or Hang Power Cleans.'
   },
@@ -1047,7 +1047,7 @@ const MOVEMENTS_DB = [
     reps: { emom: 12, amrap: 12, forTime: 16 },
     scaleDownId: 'kb_swings',
     scaleNote: 'Kettlebell Swings',
-    fallbackCandidates: ['kb_swings', 'bb_squat_snatch', 'devil_press'],
+    fallbackCandidates: ['devil_press', 'bb_squat_snatch', 'kb_swings'],
     cues: 'Swing kettlebell back between legs, drive hips, punch fist to ceiling at the top so the kettlebell wraps smoothly around forearm without banging.',
     scaling: 'Sub Kettlebell Swings.'
   }

@@ -352,7 +352,6 @@ const WorkoutGenerator = {
     if (isOptionalGear || isMissingGear) {
       const altMov = globalThis.AppState.resolveUniqueAlternative(mov, usedMovementIds);
       if (altMov) {
-        usedMovementIds.add(altMov.id);
         const altRepVal = this.convertCustomScheme(mov, altMov, formatKey, customScheme, context);
         const altUnit = altMov.unit === 'cal' ? 'Cal' : (altMov.unit === 'm' ? 'm' : (altMov.unit === 'sec' ? 's' : ''));
         const altLoad = altMov.load ? ` (${altMov.load})` : '';
@@ -367,7 +366,7 @@ const WorkoutGenerator = {
     // 2. Scale-Down Progression Badge (collision-free against usedMovementIds)
     let scaleDownPrescription = null;
     const scaleResolved = globalThis.AppState.resolveScaleDown(mov, usedMovementIds);
-    if (scaleResolved && (!altPrescription || scaleResolved.movement.id !== altPrescription.movement.id)) {
+    if (scaleResolved) {
       const scMov = scaleResolved.movement;
       const scRepVal = this.convertCustomScheme(mov, scMov, formatKey, customScheme, context);
       const scUnit = scMov.unit === 'cal' ? 'Cal' : (scMov.unit === 'm' ? 'm' : (scMov.unit === 'sec' ? 's' : ''));
@@ -379,6 +378,10 @@ const WorkoutGenerator = {
         text: `${scRepVal} ${scUnit} ${scMov.name}${scLoad}`.replace(/\s+/g, ' ').trim()
       };
     }
+
+    // Register assigned options to usedMovementIds so subsequent stations do not duplicate them
+    if (altPrescription) usedMovementIds.add(altPrescription.movement.id);
+    if (scaleDownPrescription) usedMovementIds.add(scaleDownPrescription.movement.id);
 
     return {
       movement: mov,
