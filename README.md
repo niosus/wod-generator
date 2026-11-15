@@ -33,10 +33,10 @@ Generate competition-grade CrossFit, Hyrox, and HIIT workouts tailored to your g
     <td width="50%" valign="top">
       <h3>🦴 2D Skeletal Kinematics Engine</h3>
       <ul>
-        <li><b>85 Animated Movements:</b> Multi-view (side &amp; front) 2D Canvas stick athlete animations driven by 2-bone analytical IK/FK solvers, splines, and smoothstep keyframes.</li>
-        <li><b>Audited Invariants:</b> Tested across <b>10,200 frames</b> (120 frames/cycle) for zero bone stretching, zero floor/box penetration, knee non-hyperextension, and <code>C⁰</code> continuity.</li>
+        <li><b>Animated Movements:</b> Multi-view (side &amp; front) 2D Canvas stick athlete animations driven by 2-bone analytical IK/FK solvers, splines, and smoothstep keyframes.</li>
+        <li><b>Audited Invariants:</b> Tested for zero bone stretching, zero floor/box penetration, knee non-hyperextension, and <code>C⁰</code> continuity.</li>
         <li><b>Interactive Demo Modal:</b> Click any movement to inspect a larger live animation, biomechanical coaching cues, and scaling options.</li>
-        <li><b>Movement Library:</b> Searchable browser for all 85 movements filtered by pattern, difficulty, or gear.</li>
+        <li><b>Movement Library:</b> Searchable browser for all movements filtered by pattern, difficulty, or gear.</li>
       </ul>
     </td>
   </tr>
@@ -44,7 +44,7 @@ Generate competition-grade CrossFit, Hyrox, and HIIT workouts tailored to your g
     <td width="50%" valign="top">
       <h3>📦 14-Item Gear Matrix &amp; Ladders</h3>
       <ul>
-        <li><b>3-State Equipment Control:</b> Toggle <b>HAVE</b>, <b>OPT</b>, or <b>OFF</b> across 14 items (Bodyweight/Floor, Running Area, Pull-Up Bar, Gymnastic Rings, Parallel/Dip Bars, Kettlebell, Dumbbells, Barbell &amp; Plates, BikeErg, RowErg, SkiErg, Jump Rope, Plyo Box, Wall Ball) plus <i>Bodyweight</i>, <i>Minimal</i>, and <i>Full Gym</i> presets.</li>
+        <li><b>3-State Equipment Control:</b> Toggle <b>HAVE</b>, <b>OPT</b>, or <b>OFF</b> across multiple items (Bodyweight/Floor, Running Area, Pull-Up Bar, Gymnastic Rings, Parallel/Dip Bars, Kettlebell, Dumbbells, Barbell &amp; Plates, BikeErg, RowErg, SkiErg, Jump Rope, Plyo Box, Wall Ball) plus <i>Bodyweight</i>, <i>Minimal</i>, and <i>Full Gym</i> presets.</li>
         <li><b>Collision-Free Substitutions:</b> <i>Optional</i> gear generates pattern-preserving alternatives with an inline <b>Swap</b> button.</li>
         <li><b>8 Scaling Ladders:</b> <code>ProgressionEngine</code> surfaces <b>Step X/Y</b> badges, one-click <b>Scale</b> buttons, and interactive progression switching without movement collisions.</li>
       </ul>
@@ -52,7 +52,7 @@ Generate competition-grade CrossFit, Hyrox, and HIIT workouts tailored to your g
     <td width="50%" valign="top">
       <h3>🔗 Sharing, PNG Cards &amp; Classics</h3>
       <ul>
-        <li><b>46 Benchmark WODs:</b> 21 Girls, 17 Hero WODs, 5 <i>Death By</i> EMOM challenges, and 3 Hyrox/signature workouts (<i>Murph, Cindy, Fran, Chelsea, Helen, DT, Nate, Chad</i>, etc.) with live search and <i>Ready With My Gear</i> filtering.</li>
+        <li><b>Benchmark WODs:</b> Girls, Hero WODs, <i>Death By</i> EMOM challenges, and Hyrox/signature workouts with live search and <i>Ready With My Gear</i> filtering.</li>
         <li><b>Compact Binary URL Sharing:</b> Share exact workouts (<code>?wod=...</code>) or your full gear/filter setup (<code>?cfg=...</code>) with binary v2 encoding, <code>deflate-raw</code> fallback, and mobile Web Share API support.</li>
         <li><b>1080×1080 PNG Card Export:</b> Click <b>Copy</b> to render a crisp workout card image with 2D stick-figure thumbnails to your clipboard (with plain-text fallback).</li>
         <li><b>Adaptive Theme:</b> Light, Dark, and System <b>Auto</b> mode with zero-FOUC startup.</li>

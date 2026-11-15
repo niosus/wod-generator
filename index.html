@@ -27,7 +27,8 @@
   <meta property="og:image" content="https://niosus.github.io/wod-generator/og-image.png" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
-  <meta property="og:image:alt" content="WODROLL — Precision HIIT &amp; CrossFit WOD Generator with 2D movement animations" />
+  <meta property="og:image:alt"
+    content="WODROLL — Precision HIIT &amp; CrossFit WOD Generator with 2D movement animations" />
 
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image" />
@@ -35,7 +36,8 @@
   <meta name="twitter:description"
     content="Free, zero-signup CrossFit, Hyrox, and HIIT WOD generator with 85 2D animated movements, 46 benchmark WODs, and 14-item gear scaling." />
   <meta name="twitter:image" content="https://niosus.github.io/wod-generator/og-image.png" />
-  <meta name="twitter:image:alt" content="WODROLL — Precision HIIT &amp; CrossFit WOD Generator with 2D movement animations" />
+  <meta name="twitter:image:alt"
+    content="WODROLL — Precision HIIT &amp; CrossFit WOD Generator with 2D movement animations" />
 
   <!-- Structured Data -->
   <script type="application/ld+json">
@@ -94,11 +96,13 @@
   <link rel="stylesheet" href="css/styles.css">
 </head>
 
-<body class="bg-gym-grid min-h-screen flex flex-col text-zinc-950 dark:text-zinc-50 selection:bg-volt selection:text-zinc-950">
+<body
+  class="bg-gym-grid min-h-screen flex flex-col text-zinc-950 dark:text-zinc-50 selection:bg-volt selection:text-zinc-950">
 
   <!-- TOP NAVIGATION BAR -->
-  <header class="sticky top-0 z-30 backdrop-blur-xl bg-white/85 dark:bg-zinc-950/85 border-b border-zinc-200/80 dark:border-zinc-800/80 transition-colors">
-    <div class="max-w-3xl mx-auto px-4 sm:px-6 py-2.5 flex items-center justify-between gap-2">
+  <header
+    class="sticky top-0 z-30 backdrop-blur-xl bg-white/85 dark:bg-zinc-950/85 border-b border-zinc-200/80 dark:border-zinc-800/80 transition-colors">
+    <div class="max-w-3xl mx-auto px-3.5 sm:px-6 py-2.5 flex items-center justify-between gap-2">
       <!-- Brand Identity -->
       <a href="#" class="flex items-center gap-2 shrink-0 group" title="WODROLL">
         <div
@@ -114,7 +118,7 @@
       <nav class="flex items-center gap-1 sm:gap-1.5 shrink-0">
         <!-- Benchmark Library -->
         <button id="openBenchmarksModalBtn"
-          class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-transparent hover:bg-zinc-100 dark:hover:bg-zinc-900 border border-transparent hover:border-zinc-200 dark:hover:border-zinc-800 text-xs font-medium text-zinc-600 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-white transition shrink-0"
+          class="flex items-center gap-1.5 px-2 sm:px-2.5 py-1.5 rounded-lg bg-transparent hover:bg-zinc-100 dark:hover:bg-zinc-900 border border-transparent hover:border-zinc-200 dark:hover:border-zinc-800 text-xs font-medium text-zinc-600 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-white transition shrink-0"
           title="Browse Classical Benchmarks">
           <i data-lucide="trophy" class="w-3.5 h-3.5"></i>
           <span class="hidden sm:inline">Benchmarks</span>
@@ -122,7 +126,7 @@
 
         <!-- All Movements & Scaling Progressions Library -->
         <button id="openScaleModalBtn"
-          class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-transparent hover:bg-zinc-100 dark:hover:bg-zinc-900 border border-transparent hover:border-zinc-200 dark:hover:border-zinc-800 text-xs font-medium text-zinc-600 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-white transition shrink-0"
+          class="flex items-center gap-1.5 px-2 sm:px-2.5 py-1.5 rounded-lg bg-transparent hover:bg-zinc-100 dark:hover:bg-zinc-900 border border-transparent hover:border-zinc-200 dark:hover:border-zinc-800 text-xs font-medium text-zinc-600 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-white transition shrink-0"
           title="Browse All 85 Movements &amp; Scaling Progressions">
           <i data-lucide="layout-grid" class="w-3.5 h-3.5"></i>
           <span class="hidden sm:inline">Movements</span>
@@ -130,14 +134,23 @@
 
         <!-- Copy Short Setup Link (?cfg=...) -->
         <button id="shareConfigBtn"
-          class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-transparent hover:bg-zinc-100 dark:hover:bg-zinc-900 border border-transparent hover:border-zinc-200 dark:hover:border-zinc-800 text-xs font-medium text-zinc-600 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-white transition shrink-0"
+          class="flex items-center gap-1.5 px-2 sm:px-2.5 py-1.5 rounded-lg bg-transparent hover:bg-zinc-100 dark:hover:bg-zinc-900 border border-transparent hover:border-zinc-200 dark:hover:border-zinc-800 text-xs font-medium text-zinc-600 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-white transition shrink-0"
           title="Copy Short Setup Link">
           <i data-lucide="link" class="w-3.5 h-3.5"></i>
           <span id="shareConfigLabel" class="hidden md:inline">Share Setup</span>
         </button>
 
+        <!-- GitHub Sponsors -->
+        <a href="https://github.com/sponsors/niosus" target="_blank" rel="noopener noreferrer"
+          class="flex items-center gap-1.5 px-2 sm:px-2.5 py-1.5 rounded-lg bg-rose-50/70 hover:bg-rose-100/80 dark:bg-rose-950/30 dark:hover:bg-rose-950/60 border border-rose-200/80 hover:border-rose-300 dark:border-rose-900/60 dark:hover:border-rose-800 text-xs font-medium text-rose-700 dark:text-rose-300 transition shrink-0"
+          title="Sponsor on GitHub" aria-label="Sponsor on GitHub">
+          <i data-lucide="heart" class="w-3.5 h-3.5 text-rose-500 dark:text-rose-400 fill-rose-500/20 dark:fill-rose-400/20"></i>
+          <span class="hidden md:inline">Sponsor</span>
+        </a>
+
         <!-- Theme Toggle (Immediate Flip + Auto Reset) -->
-        <div class="inline-flex items-center p-0.5 rounded-lg bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shrink-0">
+        <div
+          class="inline-flex items-center p-0.5 rounded-lg bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shrink-0">
           <button id="themeToggleBtn" type="button"
             class="flex items-center gap-1.5 px-2 py-1 rounded-md hover:bg-zinc-200/80 dark:hover:bg-zinc-800 text-xs font-medium text-zinc-700 dark:text-zinc-300 transition shrink-0"
             title="Toggle Light / Dark Theme">
@@ -165,7 +178,8 @@
         <div class="flex items-center gap-2 min-w-0">
           <span class="w-2 h-2 rounded-full bg-volt-600 dark:bg-volt shrink-0"></span>
           <span class="truncate">
-            Viewing shared workout: <strong id="sharedWodTitleNotice" class="text-zinc-950 dark:text-white font-bold"></strong>
+            Viewing shared workout: <strong id="sharedWodTitleNotice"
+              class="text-zinc-950 dark:text-white font-bold"></strong>
           </span>
         </div>
         <button id="dismissSharedNoticeBtn"
@@ -179,7 +193,8 @@
       <div id="wodCardContainer"
         class="bg-white dark:bg-zinc-900/95 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4 sm:p-6 shadow-sm dark:shadow-2xl relative overflow-hidden transition-all duration-300">
         <!-- Minimal Top Accent Line with sweep animation -->
-        <div id="wodAccentBar" class="absolute top-0 inset-x-0 h-[2px] bg-gradient-to-r from-zinc-900 via-volt-600 to-zinc-900 dark:from-volt dark:via-zinc-200 dark:to-volt">
+        <div id="wodAccentBar"
+          class="absolute top-0 inset-x-0 h-[2px] bg-gradient-to-r from-zinc-900 via-volt-600 to-zinc-900 dark:from-volt dark:via-zinc-200 dark:to-volt">
         </div>
 
         <!-- WOD Header -->
@@ -196,7 +211,8 @@
                 ALGORITHMIC
               </span>
             </div>
-            <h1 id="wodTitle" class="text-2xl sm:text-3xl font-black tracking-tight text-zinc-950 dark:text-white break-words">
+            <h1 id="wodTitle"
+              class="text-2xl sm:text-3xl font-black tracking-tight text-zinc-950 dark:text-white break-words">
               CHALK &amp; LUNGS
             </h1>
           </div>
@@ -215,8 +231,7 @@
               <i data-lucide="copy" class="w-3.5 h-3.5 shrink-0"></i>
               <span id="copyWodLabel">Copy</span>
             </button>
-            <span id="rerollSideDot"
-              class="hidden w-2.5 h-2.5 rounded-full bg-volt-600 dark:bg-volt shrink-0"
+            <span id="rerollSideDot" class="hidden w-2.5 h-2.5 rounded-full bg-volt-600 dark:bg-volt shrink-0"
               title="Settings changed"></span>
             <button id="rerollWodBtn"
               class="flex-1 sm:flex-none justify-center px-4 py-2 rounded-xl bg-zinc-950 hover:bg-zinc-800 dark:bg-volt dark:hover:bg-volt-400 active:scale-[0.98] text-white dark:text-zinc-950 font-bold text-xs uppercase tracking-wider flex items-center gap-1.5 shadow-sm transition whitespace-nowrap"
@@ -235,7 +250,8 @@
             <!-- Workout Prescription & Timecap Clock -->
             <div
               class="flex items-center justify-between gap-2.5 bg-zinc-50 dark:bg-zinc-950/60 border border-zinc-200/80 dark:border-zinc-800/80 rounded-xl px-3.5 py-2 md:flex-1 md:min-w-0 md:bg-transparent md:border-0 md:rounded-none md:p-0">
-              <p id="wodPrescriptionHeader" class="text-sm font-bold text-zinc-900 dark:text-zinc-100 leading-snug min-w-0">
+              <p id="wodPrescriptionHeader"
+                class="text-sm font-bold text-zinc-900 dark:text-zinc-100 leading-snug min-w-0">
                 AMRAP • Max Rounds &amp; Reps:
               </p>
               <span id="wodTimeCapBadge"
@@ -252,7 +268,8 @@
                   class="flex flex-wrap md:flex-nowrap items-center justify-between gap-x-2 gap-y-1.5 bg-zinc-50 dark:bg-zinc-950/60 border border-zinc-200/80 dark:border-zinc-800/80 rounded-xl px-2.5 sm:px-3 py-1.5 md:w-max md:bg-transparent md:border-0 md:rounded-none md:p-0 md:pl-3 md:border-l md:border-zinc-200 dark:md:border-zinc-800">
                   <div class="flex items-center gap-1.5 min-w-0 shrink-0">
                     <i data-lucide="gauge" class="w-3.5 h-3.5 text-zinc-500 dark:text-zinc-400 shrink-0"></i>
-                    <span class="text-[11px] font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Intensity</span>
+                    <span
+                      class="text-[11px] font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Intensity</span>
                   </div>
 
                   <div id="wodIntensityChoiceGrid"
@@ -288,24 +305,30 @@
               class="flex items-center justify-between gap-3 cursor-pointer list-none select-none py-1 text-xs text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white transition">
               <div class="flex items-center gap-2 min-w-0">
                 <i data-lucide="sparkles" class="w-3.5 h-3.5 text-volt-600 dark:text-volt shrink-0"></i>
-                <span class="font-semibold text-zinc-800 dark:text-zinc-200 shrink-0">Coach's Notes &amp; Stimulus</span>
-                <span id="wodCoachPreviewText" class="text-[11px] text-zinc-500 dark:text-zinc-400 truncate hidden sm:inline"></span>
+                <span class="font-semibold text-zinc-800 dark:text-zinc-200 shrink-0">Coach's Notes &amp;
+                  Stimulus</span>
+                <span id="wodCoachPreviewText"
+                  class="text-[11px] text-zinc-500 dark:text-zinc-400 truncate hidden sm:inline"></span>
               </div>
               <i data-lucide="chevron-down"
                 class="w-4 h-4 text-zinc-400 transition-transform duration-200 group-open:rotate-180 shrink-0"></i>
             </summary>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5 pt-3">
-              <div class="bg-zinc-50 dark:bg-zinc-950/60 border border-zinc-200/80 dark:border-zinc-800/80 rounded-xl p-3">
-                <div class="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-zinc-800 dark:text-zinc-200 mb-1">
+              <div
+                class="bg-zinc-50 dark:bg-zinc-950/60 border border-zinc-200/80 dark:border-zinc-800/80 rounded-xl p-3">
+                <div
+                  class="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-zinc-800 dark:text-zinc-200 mb-1">
                   <i data-lucide="flame" class="w-3.5 h-3.5 text-volt-600 dark:text-volt"></i>
                   <span>Intended Stimulus</span>
                 </div>
                 <p id="wodStimulusText" class="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed"></p>
               </div>
 
-              <div class="bg-zinc-50 dark:bg-zinc-950/60 border border-zinc-200/80 dark:border-zinc-800/80 rounded-xl p-3">
-                <div class="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-zinc-800 dark:text-zinc-200 mb-1">
+              <div
+                class="bg-zinc-50 dark:bg-zinc-950/60 border border-zinc-200/80 dark:border-zinc-800/80 rounded-xl p-3">
+                <div
+                  class="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-zinc-800 dark:text-zinc-200 mb-1">
                   <i data-lucide="shield-check" class="w-3.5 h-3.5 text-zinc-500 dark:text-zinc-400"></i>
                   <span>Programming Logic</span>
                 </div>
@@ -331,9 +354,12 @@
 
     <!-- SIMPLE MODE QUICK SETUP BAR (Positioned below Workout Card so WOD leads immediately) -->
     <section aria-label="Quick Setup" class="w-full">
-      <div class="flex flex-wrap items-center gap-1.5 sm:gap-2 bg-white/90 dark:bg-zinc-900/90 border border-zinc-200 dark:border-zinc-800 rounded-xl p-2 shadow-sm">
+      <div
+        class="flex flex-wrap items-center gap-1.5 sm:gap-2 bg-white/90 dark:bg-zinc-900/90 border border-zinc-200 dark:border-zinc-800 rounded-xl p-2 shadow-sm">
         <!-- Gear Preset Group (Row 1 on mobile, inline on sm+) -->
-        <div class="w-full sm:w-auto flex items-center p-0.5 rounded-lg bg-zinc-100 dark:bg-zinc-950 border border-zinc-200/80 dark:border-zinc-800" role="group" aria-label="Equipment preset">
+        <div
+          class="w-full sm:w-auto flex items-center p-0.5 rounded-lg bg-zinc-100 dark:bg-zinc-950 border border-zinc-200/80 dark:border-zinc-800"
+          role="group" aria-label="Equipment preset">
           <button type="button" data-preset="bodyweight"
             class="quick-preset-btn flex-1 sm:flex-initial px-2 sm:px-2.5 py-1 rounded-md text-[11px] font-semibold transition whitespace-nowrap text-center">
             Bodyweight
@@ -355,7 +381,9 @@
         </div>
 
         <!-- Duration Group (Row 2 on mobile, inline on sm+) -->
-        <div class="inline-flex items-center p-0.5 rounded-lg bg-zinc-100 dark:bg-zinc-950 border border-zinc-200/80 dark:border-zinc-800" role="group" aria-label="Workout duration">
+        <div
+          class="inline-flex items-center p-0.5 rounded-lg bg-zinc-100 dark:bg-zinc-950 border border-zinc-200/80 dark:border-zinc-800"
+          role="group" aria-label="Workout duration">
           <button type="button" data-duration="short"
             class="quick-duration-btn px-2 py-1 rounded-md text-[11px] font-mono font-semibold transition whitespace-nowrap"
             title="8 – 12 Min">
@@ -396,12 +424,14 @@
 
   <!-- MINIMAL FOOTER & INDEXABLE OVERVIEW -->
   <footer class="max-w-3xl w-full mx-auto px-3.5 sm:px-6 pb-5 pt-1 text-[11px] text-zinc-500 dark:text-zinc-400">
-    <details class="group rounded-xl border border-zinc-200/70 dark:border-zinc-800/70 bg-white/60 dark:bg-zinc-900/50 px-3.5 py-2 transition-colors">
-      <summary class="flex flex-wrap items-center justify-between gap-2 cursor-pointer list-none select-none hover:text-zinc-900 dark:hover:text-zinc-200 transition">
+    <details
+      class="group rounded-xl border border-zinc-200/70 dark:border-zinc-800/70 bg-white/60 dark:bg-zinc-900/50 px-3.5 py-2 transition-colors">
+      <summary
+        class="flex flex-wrap items-center justify-between gap-2 cursor-pointer list-none select-none hover:text-zinc-900 dark:hover:text-zinc-200 transition">
         <div class="flex items-center gap-2">
           <span class="font-semibold text-zinc-700 dark:text-zinc-300">WODROLL</span>
           <span>•</span>
-          <span>Free CrossFit, Hyrox &amp; HIIT WOD Generator (No Signup)</span>
+          <span>Free CrossFit, Hyrox &amp; HIIT WOD Generator</span>
         </div>
         <div class="flex items-center gap-3">
           <a href="https://github.com/niosus/wod-generator" target="_blank" rel="noopener noreferrer"
@@ -411,19 +441,23 @@
           </a>
           <span class="inline-flex items-center gap-1 text-zinc-500 dark:text-zinc-400">
             <span>About</span>
-            <i data-lucide="chevron-down" class="w-3.5 h-3.5 transition-transform duration-200 group-open:rotate-180"></i>
+            <i data-lucide="chevron-down"
+              class="w-3.5 h-3.5 transition-transform duration-200 group-open:rotate-180"></i>
           </span>
         </div>
       </summary>
 
-      <div class="mt-2.5 pt-2.5 border-t border-zinc-200/70 dark:border-zinc-800/70 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs leading-relaxed text-zinc-600 dark:text-zinc-400">
+      <div
+        class="mt-2.5 pt-2.5 border-t border-zinc-200/70 dark:border-zinc-800/70 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs leading-relaxed text-zinc-600 dark:text-zinc-400">
         <p>
           <strong class="text-zinc-800 dark:text-zinc-200">Tailored to Your Gear:</strong>
-          Generate instant bodyweight, home-gym, minimal-equipment, or full-gym workouts across AMRAP, EMOM, For Time (21-15-9 / 15-12-9), and Tabata formats for 10, 15, or 25+ minute sessions.
+          Generate instant bodyweight, home-gym, minimal-equipment, or full-gym workouts across AMRAP, EMOM, For Time
+          (21-15-9 / 15-12-9), and Tabata formats for 10, 15, or 25+ minute sessions.
         </p>
         <p>
-          <strong class="text-zinc-800 dark:text-zinc-200">85 Animated Movements &amp; 46 Classics:</strong>
-          Includes multi-view 2D biomechanical stick-figure form demos, 8 collision-free scaling ladders, and classic Girl, Hero, Hyrox, and Death By benchmark WODs with URL and PNG card sharing.
+          <strong class="text-zinc-800 dark:text-zinc-200">Animated Movements &amp; Classic benchmark workouts:</strong>
+          Includes multi-view 2D biomechanical stick-figure form demos, 8 collision-free scaling ladders, and classic
+          Girl, Hero, Hyrox, and Death By benchmark WODs with URL and PNG card sharing.
         </p>
       </div>
     </details>
@@ -436,7 +470,8 @@
       class="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl max-w-4xl w-full max-h-[92vh] sm:max-h-[88vh] flex flex-col shadow-2xl relative overflow-hidden">
 
       <!-- Modal Header -->
-      <div class="flex items-center justify-between px-4 sm:px-6 pt-4 sm:pt-5 pb-3 border-b border-zinc-200 dark:border-zinc-800 shrink-0">
+      <div
+        class="flex items-center justify-between px-4 sm:px-6 pt-4 sm:pt-5 pb-3 border-b border-zinc-200 dark:border-zinc-800 shrink-0">
         <div>
           <h2 class="text-base sm:text-lg font-black text-zinc-950 dark:text-white flex items-center gap-2">
             <i data-lucide="sliders-horizontal" class="w-4 h-4 text-volt-600 dark:text-volt"></i>
@@ -453,8 +488,10 @@
       </div>
 
       <!-- Segmented Tabs -->
-      <div class="px-4 sm:px-6 py-2.5 bg-zinc-50 dark:bg-zinc-950/60 border-b border-zinc-200 dark:border-zinc-800 shrink-0">
-        <div class="inline-flex items-center gap-1 p-1 rounded-xl bg-zinc-200/70 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 w-full sm:w-auto">
+      <div
+        class="px-4 sm:px-6 py-2.5 bg-zinc-50 dark:bg-zinc-950/60 border-b border-zinc-200 dark:border-zinc-800 shrink-0">
+        <div
+          class="inline-flex items-center gap-1 p-1 rounded-xl bg-zinc-200/70 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 w-full sm:w-auto">
           <button type="button" data-adv-tab="equipment"
             class="adv-tab-btn flex-1 sm:flex-none px-3 py-1.5 rounded-lg text-xs font-semibold transition">
             Equipment
@@ -496,11 +533,14 @@
 
           <div
             class="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-zinc-600 dark:text-zinc-400 bg-zinc-50 dark:bg-zinc-950/60 border border-zinc-200 dark:border-zinc-800 rounded-xl px-3 py-2">
-            <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-zinc-950 dark:bg-volt"></span><strong
+            <span class="flex items-center gap-1.5"><span
+                class="w-2 h-2 rounded-full bg-zinc-950 dark:bg-volt"></span><strong
                 class="text-zinc-900 dark:text-zinc-100">HAVE:</strong> Primary gear</span>
-            <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-amber-600 dark:bg-amber-500"></span><strong
+            <span class="flex items-center gap-1.5"><span
+                class="w-2 h-2 rounded-full bg-amber-600 dark:bg-amber-500"></span><strong
                 class="text-amber-800 dark:text-amber-300">OPT:</strong> Inline subs</span>
-            <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-zinc-400 dark:bg-zinc-600"></span><strong
+            <span class="flex items-center gap-1.5"><span
+                class="w-2 h-2 rounded-full bg-zinc-400 dark:bg-zinc-600"></span><strong
                 class="text-zinc-500 dark:text-zinc-400">OFF:</strong> Excluded</span>
           </div>
 
@@ -548,7 +588,8 @@
               <button data-format="EMOM"
                 class="format-btn py-2 px-2 rounded-xl border text-xs font-mono font-semibold transition">EMOM</button>
               <button data-format="FOR_TIME"
-                class="format-btn py-2 px-2 rounded-xl border text-xs font-mono font-semibold transition">FOR TIME</button>
+                class="format-btn py-2 px-2 rounded-xl border text-xs font-mono font-semibold transition">FOR
+                TIME</button>
               <button data-format="INTERVALS"
                 class="format-btn py-2 px-2 rounded-xl border text-xs font-mono font-semibold transition col-span-2 sm:col-span-1">TABATA</button>
             </div>
@@ -579,7 +620,8 @@
           </div>
 
           <!-- High-Skill Movements Toggle -->
-          <div class="bg-zinc-50 dark:bg-zinc-950/60 border border-zinc-200 dark:border-zinc-800 rounded-xl p-3.5 space-y-3">
+          <div
+            class="bg-zinc-50 dark:bg-zinc-950/60 border border-zinc-200 dark:border-zinc-800 rounded-xl p-3.5 space-y-3">
             <div class="flex items-center justify-between gap-3">
               <div>
                 <div class="flex items-center gap-2">
@@ -656,8 +698,7 @@
             </div>
           </div>
 
-          <div id="movementAnimatedGrid"
-            class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 pt-1">
+          <div id="movementAnimatedGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 pt-1">
             <!-- Populated by JS -->
           </div>
         </div>
@@ -680,8 +721,7 @@
         </div>
 
         <div class="flex items-center gap-2 ml-auto">
-          <span id="generateWodSideDot"
-            class="hidden w-2.5 h-2.5 rounded-full bg-volt-600 dark:bg-volt"></span>
+          <span id="generateWodSideDot" class="hidden w-2.5 h-2.5 rounded-full bg-volt-600 dark:bg-volt"></span>
           <button id="generateWodBtn"
             class="px-4 py-2 rounded-xl bg-zinc-950 hover:bg-zinc-800 dark:bg-volt dark:hover:bg-volt-400 active:scale-[0.98] text-white dark:text-zinc-950 font-bold text-xs uppercase tracking-wider flex items-center gap-1.5 shadow-sm transition">
             <i data-lucide="refresh-cw" class="w-3.5 h-3.5 stroke-[2.5]"></i>
@@ -709,7 +749,8 @@
           class="text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded-md border">
           SQUAT / LUNGE
         </span>
-        <span id="demoModalDifficultyBadge" class="text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded-md border">
+        <span id="demoModalDifficultyBadge"
+          class="text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded-md border">
           NORMAL
         </span>
         <span id="demoModalEquipBadge"
@@ -730,18 +771,19 @@
       <!-- Execution Cues & Quick Scaling Note -->
       <div class="space-y-2 text-xs sm:text-sm mb-4">
         <div class="bg-zinc-50 dark:bg-zinc-950/60 border border-zinc-200 dark:border-zinc-800 rounded-xl p-3">
-          <div class="font-bold text-zinc-900 dark:text-zinc-100 uppercase text-[10px] tracking-wider mb-1">Execution &amp; Biomechanical Cues</div>
+          <div class="font-bold text-zinc-900 dark:text-zinc-100 uppercase text-[10px] tracking-wider mb-1">Execution
+            &amp; Biomechanical Cues</div>
           <p id="demoModalCues" class="text-zinc-600 dark:text-zinc-300 leading-relaxed text-xs"></p>
         </div>
         <div class="bg-zinc-50 dark:bg-zinc-950/60 border border-zinc-200 dark:border-zinc-800 rounded-xl p-3">
-          <div class="font-bold text-zinc-900 dark:text-zinc-100 uppercase text-[10px] tracking-wider mb-1">Scaling Summary</div>
+          <div class="font-bold text-zinc-900 dark:text-zinc-100 uppercase text-[10px] tracking-wider mb-1">Scaling
+            Summary</div>
           <p id="demoModalScaling" class="text-zinc-600 dark:text-zinc-300 leading-relaxed text-xs"></p>
         </div>
       </div>
 
       <!-- Interactive Scaling Progression Section for this Movement -->
-      <div id="demoModalProgressionSection"
-        class="pt-4 border-t border-zinc-200 dark:border-zinc-800 space-y-3">
+      <div id="demoModalProgressionSection" class="pt-4 border-t border-zinc-200 dark:border-zinc-800 space-y-3">
         <div class="flex flex-wrap items-center justify-between gap-2">
           <div>
             <div class="text-[10px] font-mono font-bold uppercase tracking-wider text-volt-700 dark:text-volt">
@@ -793,8 +835,8 @@
       <!-- Filter Bar -->
       <div class="flex flex-wrap items-center justify-between gap-2 px-4 sm:px-6 my-3 shrink-0">
         <div class="flex flex-wrap items-center gap-1.5">
-          <button data-bfilter="all"
-            class="bfilter-btn px-2.5 py-1 rounded-lg text-[11px] font-semibold transition">All Classics</button>
+          <button data-bfilter="all" class="bfilter-btn px-2.5 py-1 rounded-lg text-[11px] font-semibold transition">All
+            Classics</button>
           <button data-bfilter="girls"
             class="bfilter-btn px-2.5 py-1 rounded-lg text-[11px] font-semibold transition">The Girls</button>
           <button data-bfilter="heroes"
@@ -848,7 +890,8 @@
       <!-- Mode Tabs + Search Control -->
       <div class="px-4 sm:px-6 pt-3 pb-2.5 border-b border-zinc-200/70 dark:border-zinc-800/70 shrink-0">
         <div class="flex flex-wrap items-center justify-between gap-2">
-          <div id="scaleViewTabs" class="inline-flex p-0.5 rounded-xl bg-zinc-100 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800">
+          <div id="scaleViewTabs"
+            class="inline-flex p-0.5 rounded-xl bg-zinc-100 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800">
             <button data-scale-view="all" type="button"
               class="scale-view-btn px-3 py-1.5 rounded-lg text-xs font-semibold transition">
               All Movements (85)
@@ -860,7 +903,8 @@
           </div>
 
           <div id="scaleLibrarySearchWrap" class="relative w-full sm:w-64">
-            <input id="movementLibrarySearchInput" type="text" placeholder="Search movements by name, pattern, or gear..."
+            <input id="movementLibrarySearchInput" type="text"
+              placeholder="Search movements by name, pattern, or gear..."
               class="w-full px-3 py-1.5 text-xs bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-lg text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-none focus:border-zinc-400 dark:focus:border-volt" />
           </div>
         </div>
