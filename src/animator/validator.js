@@ -2,7 +2,13 @@ function validatePose(poseType, numSteps = 120, cycleMs = null) {
   const poseCompute = (this && typeof this.computePose === 'function') ? this.computePose.bind(this) : globalThis.computePose;
   if (!cycleMs) {
     if (poseType === 'man_maker') cycleMs = 6400;
-    else if (poseType === 'stepping_lunge' || poseType === 'box_step_up') cycleMs = 3800;
+    else if (
+      poseType === 'stepping_lunge' ||
+      poseType === 'step_back_lunge' ||
+      poseType === 'bulgarian_split_squat' ||
+      poseType === 'rfe_rdl' ||
+      poseType === 'box_step_up'
+    ) cycleMs = 3800;
     else if (poseType === 'burpee_6stage' || poseType === 'devil_press' || poseType === 'athletic_up_down') cycleMs = 3200;
     else cycleMs = 3800;
   }

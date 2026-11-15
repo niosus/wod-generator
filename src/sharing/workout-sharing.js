@@ -75,8 +75,11 @@ const WorkoutSharing = {
             fk: i.formatKey,
             si: i.stationIndex,
             cs: i.customScheme,
+            emb: i.emomMinuteBadge || undefined,
             rd: i.repsDisplay,
+            lb: i.loadBadge || undefined,
             pt: i.prescriptionText,
+            ct: i.copyText || undefined,
             og: i.isOptionalGear ? 1 : 0,
             bcl: i.benchmarkCustomLabel || undefined,
             alt: i.alternative ? { id: i.alternative.movement.id, txt: i.alternative.text, rv: i.alternative.repVal } : null,
@@ -92,15 +95,45 @@ const WorkoutSharing = {
         const data = JSON.parse(jsonStr);
         if (!data || !Array.isArray(data.it)) return null;
 
-        const items = data.it.map(ci => {
+        const items = data.it.map((ci, idx) => {
           const mov = globalThis.MOVEMENTS_DB.find(m => m.id === ci.id) || globalThis.MOVEMENTS_DB[0];
+          const fk = ci.fk || data.f;
+          const si = ci.si !== undefined ? ci.si : null;
+          let repsDisplay = ci.rd || '';
+          let emomMinuteBadge = ci.emb || null;
+          if (!emomMinuteBadge && fk === 'EMOM') {
+            const legacyMin = repsDisplay.match(/^MIN\s+(\d+|N)\s*:\s*(.*)$/i);
+            if (legacyMin) {
+              emomMinuteBadge = `MIN ${legacyMin[1].toUpperCase()}`;
+              repsDisplay = legacyMin[2].trim();
+            } else if (typeof repsDisplay === 'string' && repsDisplay.includes('...')) {
+              emomMinuteBadge = 'MIN N';
+            } else if (si !== null) {
+              emomMinuteBadge = `MIN ${si + 1}`;
+            } else {
+              emomMinuteBadge = `MIN ${idx + 1}`;
+            }
+          }
+          if (mov.unit === 'm' && /^\d+$/.test(String(repsDisplay).trim())) {
+            repsDisplay = `${String(repsDisplay).trim()}m`;
+          } else if ((!mov.unit || mov.unit === 'reps') && fk !== 'INTERVALS' && repsDisplay && !/\breps?\b/i.test(repsDisplay) && !/\bCal\b/i.test(repsDisplay)) {
+            const parenIdx = repsDisplay.indexOf('(');
+            if (parenIdx > 0) {
+              repsDisplay = `${repsDisplay.slice(0, parenIdx).trim()} reps ${repsDisplay.slice(parenIdx).trim()}`;
+            } else {
+              repsDisplay = `${repsDisplay.trim()} reps`;
+            }
+          }
           return {
             movement: mov,
-            formatKey: ci.fk || data.f,
-            stationIndex: ci.si !== undefined ? ci.si : null,
+            formatKey: fk,
+            stationIndex: si,
             customScheme: ci.cs || null,
-            repsDisplay: ci.rd || '',
+            emomMinuteBadge,
+            repsDisplay,
+            loadBadge: ci.lb !== undefined ? (ci.lb || null) : (mov.load || null),
             prescriptionText: ci.pt || '',
+            copyText: ci.ct || ci.pt || '',
             isOptionalGear: Boolean(ci.og),
             benchmarkCustomLabel: ci.bcl,
             alternative: ci.alt ? {
@@ -117,9 +150,10 @@ const WorkoutSharing = {
           };
         });
 
+        const isBenchmark = Boolean(data.ib);
         const restoredWod = {
           title: data.t,
-          badgeType: data.bt,
+          badgeType: (!isBenchmark && data.bt && data.bt !== 'CHECK FILTERS') ? 'ALGORITHMIC' : data.bt,
           format: data.f,
           minutes: data.m,
           badgeFormat: data.bf,
@@ -127,7 +161,7 @@ const WorkoutSharing = {
           prescriptionHeader: data.ph,
           stimulus: data.st,
           logic: data.lg,
-          isBenchmark: Boolean(data.ib),
+          isBenchmark,
           intensity: data.in || 'standard',
           durationCategory: data.dc,
           rounds: data.rn,
@@ -195,29 +229,30 @@ const WorkoutSharing = {
           ? (appState.hasCustomMovementExclusions() ? 1 : 0)
           : 0;
 
-        const byteLen = hasCustomMov ? 13 : 5;
+        // v2 format: 6-byte base (supports up to 17 equipment items) + optional 12-byte bitmask (up to 96 movements)
+        const byteLen = hasCustomMov ? 18 : 6;
         const bytes = new Uint8Array(byteLen);
 
-        // Byte 0: version (0..2) | theme (3..4) | duration (5..6) | includeHard (7)
-        bytes[0] = (1 & 0b111) | ((themeIdx & 0b11) << 3) | ((durationIdx & 0b11) << 5) | ((includeHard & 1) << 7);
+        // Byte 0: version=2 (0..2) | theme (3..4) | duration (5..6) | includeHard (7)
+        bytes[0] = (2 & 0b111) | ((themeIdx & 0b11) << 3) | ((durationIdx & 0b11) << 5) | ((includeHard & 1) << 7);
 
         // Byte 1: mode (0..1) | format (2..4) | hasCustomMov (5) | eq[0] (6..7)
         const eq0 = catalog[0] ? (eqStateMap[appState.equipmentStates[catalog[0].id]] ?? 0) : 2;
         bytes[1] = (modeIdx & 0b11) | ((formatIdx & 0b111) << 2) | ((hasCustomMov & 1) << 5) | ((eq0 & 0b11) << 6);
 
-        // Bytes 2..4: eq[1..12] (4 items per byte, 2 bits each)
-        for (let i = 1; i < catalog.length && i <= 12; i++) {
+        // Bytes 2..5: eq[1..16] (4 items per byte, 2 bits each)
+        for (let i = 1; i < catalog.length && i <= 16; i++) {
           const val = eqStateMap[appState.equipmentStates[catalog[i].id]] ?? 0;
           const byteIdx = 2 + Math.floor((i - 1) / 4);
           const shift = ((i - 1) % 4) * 2;
           bytes[byteIdx] |= (val & 0b11) << shift;
         }
 
-        // Optional Bytes 5..12: 64-bit movement exclusion bitmask
+        // Optional Bytes 6..17: 96-bit movement exclusion bitmask
         if (hasCustomMov && appState.excludedMovements) {
-          for (let i = 0; i < db.length && i < 64; i++) {
+          for (let i = 0; i < db.length && i < 96; i++) {
             if (appState.excludedMovements.has(db[i].id)) {
-              bytes[5 + (i >> 3)] |= (1 << (i & 7));
+              bytes[6 + (i >> 3)] |= (1 << (i & 7));
             }
           }
         }
@@ -228,10 +263,12 @@ const WorkoutSharing = {
       decodeConfig(encodedStr) {
         if (!encodedStr || typeof encodedStr !== 'string') return null;
         const bytes = this.fromBase64Url(encodedStr.trim());
-        if (bytes.length !== 5 && bytes.length !== 13) return null;
+        if (bytes.length < 5) return null;
 
         const version = bytes[0] & 0b111;
-        if (version !== 1) return null;
+        if (version !== 1 && version !== 2) return null;
+        if (version === 1 && bytes.length !== 5 && bytes.length !== 13) return null;
+        if (version === 2 && bytes.length !== 6 && bytes.length !== 18) return null;
 
         const themes = ['system', 'light', 'dark'];
         const durations = ['short', 'medium', 'long'];
@@ -251,14 +288,34 @@ const WorkoutSharing = {
         const hasCustomMov = Boolean((bytes[1] >> 5) & 1);
 
         const equipmentStates = {};
-        if (catalog[0]) {
-          equipmentStates[catalog[0].id] = eqStates[(bytes[1] >> 6) & 0b11] || 'off';
-        }
-        for (let i = 1; i < catalog.length && i <= 12; i++) {
-          const byteIdx = 2 + Math.floor((i - 1) / 4);
-          const shift = ((i - 1) % 4) * 2;
-          const val = (bytes[byteIdx] >> shift) & 0b11;
-          equipmentStates[catalog[i].id] = eqStates[val] || 'off';
+        if (version === 1) {
+          const v1EqIds = [
+            'bodyweight', 'running_area', 'pullup_bar', 'rings_dips',
+            'kettlebell', 'dumbbell', 'barbell', 'bike_erg',
+            'row_erg', 'ski_erg', 'jump_rope', 'plyo_box', 'wall_ball'
+          ];
+          equipmentStates[v1EqIds[0]] = eqStates[(bytes[1] >> 6) & 0b11] || 'off';
+          for (let i = 1; i < v1EqIds.length; i++) {
+            const byteIdx = 2 + Math.floor((i - 1) / 4);
+            const shift = ((i - 1) % 4) * 2;
+            const val = (bytes[byteIdx] >> shift) & 0b11;
+            equipmentStates[v1EqIds[i]] = eqStates[val] || 'off';
+          }
+          if ('rings_dips' in equipmentStates) {
+            equipmentStates.gym_rings = equipmentStates.rings_dips;
+            equipmentStates.parallel_bars = equipmentStates.rings_dips;
+            delete equipmentStates.rings_dips;
+          }
+        } else {
+          if (catalog[0]) {
+            equipmentStates[catalog[0].id] = eqStates[(bytes[1] >> 6) & 0b11] || 'off';
+          }
+          for (let i = 1; i < catalog.length && i <= 16; i++) {
+            const byteIdx = 2 + Math.floor((i - 1) / 4);
+            const shift = ((i - 1) % 4) * 2;
+            const val = (bytes[byteIdx] >> shift) & 0b11;
+            equipmentStates[catalog[i].id] = eqStates[val] || 'off';
+          }
         }
 
         const anyUsable = Object.values(equipmentStates).some(s => s === 'available' || s === 'optional');
@@ -267,9 +324,12 @@ const WorkoutSharing = {
         }
 
         const excludedMovements = new Set();
-        if (hasCustomMov && bytes.length >= 13) {
-          for (let i = 0; i < db.length && i < 64; i++) {
-            if ((bytes[5 + (i >> 3)] >> (i & 7)) & 1) {
+        const movOffset = version === 1 ? 5 : 6;
+        const movMax = version === 1 ? 64 : 96;
+        const minLen = version === 1 ? 13 : 18;
+        if (hasCustomMov && bytes.length >= minLen) {
+          for (let i = 0; i < db.length && i < movMax; i++) {
+            if ((bytes[movOffset + (i >> 3)] >> (i & 7)) & 1) {
               excludedMovements.add(db[i].id);
             }
           }

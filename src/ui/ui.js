@@ -2,6 +2,11 @@ const UI = {
   isOutdated: false,
   _activeModalCount: 0,
   _activeAdvTab: 'equipment',
+  _activeScaleView: 'all',
+  _activeScalePattern: 'ALL',
+  _activeLibraryEq: 'ALL',
+  _librarySearchQuery: '',
+  _matrixShowAllEquipment: false,
   _demoContext: null,
   _returnToDemoState: null,
 
@@ -432,8 +437,20 @@ const UI = {
     lucide.createIcons();
   },
 
+  getMatrixSourceMovements() {
+    return this._matrixShowAllEquipment ? MOVEMENTS_DB : AppState.getAvailableMovementsByEquipment();
+  },
+
+  _getDifficultyBadgeClass(difficulty) {
+    if (difficulty === 'easy') return 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/30';
+    if (difficulty === 'hard') return 'bg-rose-500/10 text-rose-700 dark:text-rose-300 border-rose-500/30';
+    return 'bg-volt-600/10 text-volt-700 dark:bg-volt/15 dark:text-volt border-volt-600/30 dark:border-volt/30';
+  },
+
   renderMovementMatrix() {
     const availableByEq = AppState.getAvailableMovementsByEquipment();
+    const availableIdSet = new Set(availableByEq.map(m => m.id));
+    const sourceMovements = this.getMatrixSourceMovements();
     const activePool = AppState.getActiveMovementPool();
 
     const activeSummaryEl = document.getElementById('activePoolSummary');
@@ -477,12 +494,24 @@ const UI = {
       }`;
     });
 
+    const showAllMovBtn = document.getElementById('toggleShowAllMovementsBtn');
+    if (showAllMovBtn) {
+      showAllMovBtn.textContent = this._matrixShowAllEquipment
+        ? `Showing All (${MOVEMENTS_DB.length})`
+        : `Show All ${MOVEMENTS_DB.length} Movements`;
+      showAllMovBtn.className = `px-2.5 py-1 rounded-lg text-[11px] font-mono font-semibold border transition ${
+        this._matrixShowAllEquipment
+          ? 'bg-zinc-950 text-white border-zinc-950 dark:bg-volt dark:text-zinc-950 dark:border-volt'
+          : 'bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-200 border-zinc-200 dark:border-zinc-700'
+      }`;
+    }
+
     const tabsEl = document.getElementById('matrixCategoryTabs');
     if (tabsEl) {
       const categories = [
-        { id: 'ALL', label: `All (${availableByEq.length})` },
+        { id: 'ALL', label: `All (${sourceMovements.length})` },
         ...Object.values(PATTERNS).map(pat => {
-          const count = availableByEq.filter(m => m.pattern === pat.id).length;
+          const count = sourceMovements.filter(m => m.pattern === pat.id).length;
           return { id: pat.id, label: `${pat.label} (${count})` };
         })
       ];
@@ -500,12 +529,6 @@ const UI = {
       }).join('');
     }
 
-    const diffBadgeClasses = {
-      easy: 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/30',
-      normal: 'bg-volt-600/10 text-volt-700 dark:bg-volt/15 dark:text-volt border-volt-600/30 dark:border-volt/30',
-      hard: 'bg-rose-500/10 text-rose-700 dark:text-rose-300 border-rose-500/30'
-    };
-
     document.querySelectorAll('.diff-filter-btn').forEach(btn => {
       const key = btn.dataset.difffilter;
       const active = key === AppState.activeDiffFilter;
@@ -518,7 +541,7 @@ const UI = {
 
     const gridEl = document.getElementById('movementAnimatedGrid');
     if (gridEl) {
-      const filteredMovements = availableByEq.filter(m => {
+      const filteredMovements = sourceMovements.filter(m => {
         const catMatch = AppState.activeMatrixCategory === 'ALL' || m.pattern === AppState.activeMatrixCategory;
         const diffMatch = AppState.activeDiffFilter === 'ALL' || m.difficulty === AppState.activeDiffFilter;
         return catMatch && diffMatch;
@@ -527,30 +550,36 @@ const UI = {
       if (filteredMovements.length === 0) {
         gridEl.innerHTML = `
           <div class="col-span-full text-center py-8 text-xs text-zinc-500 dark:text-zinc-400 bg-zinc-50 dark:bg-zinc-950/60 rounded-xl border border-zinc-200 dark:border-zinc-800 p-6">
-            No movements match this filter with your currently enabled equipment.
+            No movements match this filter${this._matrixShowAllEquipment ? '' : ' with your currently enabled equipment'}.
           </div>
         `;
       } else {
         gridEl.innerHTML = filteredMovements.map(mov => {
           const isIncluded = !AppState.excludedMovements.has(mov.id);
+          const isGearOff = AppState.equipmentStates[mov.equipment] === 'off';
+          const isAvailableInPool = availableIdSet.has(mov.id);
           const patInfo = PATTERNS[mov.pattern];
+          const eqName = EQUIPMENT_CATALOG.find(e => e.id === mov.equipment)?.name || 'Bodyweight';
           const isOptionalEq = AppState.isEquipmentOptional(mov.equipment);
 
           return `
             <div
               data-mov-card="${mov.id}"
-              class="relative group rounded-xl border p-2.5 flex flex-col justify-between gap-2 transition cursor-pointer select-none ${isIncluded
+              class="relative group rounded-xl border p-2.5 flex flex-col justify-between gap-2 transition cursor-pointer select-none ${isIncluded && isAvailableInPool
                 ? 'bg-white dark:bg-zinc-950/80 border-zinc-200 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-volt/60 shadow-sm'
-                : 'bg-zinc-100/70 dark:bg-zinc-950/30 border-zinc-200/70 dark:border-zinc-800/60 opacity-50 hover:opacity-80 grayscale hover:grayscale-0'
+                : 'bg-zinc-100/70 dark:bg-zinc-950/30 border-zinc-200/70 dark:border-zinc-800/60 opacity-60 hover:opacity-85 grayscale hover:grayscale-0'
               }"
             >
               <div class="flex items-center justify-between gap-1">
                 <span class="text-[9px] font-mono font-bold uppercase px-1.5 py-0.5 rounded border ${
-                  diffBadgeClasses[mov.difficulty] || diffBadgeClasses.normal
+                  this._getDifficultyBadgeClass(mov.difficulty)
                 }">${mov.difficulty.toUpperCase()}</span>
 
                 <div class="flex items-center gap-1">
-                  ${isOptionalEq ? `<span class="text-[8px] font-mono font-bold uppercase px-1 rounded bg-amber-600/15 dark:bg-amber-500/15 text-amber-800 dark:text-amber-300 border border-amber-600/35 dark:border-amber-500/30">OPT</span>` : ''}
+                  ${isGearOff
+                    ? `<span class="text-[8px] font-mono font-bold uppercase px-1 rounded bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 border border-zinc-300 dark:border-zinc-700">Gear Off</span>`
+                    : (isOptionalEq ? `<span class="text-[8px] font-mono font-bold uppercase px-1 rounded bg-amber-600/15 dark:bg-amber-500/15 text-amber-800 dark:text-amber-300 border border-amber-600/35 dark:border-amber-500/30">OPT</span>` : '')
+                  }
                   <input
                     type="checkbox"
                     data-mov-toggle="${mov.id}"
@@ -563,20 +592,26 @@ const UI = {
               <div class="w-full aspect-square rounded-lg bg-zinc-100 dark:bg-zinc-900 border border-zinc-200/80 dark:border-zinc-800 flex items-center justify-center overflow-hidden relative">
                 <canvas
                   data-matrix-pose="${mov.poseType}"
-                  width="120"
-                  height="120"
+                  width="220"
+                  height="220"
                   class="w-full h-full block"
                 ></canvas>
               </div>
 
-              <div class="min-w-0">
-                <div class="text-xs font-bold text-zinc-950 dark:text-white truncate" title="${mov.name}">
+              <div class="min-w-0 space-y-1">
+                <div class="text-xs font-bold text-zinc-950 dark:text-white break-words leading-snug min-h-[2rem]" title="${mov.name}">
                   ${mov.name}
                 </div>
-                <div class="flex items-center justify-between gap-1 mt-1 text-[10px]">
-                  <span class="text-[9px] font-mono px-1.5 py-0.5 rounded border whitespace-nowrap truncate ${patInfo.color}">
-                    ${patInfo.label}
-                  </span>
+                <div class="text-[10px] font-mono text-zinc-500 dark:text-zinc-400 break-words leading-tight">
+                  ${eqName}${mov.load ? ' · ' + mov.load : ''}
+                </div>
+                <div class="flex items-center justify-between gap-1 text-[10px]">
+                  <div class="flex items-center gap-1 min-w-0">
+                    <span class="text-[9px] font-mono px-1.5 py-0.5 rounded border whitespace-nowrap truncate ${patInfo.color}">
+                      ${patInfo.label}
+                    </span>
+                    ${mov.unilateral ? `<span class="text-[8px] font-mono font-bold uppercase px-1 py-0.5 rounded bg-sky-500/10 text-sky-700 dark:text-sky-300 border border-sky-500/30 whitespace-nowrap shrink-0" title="${mov.unilateral === 'split' ? 'Split evenly Left & Right' : 'Alternate Left & Right'}">${mov.unilateral === 'split' ? 'L/R Split' : 'Alt L/R'}</span>` : ''}
+                  </div>
                   <button
                     data-demo-mov="${mov.id}"
                     class="text-[10px] font-mono font-semibold text-zinc-600 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-volt flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 transition shrink-0"
@@ -589,7 +624,15 @@ const UI = {
               </div>
             </div>
           `;
-        }).join('');
+        }).join('') + ((!this._matrixShowAllEquipment && availableByEq.length < MOVEMENTS_DB.length) ? `
+          <div class="col-span-full flex flex-wrap items-center justify-between gap-2 bg-zinc-50 dark:bg-zinc-950/60 border border-dashed border-zinc-300 dark:border-zinc-700 rounded-xl px-3.5 py-2.5 text-xs text-zinc-600 dark:text-zinc-400">
+            <span>${MOVEMENTS_DB.length - availableByEq.length} movements with disabled equipment (e.g. Dumbbell / Barbell / Kettlebell) are hidden.</span>
+            <button type="button" data-show-all-matrix-btn
+              class="px-2.5 py-1 rounded-lg bg-zinc-950 dark:bg-volt text-white dark:text-zinc-950 font-mono font-bold text-[11px] hover:opacity-90 transition shrink-0">
+              Show All ${MOVEMENTS_DB.length} Movements
+            </button>
+          </div>
+        ` : '');
 
         gridEl.querySelectorAll('canvas[data-matrix-pose]').forEach(canvas => {
           BiomechanicalStickAnimator.registerCanvas(canvas, canvas.dataset.matrixPose);
@@ -650,7 +693,7 @@ const UI = {
     const choiceBtns = document.querySelectorAll('.wod-intensity-choice-btn');
     if (!panel) return;
 
-    const baseBtnClass = 'wod-intensity-choice-btn py-1 px-2.5 rounded-md text-[11px] font-mono font-bold transition duration-200';
+    const baseBtnClass = 'wod-intensity-choice-btn py-1 px-2 sm:px-2.5 rounded-md text-[11px] font-mono font-bold whitespace-nowrap transition duration-200';
     const isEmpty = !wod || !Array.isArray(wod.items) || wod.items.length === 0;
     const shouldHide = Boolean(!wod || wod.isBenchmark || isEmpty);
 
@@ -710,7 +753,6 @@ const UI = {
     WorkoutGenerator.rescaleWodIntensity(wod, normalized);
 
     this.animateTextUpdate(document.getElementById('wodBadgeFormat'), wod.badgeFormat, 'rep-pulse');
-    this.animateTextUpdate(document.getElementById('wodBadgeDifficulty'), wod.difficultyLabel, 'rep-pulse');
     this.animateTextUpdate(document.getElementById('wodPrescriptionHeader'), wod.prescriptionHeader, 'text-pulse');
 
     const listEl = document.getElementById('wodMovementsList');
@@ -718,7 +760,15 @@ const UI = {
       wod.items.forEach((item, idx) => {
         const rowEl = listEl.querySelector(`[data-wod-row-index="${idx}"]`);
         if (!rowEl) return;
+        const emomBadgeEl = rowEl.querySelector('[data-wod-emom-badge]');
+        if (emomBadgeEl && item.emomMinuteBadge) {
+          this.animateTextUpdate(emomBadgeEl, item.emomMinuteBadge, 'rep-pulse');
+        }
         this.animateTextUpdate(rowEl.querySelector('[data-wod-reps-badge]'), item.repsDisplay, 'rep-pulse');
+        const loadBadgeEl = rowEl.querySelector('[data-wod-load-badge]');
+        if (loadBadgeEl && item.loadBadge) {
+          this.animateTextUpdate(loadBadgeEl, item.loadBadge, 'rep-pulse');
+        }
         this.animateTextUpdate(rowEl.querySelector('[data-wod-prescription-text]'), item.prescriptionText, 'text-pulse');
         if (item.scaleDown) {
           this.animateTextUpdate(rowEl.querySelector('[data-wod-scale-text]'), item.scaleDown.text, 'text-pulse');
@@ -761,7 +811,6 @@ const UI = {
 
     document.getElementById('wodBadgeType').textContent = wod.badgeType;
     document.getElementById('wodBadgeFormat').textContent = wod.badgeFormat;
-    document.getElementById('wodBadgeDifficulty').textContent = wod.difficultyLabel;
     document.getElementById('wodTitle').textContent = wod.title;
     document.getElementById('wodPrescriptionHeader').textContent =
       WorkoutGenerator.formatBannerPrescriptionHeader(wod.prescriptionHeader, wod.format);
@@ -852,9 +901,19 @@ const UI = {
 
             <div class="min-w-0 flex-1">
               <div class="flex flex-wrap items-center gap-1.5 mb-1">
+                ${item.emomMinuteBadge ? `
+                  <span data-wod-emom-badge class="font-mono text-[11px] font-bold px-2 py-0.5 rounded bg-sky-500/15 text-sky-800 dark:bg-sky-400/15 dark:text-sky-300 border border-sky-500/30 whitespace-nowrap">
+                    ${item.emomMinuteBadge}
+                  </span>
+                ` : ''}
                 <span data-wod-reps-badge class="font-mono text-[11px] font-bold px-2 py-0.5 rounded bg-zinc-950 text-white dark:bg-volt dark:text-zinc-950 whitespace-nowrap">
                   ${item.repsDisplay}
                 </span>
+                ${item.loadBadge ? `
+                  <span data-wod-load-badge class="font-mono text-[11px] font-bold px-2 py-0.5 rounded bg-zinc-200/85 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-200 border border-zinc-300/80 dark:border-zinc-700 whitespace-nowrap">
+                    ${item.loadBadge}
+                  </span>
+                ` : ''}
                 ${hasLadder ? `
                   <button
                     type="button"
@@ -878,11 +937,11 @@ const UI = {
                 ` : '')}
               </div>
 
-              <div data-wod-prescription-text class="text-sm sm:text-base font-bold text-zinc-950 dark:text-white group-hover:text-volt-700 dark:group-hover:text-volt transition truncate">
+              <div data-wod-prescription-text class="text-sm sm:text-base font-bold text-zinc-950 dark:text-white group-hover:text-volt-700 dark:group-hover:text-volt transition break-words leading-snug">
                 ${item.prescriptionText}
               </div>
 
-              <div class="text-[11px] text-zinc-500 dark:text-zinc-400 truncate mt-0.5">
+              <div class="text-[11px] text-zinc-500 dark:text-zinc-400 break-words leading-snug mt-0.5">
                 ${pat.label} · ${eqInfo ? eqInfo.name : 'Bodyweight'}${isHard ? ' · Rx+' : ''}
               </div>
             </div>
@@ -905,7 +964,7 @@ const UI = {
           <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-zinc-200/80 dark:border-zinc-800/80 text-xs">
             <div class="flex items-center gap-1.5 text-zinc-600 dark:text-zinc-300 min-w-0">
               <i data-lucide="trending-down" class="w-3.5 h-3.5 text-zinc-400 shrink-0"></i>
-              <span class="truncate"><span class="font-medium text-zinc-500 dark:text-zinc-400">Scale:</span> <span data-wod-scale-text class="font-semibold text-zinc-800 dark:text-zinc-200">${item.scaleDown.text}</span></span>
+              <span class="break-words leading-snug"><span class="font-medium text-zinc-500 dark:text-zinc-400">Scale:</span> <span data-wod-scale-text class="font-semibold text-zinc-800 dark:text-zinc-200">${item.scaleDown.text}</span></span>
             </div>
             <div class="flex items-center gap-1.5 shrink-0">
               ${hasLadder ? `
@@ -934,7 +993,7 @@ const UI = {
           <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-amber-600/30 dark:border-amber-400/30 text-xs">
             <div class="flex items-center gap-1.5 text-amber-900 dark:text-amber-200/90 min-w-0">
               <i data-lucide="repeat" class="w-3.5 h-3.5 text-amber-700 dark:text-amber-400 shrink-0"></i>
-              <span class="truncate"><span class="font-semibold">No ${eqInfo ? eqInfo.name : 'Gear'}? Sub:</span> <span data-wod-alt-text>${item.alternative.text}</span></span>
+              <span class="break-words leading-snug"><span class="font-semibold">No ${eqInfo ? eqInfo.name : 'Gear'}? Sub:</span> <span data-wod-alt-text>${item.alternative.text}</span></span>
             </div>
             <button
               type="button"
@@ -1333,8 +1392,8 @@ const UI = {
                         : 'bg-volt-600/10 text-volt-700 dark:bg-volt/15 dark:text-volt border-volt-600/30 dark:border-volt/30')
                   }">Lvl ${step.level} · ${step.tier.toUpperCase()}</span>
                 </div>
-                <div class="text-xs font-bold text-zinc-950 dark:text-white truncate">${step.label}</div>
-                <div class="text-[10px] font-mono text-zinc-500 dark:text-zinc-400 truncate">${eqName}</div>
+                <div class="text-xs font-bold text-zinc-950 dark:text-white break-words leading-snug">${step.label}</div>
+                <div class="text-[10px] font-mono text-zinc-500 dark:text-zinc-400 break-words leading-tight">${eqName}</div>
               </div>
             </div>
 
@@ -1489,7 +1548,7 @@ const UI = {
   },
 
   // ===========================================================================
-  // ALL SCALING PROGRESSIONS MODAL
+  // MOVEMENT LIBRARY & SCALING PROGRESSIONS MODAL
   // ===========================================================================
   openScaleModal(pattern = 'ALL', options = {}) {
     const modal = document.getElementById('scaleModal');
@@ -1503,20 +1562,38 @@ const UI = {
       backBtn.classList.toggle('inline-flex', showBack);
     }
 
-    this._activeScalePattern = pattern;
-    this.updateScalePatternButtons(pattern);
-    this.renderScaleModal(pattern);
+    if (options.view === 'all' || options.view === 'ladders') {
+      this._activeScaleView = options.view;
+    } else if (!this._activeScaleView) {
+      this._activeScaleView = 'all';
+    }
+    this._activeScalePattern = 'ALL';
+    this._activeLibraryEq = 'ALL';
+
+    if (options.resetSearch) {
+      this._librarySearchQuery = '';
+      const searchInput = document.getElementById('movementLibrarySearchInput');
+      if (searchInput) searchInput.value = '';
+    }
+
+    this.updateScaleViewTabs();
+    this.renderScaleModal('ALL', this._librarySearchQuery);
     this._openModalEl(modal, card);
     lucide.createIcons();
   },
 
-  updateScalePatternButtons(activePattern) {
-    document.querySelectorAll('.spattern-btn').forEach(b => {
-      const isMatch = b.dataset.spattern === activePattern;
-      b.className = `spattern-btn px-2.5 py-1 rounded-lg text-[11px] font-semibold whitespace-nowrap transition border ${
+  updateScaleViewTabs() {
+    const ladderCount = (globalThis.SCALE_LADDERS || []).length;
+
+    document.querySelectorAll('.scale-view-btn').forEach(b => {
+      const view = b.dataset.scaleView;
+      if (view === 'all') b.textContent = `All Movements (${MOVEMENTS_DB.length})`;
+      if (view === 'ladders') b.textContent = `Scaling Ladders (${ladderCount})`;
+      const isMatch = view === this._activeScaleView;
+      b.className = `scale-view-btn px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
         isMatch
-          ? 'bg-zinc-950 text-white border-zinc-950 dark:bg-volt dark:text-zinc-950 dark:border-volt'
-          : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 border-zinc-200 dark:border-zinc-700 hover:text-zinc-950 dark:hover:text-white'
+          ? 'bg-white dark:bg-zinc-800 text-zinc-950 dark:text-white shadow-sm'
+          : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white'
       }`;
     });
   },
@@ -1530,9 +1607,102 @@ const UI = {
     this._closeModalEl(modal, card);
   },
 
+  renderAllMovementsLibrary(container, patternFilter = 'ALL', searchQuery = '') {
+    const q = (searchQuery || '').trim().toLowerCase();
+    const filtered = MOVEMENTS_DB.filter(mov => {
+      if (patternFilter !== 'ALL' && mov.pattern !== patternFilter) return false;
+      if (this._activeLibraryEq !== 'ALL' && mov.equipment !== this._activeLibraryEq) return false;
+      if (!q) return true;
+      const patLabel = (PATTERNS[mov.pattern]?.label || mov.pattern).toLowerCase();
+      const eqLabel = (EQUIPMENT_CATALOG.find(e => e.id === mov.equipment)?.name || 'Bodyweight').toLowerCase();
+      return (
+        mov.name.toLowerCase().includes(q) ||
+        patLabel.includes(q) ||
+        eqLabel.includes(q) ||
+        (mov.cues && mov.cues.toLowerCase().includes(q))
+      );
+    });
+
+    if (filtered.length === 0) {
+      container.innerHTML = `
+        <div class="text-center py-10 text-xs text-zinc-500 dark:text-zinc-400 bg-zinc-50 dark:bg-zinc-950/60 rounded-xl border border-zinc-200 dark:border-zinc-800 p-6">
+          No movements match your current search or filters.
+        </div>
+      `;
+      return;
+    }
+
+    container.innerHTML = `
+      <div class="flex items-center justify-between text-[11px] font-mono text-zinc-500 dark:text-zinc-400 px-0.5">
+        <span>Showing ${filtered.length} of ${MOVEMENTS_DB.length} movements</span>
+        <span>Tap any card for form cues &amp; scaling</span>
+      </div>
+      <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
+        ${filtered.map(mov => {
+          const patInfo = PATTERNS[mov.pattern] || { label: mov.pattern, color: 'text-zinc-500 border-zinc-300' };
+          const eqName = EQUIPMENT_CATALOG.find(e => e.id === mov.equipment)?.name || 'Bodyweight';
+          const isGearOff = AppState.equipmentStates[mov.equipment] === 'off';
+          const ladders = globalThis.ProgressionEngine ? ProgressionEngine.getLaddersForMovement(mov.id) : [];
+
+          return `
+            <div
+              data-demo-mov="${mov.id}"
+              class="cursor-pointer group rounded-xl p-2.5 border bg-zinc-50/70 dark:bg-zinc-950/70 border-zinc-200 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-volt/60 transition flex flex-col justify-between gap-2 shadow-sm"
+              title="Inspect ${mov.name}"
+            >
+              <div class="flex items-center justify-between gap-1">
+                <span class="text-[9px] font-mono font-bold uppercase px-1.5 py-0.5 rounded border ${this._getDifficultyBadgeClass(mov.difficulty)}">
+                  ${mov.difficulty.toUpperCase()}
+                </span>
+                <div class="flex items-center gap-1">
+                  ${ladders.length > 0 ? `<span class="text-[8px] font-mono font-semibold px-1 py-0.5 rounded bg-zinc-200/80 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300" title="Part of a scaling ladder"><i data-lucide="git-merge" class="w-2.5 h-2.5 inline"></i></span>` : ''}
+                  ${isGearOff ? `<span class="text-[8px] font-mono uppercase px-1 rounded bg-zinc-200 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400">Off</span>` : ''}
+                </div>
+              </div>
+
+              <div class="w-full aspect-square rounded-lg bg-white dark:bg-zinc-900 border border-zinc-200/80 dark:border-zinc-800 flex items-center justify-center overflow-hidden">
+                <canvas
+                  data-scale-pose="${mov.poseType}"
+                  width="220"
+                  height="220"
+                  class="w-full h-full block"
+                ></canvas>
+              </div>
+
+              <div class="min-w-0 space-y-1">
+                <div class="text-xs font-bold text-zinc-950 dark:text-white group-hover:text-volt-700 dark:group-hover:text-volt transition break-words leading-snug min-h-[2rem]" title="${mov.name}">
+                  ${mov.name}
+                </div>
+                <div class="flex items-center justify-between gap-1">
+                  <span class="text-[9px] font-mono px-1.5 py-0.5 rounded border whitespace-nowrap truncate ${patInfo.color}">
+                    ${patInfo.label}
+                  </span>
+                  ${mov.unilateral ? `<span class="text-[8px] font-mono font-bold uppercase px-1 py-0.5 rounded bg-sky-500/10 text-sky-700 dark:text-sky-300 border border-sky-500/30 whitespace-nowrap shrink-0" title="${mov.unilateral === 'split' ? 'Split evenly Left & Right' : 'Alternate Left & Right'}">${mov.unilateral === 'split' ? 'L/R Split' : 'Alt L/R'}</span>` : ''}
+                </div>
+                <div class="text-[10px] font-mono text-zinc-500 dark:text-zinc-400 break-words leading-tight">
+                  ${eqName}${mov.load ? ' · ' + mov.load : ''}
+                </div>
+              </div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    `;
+
+    container.querySelectorAll('canvas[data-scale-pose]').forEach(canvas => {
+      BiomechanicalStickAnimator.registerCanvas(canvas, canvas.dataset.scalePose);
+    });
+    lucide.createIcons();
+  },
+
   renderScaleModal(patternFilter = 'ALL', searchQuery = '') {
     const container = document.getElementById('scaleLaddersContainer');
     if (!container) return;
+
+    if (this._activeScaleView === 'all') {
+      this.renderAllMovementsLibrary(container, patternFilter, searchQuery);
+      return;
+    }
 
     let ladders = globalThis.SCALE_LADDERS || [];
     if (patternFilter !== 'ALL') {
@@ -1585,7 +1755,7 @@ const UI = {
                 <div class="flex items-center gap-1.5 w-full sm:w-auto">
                   <div
                     data-demo-mov="${step.movementId}"
-                    class="cursor-pointer group rounded-xl p-2.5 border bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-volt/60 transition flex flex-col items-center text-center w-full sm:w-32 h-[196px] sm:h-[214px] gap-1.5 shadow-sm flex-1 min-w-0"
+                    class="cursor-pointer group rounded-xl p-2.5 border bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-volt/60 transition flex flex-col items-center text-center w-full sm:w-32 min-h-[196px] sm:min-h-[214px] gap-1.5 shadow-sm flex-1 min-w-0"
                     title="Click to inspect cues & form"
                   >
                     <div class="w-full flex items-center justify-between gap-1 shrink-0">
@@ -1605,12 +1775,12 @@ const UI = {
                     </div>
 
                     <div class="w-full min-w-0 px-0.5 flex flex-col justify-center">
-                      <div class="h-8 flex items-center justify-center text-center">
-                        <span class="text-[11px] font-bold text-zinc-950 dark:text-white group-hover:text-volt-700 dark:group-hover:text-volt transition line-clamp-2 leading-snug">
+                      <div class="min-h-[2rem] flex items-center justify-center text-center">
+                        <span class="text-[11px] font-bold text-zinc-950 dark:text-white group-hover:text-volt-700 dark:group-hover:text-volt transition break-words leading-snug">
                           ${step.label}
                         </span>
                       </div>
-                      <div class="text-[9px] font-mono text-zinc-500 dark:text-zinc-400 truncate mt-0.5">
+                      <div class="text-[9px] font-mono text-zinc-500 dark:text-zinc-400 break-words leading-tight mt-0.5">
                         ${mov ? (EQUIPMENT_CATALOG.find(e => e.id === mov.equipment)?.name || 'Bodyweight') : 'Bodyweight'}
                       </div>
                     </div>
@@ -1809,6 +1979,12 @@ const UI = {
 
     // Movement Card Selection & Cues Modal inside Animated Grid
     document.getElementById('movementAnimatedGrid').addEventListener('click', e => {
+      const showAllBannerBtn = e.target.closest('[data-show-all-matrix-btn]');
+      if (showAllBannerBtn) {
+        this._matrixShowAllEquipment = true;
+        this.renderMovementMatrix();
+        return;
+      }
       const cuesBtn = e.target.closest('[data-demo-mov]');
       if (cuesBtn) {
         e.stopPropagation();
@@ -1831,10 +2007,19 @@ const UI = {
       }
     });
 
+    // Toggle Showing All Movements vs Active-Gear Movements in Matrix
+    const showAllMovBtn = document.getElementById('toggleShowAllMovementsBtn');
+    if (showAllMovBtn) {
+      showAllMovBtn.addEventListener('click', () => {
+        this._matrixShowAllEquipment = !this._matrixShowAllEquipment;
+        this.renderMovementMatrix();
+      });
+    }
+
     // Select Visible / Clear Visible
     document.getElementById('enableAllMovementsBtn').addEventListener('click', () => {
-      const availableByEq = AppState.getAvailableMovementsByEquipment();
-      const filtered = availableByEq.filter(m => {
+      const sourceMovements = this.getMatrixSourceMovements();
+      const filtered = sourceMovements.filter(m => {
         const catMatch = AppState.activeMatrixCategory === 'ALL' || m.pattern === AppState.activeMatrixCategory;
         const diffMatch = AppState.activeDiffFilter === 'ALL' || m.difficulty === AppState.activeDiffFilter;
         return catMatch && diffMatch;
@@ -1846,8 +2031,8 @@ const UI = {
     });
 
     document.getElementById('disableAllMovementsBtn').addEventListener('click', () => {
-      const availableByEq = AppState.getAvailableMovementsByEquipment();
-      const filtered = availableByEq.filter(m => {
+      const sourceMovements = this.getMatrixSourceMovements();
+      const filtered = sourceMovements.filter(m => {
         const catMatch = AppState.activeMatrixCategory === 'ALL' || m.pattern === AppState.activeMatrixCategory;
         const diffMatch = AppState.activeDiffFilter === 'ALL' || m.difficulty === AppState.activeDiffFilter;
         return catMatch && diffMatch;
@@ -2003,7 +2188,7 @@ const UI = {
         WorkoutGenerator.formatBannerPrescriptionHeader(wod.prescriptionHeader, wod.format),
         ...wod.items.map(i => {
           const subSuffix = ((i.isOptionalGear || i.isMissingGear) && i.alternative) ? ` [Or Sub: ${i.alternative.text}]` : '';
-          return `- ${i.prescriptionText}${subSuffix}`;
+          return `- ${i.copyText || i.prescriptionText}${subSuffix}`;
         }),
         `\nStimulus: ${wod.stimulus}`
       ];
@@ -2061,7 +2246,10 @@ const UI = {
         this._returnToDemoState = this._demoContext ? { ...this._demoContext } : null;
         const targetPattern = demoToAllBtn.dataset.targetPattern || 'ALL';
         this.closeMovementDemoModal();
-        this.openScaleModal(targetPattern, { showBackButton: Boolean(this._returnToDemoState) });
+        this.openScaleModal(targetPattern, {
+          showBackButton: Boolean(this._returnToDemoState),
+          view: 'ladders'
+        });
       });
     }
 
@@ -2108,13 +2296,37 @@ const UI = {
       }
     });
 
-    // Scale Progressions & Ladders Modal
+    // Movement Library & Scale Progressions Modal
     this._activeScalePattern = 'ALL';
+    this._activeScaleView = 'all';
     const scaleBtn = document.getElementById('openScaleModalBtn');
     if (scaleBtn) {
       scaleBtn.addEventListener('click', () => {
         this._returnToDemoState = null;
-        this.openScaleModal(this._activeScalePattern || 'ALL', { showBackButton: false });
+        this.openScaleModal('ALL', { showBackButton: false, view: 'all', resetSearch: true });
+      });
+    }
+
+    const scaleViewTabs = document.getElementById('scaleViewTabs');
+    if (scaleViewTabs) {
+      scaleViewTabs.addEventListener('click', e => {
+        const btn = e.target.closest('.scale-view-btn');
+        if (!btn) return;
+        this._activeScaleView = btn.dataset.scaleView;
+        this.updateScaleViewTabs();
+        this.renderScaleModal(this._activeScalePattern, this._librarySearchQuery);
+        const container = document.getElementById('scaleLaddersContainer');
+        if (container) container.scrollTop = 0;
+      });
+    }
+
+    const libSearchInput = document.getElementById('movementLibrarySearchInput');
+    if (libSearchInput) {
+      libSearchInput.addEventListener('input', e => {
+        this._librarySearchQuery = e.target.value;
+        this.renderScaleModal(this._activeScalePattern, this._librarySearchQuery);
+        const container = document.getElementById('scaleLaddersContainer');
+        if (container) container.scrollTop = 0;
       });
     }
 
@@ -2141,17 +2353,6 @@ const UI = {
     if (scaleModalEl) {
       scaleModalEl.addEventListener('click', e => {
         if (e.target.id === 'scaleModal') this.closeScaleModal();
-      });
-    }
-
-    const scaleTabs = document.getElementById('scalePatternTabs');
-    if (scaleTabs) {
-      scaleTabs.addEventListener('click', e => {
-        const btn = e.target.closest('.spattern-btn');
-        if (!btn) return;
-        this._activeScalePattern = btn.dataset.spattern;
-        this.updateScalePatternButtons(this._activeScalePattern);
-        this.renderScaleModal(this._activeScalePattern);
       });
     }
 

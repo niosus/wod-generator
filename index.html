@@ -70,12 +70,12 @@
           <span class="hidden sm:inline">Benchmarks</span>
         </button>
 
-        <!-- All Progressions Library -->
+        <!-- All Movements & Scaling Progressions Library -->
         <button id="openScaleModalBtn"
           class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-transparent hover:bg-zinc-100 dark:hover:bg-zinc-900 border border-transparent hover:border-zinc-200 dark:hover:border-zinc-800 text-xs font-medium text-zinc-600 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-white transition shrink-0"
-          title="View Movement Scale Progressions">
-          <i data-lucide="git-merge" class="w-3.5 h-3.5"></i>
-          <span class="hidden sm:inline">Progressions</span>
+          title="Browse All 85 Movements &amp; Scaling Progressions">
+          <i data-lucide="layout-grid" class="w-3.5 h-3.5"></i>
+          <span class="hidden sm:inline">Movements</span>
         </button>
 
         <!-- Copy Short Setup Link (?cfg=...) -->
@@ -143,11 +143,7 @@
               </span>
               <span id="wodBadgeType"
                 class="px-2 py-0.5 rounded-md text-[10px] font-mono font-semibold uppercase text-zinc-500 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-800/60 border border-zinc-200/80 dark:border-zinc-800 whitespace-nowrap">
-                ALGORITHMIC METCON
-              </span>
-              <span id="wodBadgeDifficulty"
-                class="px-2 py-0.5 rounded-md text-[10px] font-mono text-zinc-500 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-800/60 border border-zinc-200/80 dark:border-zinc-800 whitespace-nowrap">
-                Balanced Triplet
+                ALGORITHMIC
               </span>
             </div>
             <h1 id="wodTitle" class="text-2xl sm:text-3xl font-black tracking-tight text-zinc-950 dark:text-white break-words">
@@ -203,25 +199,25 @@
             <div id="wodIntensityPanel" class="intensity-panel-collapse md:ml-3 md:shrink-0">
               <div class="intensity-panel-inner">
                 <div
-                  class="flex flex-wrap md:flex-nowrap items-center justify-between gap-2 bg-zinc-50 dark:bg-zinc-950/60 border border-zinc-200/80 dark:border-zinc-800/80 rounded-xl px-3 py-1.5 md:w-max md:bg-transparent md:border-0 md:rounded-none md:p-0 md:pl-3 md:border-l md:border-zinc-200 dark:md:border-zinc-800">
-                  <div class="flex items-center gap-1.5 min-w-0">
+                  class="flex flex-wrap md:flex-nowrap items-center justify-between gap-x-2 gap-y-1.5 bg-zinc-50 dark:bg-zinc-950/60 border border-zinc-200/80 dark:border-zinc-800/80 rounded-xl px-2.5 sm:px-3 py-1.5 md:w-max md:bg-transparent md:border-0 md:rounded-none md:p-0 md:pl-3 md:border-l md:border-zinc-200 dark:md:border-zinc-800">
+                  <div class="flex items-center gap-1.5 min-w-0 shrink-0">
                     <i data-lucide="gauge" class="w-3.5 h-3.5 text-zinc-500 dark:text-zinc-400 shrink-0"></i>
                     <span class="text-[11px] font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Intensity</span>
                   </div>
 
                   <div id="wodIntensityChoiceGrid"
-                    class="inline-grid grid-cols-3 gap-0.5 bg-zinc-200/70 dark:bg-zinc-900 p-0.5 rounded-lg border border-zinc-200 dark:border-zinc-800 shrink-0"
+                    class="inline-flex items-center gap-0.5 bg-zinc-200/70 dark:bg-zinc-900 p-0.5 rounded-lg border border-zinc-200 dark:border-zinc-800 shrink-0"
                     role="radiogroup" aria-label="Workout intensity tier">
                     <button type="button" data-wod-intensity="moderate" role="radio" aria-checked="false"
-                      class="wod-intensity-choice-btn py-1 px-2.5 rounded-md text-[11px] font-mono font-bold transition">
+                      class="wod-intensity-choice-btn py-1 px-2 sm:px-2.5 rounded-md text-[11px] font-mono font-bold whitespace-nowrap transition">
                       Moderate
                     </button>
                     <button type="button" data-wod-intensity="standard" role="radio" aria-checked="true"
-                      class="wod-intensity-choice-btn py-1 px-2.5 rounded-md text-[11px] font-mono font-bold transition">
+                      class="wod-intensity-choice-btn py-1 px-2 sm:px-2.5 rounded-md text-[11px] font-mono font-bold whitespace-nowrap transition">
                       Standard
                     </button>
                     <button type="button" data-wod-intensity="high" role="radio" aria-checked="false"
-                      class="wod-intensity-choice-btn py-1 px-2.5 rounded-md text-[11px] font-mono font-bold transition">
+                      class="wod-intensity-choice-btn py-1 px-2 sm:px-2.5 rounded-md text-[11px] font-mono font-bold whitespace-nowrap transition">
                       High
                     </button>
                   </div>
@@ -545,7 +541,11 @@
             <p class="text-xs text-zinc-500 dark:text-zinc-400">
               Click a card to include or exclude it. Click "Cues" for form &amp; progression.
             </p>
-            <div class="flex items-center gap-1.5">
+            <div class="flex flex-wrap items-center gap-1.5">
+              <button id="toggleShowAllMovementsBtn" type="button"
+                class="px-2.5 py-1 rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-[11px] font-mono font-semibold text-zinc-700 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-700 transition">
+                Show All 85 Movements
+              </button>
               <button id="enableAllMovementsBtn"
                 class="px-2.5 py-1 rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-[11px] font-mono font-semibold text-zinc-700 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-700 transition">
                 Select Visible
@@ -731,7 +731,7 @@
     </div>
   </div>
 
-  <!-- ALL MOVEMENT SCALE PROGRESSIONS & LADDERS MODAL -->
+  <!-- MOVEMENT LIBRARY & SCALING PROGRESSIONS MODAL -->
   <div id="scaleModal"
     class="fixed inset-0 z-50 hidden items-center justify-center p-2 sm:p-4 bg-zinc-950/50 dark:bg-zinc-950/80 backdrop-blur-sm">
     <div id="scaleModalCard"
@@ -746,11 +746,11 @@
           </button>
           <div class="min-w-0">
             <h3 class="text-base sm:text-lg font-black text-zinc-950 dark:text-white flex items-center gap-2 truncate">
-              <i data-lucide="git-merge" class="w-4 h-4 text-volt-600 dark:text-volt shrink-0"></i>
-              <span class="truncate">All Scaling Progressions</span>
+              <i data-lucide="layout-grid" class="w-4 h-4 text-volt-600 dark:text-volt shrink-0"></i>
+              <span class="truncate">Movement Library &amp; Progressions</span>
             </h3>
             <p class="text-[11px] text-zinc-500 dark:text-zinc-400 mt-0.5 truncate">
-              Biomechanical ladders from regressions to Rx skills. Tap any movement for cues.
+              Inspect all movements with live 2D form demos, coaching cues, and skill scaling ladders.
             </p>
           </div>
         </div>
@@ -760,21 +760,29 @@
         </button>
       </div>
 
-      <!-- Filter Bar -->
-      <div class="flex flex-wrap items-center justify-between gap-2 px-4 sm:px-6 my-3 shrink-0">
-        <div id="scalePatternTabs" class="flex flex-wrap gap-1.5">
-          <button data-spattern="ALL" class="spattern-btn px-2.5 py-1 rounded-lg text-[11px] font-semibold whitespace-nowrap transition">All Patterns</button>
-          <button data-spattern="PUSH" class="spattern-btn px-2.5 py-1 rounded-lg text-[11px] font-semibold whitespace-nowrap transition">Push</button>
-          <button data-spattern="PULL" class="spattern-btn px-2.5 py-1 rounded-lg text-[11px] font-semibold whitespace-nowrap transition">Pull</button>
-          <button data-spattern="SQUAT" class="spattern-btn px-2.5 py-1 rounded-lg text-[11px] font-semibold whitespace-nowrap transition">Squat</button>
-          <button data-spattern="HINGE_CORE" class="spattern-btn px-2.5 py-1 rounded-lg text-[11px] font-semibold whitespace-nowrap transition">Hinge &amp; Core</button>
-          <button data-spattern="FULL_BODY" class="spattern-btn px-2.5 py-1 rounded-lg text-[11px] font-semibold whitespace-nowrap transition">Full Body</button>
-          <button data-spattern="CARDIO" class="spattern-btn px-2.5 py-1 rounded-lg text-[11px] font-semibold whitespace-nowrap transition">Cardio</button>
+      <!-- Mode Tabs + Search Control -->
+      <div class="px-4 sm:px-6 pt-3 pb-2.5 border-b border-zinc-200/70 dark:border-zinc-800/70 shrink-0">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <div id="scaleViewTabs" class="inline-flex p-0.5 rounded-xl bg-zinc-100 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800">
+            <button data-scale-view="all" type="button"
+              class="scale-view-btn px-3 py-1.5 rounded-lg text-xs font-semibold transition">
+              All Movements (85)
+            </button>
+            <button data-scale-view="ladders" type="button"
+              class="scale-view-btn px-3 py-1.5 rounded-lg text-xs font-semibold transition">
+              Scaling Ladders (8)
+            </button>
+          </div>
+
+          <div id="scaleLibrarySearchWrap" class="relative w-full sm:w-64">
+            <input id="movementLibrarySearchInput" type="text" placeholder="Search movements by name, pattern, or gear..."
+              class="w-full px-3 py-1.5 text-xs bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-lg text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-none focus:border-zinc-400 dark:focus:border-volt" />
+          </div>
         </div>
       </div>
 
-      <!-- Scale Ladders List Container -->
-      <div id="scaleLaddersContainer" class="flex-1 overflow-y-auto px-4 sm:px-6 pb-5 space-y-3">
+      <!-- Movement Library / Scale Ladders Container -->
+      <div id="scaleLaddersContainer" class="flex-1 overflow-y-auto px-4 sm:px-6 py-4 space-y-3">
         <!-- Populated by JS -->
       </div>
     </div>

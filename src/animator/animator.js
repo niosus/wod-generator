@@ -19,6 +19,7 @@ const BiomechanicalStickAnimator = {
   sampleTimedKeyframes(k, t) { return globalThis.KinematicMath.sampleTimedKeyframes(k, t); },
   sampleKeyframes(k, t) { return globalThis.KinematicMath.sampleKeyframes(k, t); },
   solveIK(rx, ry, tx, ty, L1, L2, b) { return globalThis.KinematicMath.solveIK(rx, ry, tx, ty, L1, L2, b); },
+  solveLegToePivot(hx, hy, tx, ty, L1, L2, b, d) { return globalThis.KinematicMath.solveLegToePivot(hx, hy, tx, ty, L1, L2, b, d); },
   solveFK(rx, ry, a1, a2, L1, L2) { return globalThis.KinematicMath.solveFK(rx, ry, a1, a2, L1, L2); },
   solveFrontArm(sx, sy, hx, hy, l) { return globalThis.KinematicMath.solveFrontArm(sx, sy, hx, hy, l); },
   solveFrontLeg(hx, hy, ax, ay, l, k) { return globalThis.KinematicMath.solveFrontLeg(hx, hy, ax, ay, l, k); },
@@ -67,9 +68,20 @@ const BiomechanicalStickAnimator = {
   },
 
   drawPoseOnCanvas(canvas, poseType, timestamp) {
+    const dpr = (typeof window !== 'undefined' && window.devicePixelRatio) ? Math.min(window.devicePixelRatio, 3) : 1;
+    const cssW = canvas.clientWidth || parseInt(canvas.getAttribute('width'), 10) || 200;
+    const cssH = canvas.clientHeight || parseInt(canvas.getAttribute('height'), 10) || 200;
+    const targetW = Math.max(Math.round(200 * dpr), Math.round(cssW * dpr));
+    const targetH = Math.max(Math.round(200 * dpr), Math.round(cssH * dpr));
+    if (canvas.width !== targetW || canvas.height !== targetH) {
+      canvas.width = targetW;
+      canvas.height = targetH;
+    }
     const ctx = canvas.getContext('2d');
     const w = canvas.width;
     const h = canvas.height;
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
     ctx.clearRect(0, 0, w, h);
     ctx.save();
     const scale = Math.min(w / 200, h / 200);

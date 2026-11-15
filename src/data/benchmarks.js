@@ -159,7 +159,7 @@ const CLASSICAL_BENCHMARKS = [
               prescriptionHeader: '21 - 15 - 9 Reps For Time (10 Min Cap):',
                 items: [
                   { movementId: 'bb_hang_power_clean', reps: '21-15-9', label: 'Barbell Cleans (60/42.5 kg)' },
-                  { movementId: 'ring_dips', reps: '21-15-9', label: 'Ring / Parallel Bar Dips' }
+                  { movementId: 'ring_dips', reps: '21-15-9', label: 'Ring Dips' }
                 ],
                   stimulus: 'Olympic lifting power paired with gymnastics shoulder stability. Fight to keep dips in manageable chunks.',
                     logic: 'Dynamic Clean Pull + Deep Gymnastic Dip.'
@@ -393,7 +393,7 @@ const CLASSICAL_BENCHMARKS = [
               prescriptionHeader: '21 - 15 - 9 Reps For Time (14 Min Cap):',
                 items: [
                   { movementId: 'hspu', reps: '21-15-9', label: 'Handstand Push-Ups' },
-                  { movementId: 'ring_dips', reps: '21-15-9', label: 'Ring / Parallel Bar Dips' },
+                  { movementId: 'ring_dips', reps: '21-15-9', label: 'Ring Dips' },
                   { movementId: 'pushups', reps: '21-15-9', label: 'Push-Ups' }
                 ],
                   stimulus: 'Honoring Petty Officer 1st Class Jeff Taylor. Extreme upper-body pressing endurance. Break all sets before triceps lock up.',
@@ -441,7 +441,7 @@ const CLASSICAL_BENCHMARKS = [
               prescriptionHeader: 'AMRAP in 20 Minutes:',
                 items: [
                   { movementId: 'box_jumps', reps: 30, label: '30 Box Jumps (24/20 in)' },
-                  { movementId: 'db_push_press', reps: 20, label: '20 Push Presses (2x15/10 kg or 50/35 kg)' },
+                  { movementId: 'bb_push_press', reps: 20, label: '20 Barbell Push Presses (50/35 kg)' },
                   { movementId: 'pullups', reps: 30, label: '30 Pull-Ups' }
                 ],
                   stimulus: 'Honoring SWAT Sgt. Daniel Sakai. Step down on box jumps to save Achilles and calves, and keep push presses unbroken.',
@@ -540,7 +540,7 @@ const CLASSICAL_BENCHMARKS = [
         format: 'FOR_TIME',
           durationCategory: 'long',
             minutes: 35,
-              prescriptionHeader: 'For Time (35 Min Cap): 500 to 1,000 Box Step-Ups (20 in Box, Optional 20/14 lb Vest):',
+              prescriptionHeader: 'For Time (35 Min Cap): 500 to 1,000 Box Step-Ups (20 in Box, Optional 9/6 kg Vest):',
                 items: [
                   { movementId: 'box_step_ups', reps: 500, label: '500 Box Step-Ups (20 in Box)' }
                 ],
@@ -648,8 +648,8 @@ const CLASSICAL_BENCHMARKS = [
                     logic: 'Four-station rotation hitting Cardio, Pull, Full-Body Plyo, and Squat with zero muscle group overlap.'
 },
 {
-  id: 'russian_engine',
-    title: 'RUSSIAN ENGINE',
+  id: 'iron_bell_engine',
+    title: 'IRON BELL ENGINE',
       category: 'Kettlebell & Bodyweight',
         format: 'AMRAP',
           durationCategory: 'medium',
@@ -662,6 +662,76 @@ const CLASSICAL_BENCHMARKS = [
                 ],
                   stimulus: 'Posterior chain + anterior leg + upper press triplet with a single kettlebell.',
                     logic: 'Hinge + Squat + Push keeps heart rate elevated while rotating primary prime movers.'
+},
+{
+  id: 'death_by_burpees',
+    title: 'DEATH BY BURPEES',
+      category: 'Death By Challenge',
+        format: 'EMOM',
+          durationCategory: 'medium',
+            minutes: 20,
+              prescriptionHeader: 'Ascending EMOM (20 Min Cap): Min 1 = 1 Rep, Min 2 = 2 Reps, +1 Rep/Min Until Failure:',
+                items: [
+                  { movementId: 'burpees', reps: '1, 2, 3, ...', label: 'Min N: N Chest-to-Deck Burpees (+1 rep each minute)' }
+                ],
+                  stimulus: 'Classic escalating aerobic threshold test — deceptive recovery early followed by sudden metabolic redline around minutes 13–18.',
+                    logic: 'Adds 1 burpee per minute until the work exceeds the 60-second clock; finish remaining cap with a 3-minute cooldown if failed early.'
+},
+{
+  id: 'death_by_pullups',
+    title: 'DEATH BY PULL-UPS',
+      category: 'Death By Challenge',
+        format: 'EMOM',
+          durationCategory: 'medium',
+            minutes: 20,
+              prescriptionHeader: 'Ascending EMOM (20 Min Cap): Min 1 = 1 Rep, Min 2 = 2 Reps, +1 Rep/Min Until Failure:',
+                items: [
+                  { movementId: 'pullups', reps: '1, 2, 3, ...', label: 'Min N: N Pull-Ups (+1 rep each minute)' }
+                ],
+                  stimulus: 'Upper-body pulling stamina ladder testing grip, lats, and smart set partitioning before failure.',
+                    logic: 'Accumulates high pulling volume (78 reps at Min 12, 120 reps at Min 15) with built-in sub-maximal pacing early.'
+},
+{
+  id: 'death_by_thrusters',
+    title: 'DEATH BY THRUSTERS',
+      category: 'Death By Challenge',
+        format: 'EMOM',
+          durationCategory: 'short',
+            minutes: 15,
+              prescriptionHeader: 'Ascending EMOM (15 Min Cap): Min 1 = 1 Rep, Min 2 = 2 Reps, +1 Rep/Min Until Failure:',
+                items: [
+                  { movementId: 'bb_thrusters', reps: '1, 2, 3, ...', label: 'Min N: N Barbell Thrusters (43/30 kg, +1 rep/min)' }
+                ],
+                  stimulus: 'Full-body barbell stamina crusher pitting leg drive against breathing and front-rack shoulder endurance.',
+                    logic: 'Unbroken fast singles or small doubles/triples keep bar resting overhead minimal while minutes tighten.'
+},
+{
+  id: 'death_by_calories',
+    title: 'DEATH BY CALORIES',
+      category: 'Death By Challenge',
+        format: 'EMOM',
+          durationCategory: 'medium',
+            minutes: 20,
+              prescriptionHeader: 'Ascending Erg EMOM (20 Min Cap): Min 1 = 5 Cal, Min 2 = 6 Cal, +1 Cal/Min Until Failure:',
+                items: [
+                  { movementId: 'bike_erg_cal', reps: '5, 6, 7, ...', label: 'Min N: (4 + N) BikeErg (+1 Cal/min)' }
+                ],
+                  stimulus: 'Pure VO2-max and lactate tolerance escalation where every extra calorie steals precious transition seconds.',
+                    logic: 'Starting at 5 Cal eliminates empty warm-up minutes and forces peak sustained wattage around minutes 12–18.'
+},
+{
+  id: 'death_by_kb_swings',
+    title: 'DEATH BY KETTLEBELL SWINGS',
+      category: 'Death By Challenge',
+        format: 'EMOM',
+          durationCategory: 'medium',
+            minutes: 20,
+              prescriptionHeader: 'Ascending EMOM (20 Min Cap): Min 1 = 3 Reps, Min 2 = 6 Reps, +3 Reps/Min Until Failure:',
+                items: [
+                  { movementId: 'kb_swings', reps: '3, 6, 9, ...', label: 'Min N: 3 × N Kettlebell Swings (24/16 kg, +3 reps/min)' }
+                ],
+                  stimulus: 'Posterior-chain hinge power and forearm grip endurance test with rapid +3 rep escalation.',
+                    logic: '+3 reps per minute drives work cleanly into the 21–36 rep/min redzone during minutes 7–12.'
 }
 ];
 

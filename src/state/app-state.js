@@ -6,7 +6,8 @@ const STORAGE_KEY = 'wodforge_local_prefs_v3';
         bodyweight: 'available',
         running_area: 'optional',
         pullup_bar: 'available',
-        rings_dips: 'optional',
+        gym_rings: 'optional',
+        parallel_bars: 'optional',
         kettlebell: 'optional',
         dumbbell: 'off',
         barbell: 'off',
@@ -45,6 +46,16 @@ const STORAGE_KEY = 'wodforge_local_prefs_v3';
           const parsed = JSON.parse(raw);
           if (parsed.equipmentStates && typeof parsed.equipmentStates === 'object') {
             this.equipmentStates = { ...this.equipmentStates, ...parsed.equipmentStates };
+            if ('rings_dips' in this.equipmentStates) {
+              const legacyState = this.equipmentStates.rings_dips;
+              if (!('gym_rings' in parsed.equipmentStates)) {
+                this.equipmentStates.gym_rings = legacyState;
+              }
+              if (!('parallel_bars' in parsed.equipmentStates)) {
+                this.equipmentStates.parallel_bars = legacyState;
+              }
+              delete this.equipmentStates.rings_dips;
+            }
             if (!('running_area' in parsed.equipmentStates)) {
               const hadOtherGear = Object.entries(parsed.equipmentStates).some(
                 ([k, v]) => k !== 'bodyweight' && (v === 'available' || v === 'optional')
@@ -301,20 +312,58 @@ const STORAGE_KEY = 'wodforge_local_prefs_v3';
        * and ensures the suggested scale-down does not duplicate another movement already in the WOD.
        */
       resolveScaleDown(mov, forbiddenMovementIds = new Set()) {
-        if (!mov.scaleDownId) return null;
-        const primaryScale = globalThis.MOVEMENTS_DB.find(m => m.id === mov.scaleDownId);
-        if (!primaryScale) return null;
+        if (!mov || mov.id === 'run') return null;
 
-        if (this.isEquipmentUsable(primaryScale.equipment) && !forbiddenMovementIds.has(primaryScale.id)) {
-          return {
-            movement: primaryScale,
-            note: mov.scaleNote || primaryScale.name
-          };
+        const freeWeightEquip = new Set(['kettlebell', 'dumbbell', 'barbell', 'wall_ball']);
+        const isScaleEquipmentAllowed = (candidate) => {
+          if (!candidate) return false;
+          if (freeWeightEquip.has(mov.equipment)) {
+            return candidate.equipment === mov.equipment || candidate.equipment === 'bodyweight';
+          }
+          return !freeWeightEquip.has(candidate.equipment);
+        };
+
+        // Walk the explicit scaleDownId chain first (never crossing between KB / DB / BB / Wall Ball)
+        const visited = new Set([mov.id]);
+        let cursor = mov;
+        for (let hop = 0; hop < 6 && cursor && cursor.scaleDownId; hop++) {
+          if (visited.has(cursor.scaleDownId)) break;
+          visited.add(cursor.scaleDownId);
+          const candidate = globalThis.MOVEMENTS_DB.find(m => m.id === cursor.scaleDownId);
+          if (!candidate) break;
+
+          if (
+            isScaleEquipmentAllowed(candidate) &&
+            this.isEquipmentUsable(candidate.equipment) &&
+            !forbiddenMovementIds.has(candidate.id)
+          ) {
+            return {
+              movement: candidate,
+              note: hop === 0 ? (mov.scaleNote || candidate.name) : candidate.name
+            };
+          }
+          cursor = candidate;
         }
 
-        // If primary scale-down requires equipment that is not usable, or is already in the WOD, find a non-colliding alternative in the same pattern with available equipment
-        const backupScale = this.resolveUniqueAlternative(mov, forbiddenMovementIds);
-        if (backupScale && backupScale.id !== mov.id && !forbiddenMovementIds.has(backupScale.id)) {
+        // Fallback within the same movement pattern using same equipment or bodyweight only
+        const patternCandidates = globalThis.MOVEMENTS_DB.filter(candidate =>
+          candidate.id !== mov.id &&
+          candidate.pattern === mov.pattern &&
+          isScaleEquipmentAllowed(candidate) &&
+          this.isEquipmentUsable(candidate.equipment) &&
+          !this.excludedMovements.has(candidate.id) &&
+          !forbiddenMovementIds.has(candidate.id) &&
+          (candidate.intensity || 0) <= (mov.intensity || 99)
+        );
+        patternCandidates.sort((a, b) => {
+          const aSameEq = a.equipment === mov.equipment ? 0 : 1;
+          const bSameEq = b.equipment === mov.equipment ? 0 : 1;
+          if (aSameEq !== bSameEq) return aSameEq - bSameEq;
+          return (b.intensity || 0) - (a.intensity || 0);
+        });
+
+        const backupScale = patternCandidates[0];
+        if (backupScale) {
           return {
             movement: backupScale,
             note: backupScale.name

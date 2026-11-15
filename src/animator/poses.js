@@ -1,6 +1,6 @@
 /**
  * Pure 2D Skeletal Kinematics Pose Computation
- * Computes pure skeleton frames for all 49 WODFORGE movements
+ * Computes pure skeleton frames for all WODFORGE movements
  */
 function _computePose(poseType, timestamp) {
   const periodMs = 2400;
@@ -31,19 +31,33 @@ function _computePose(poseType, timestamp) {
   //      an authentic kip & hip-to-bar pull, and transitions shoulders forward
   //      over the bar/rings with elbows bending strictly backward (never crossing!).
   // ===========================================================================
-  if (poseType === 'pullup_front' || poseType === 'chin_up_front') {
+  if (poseType === 'pullup_front' || poseType === 'chin_up_front' || poseType === 'bar_hang') {
     frame.view = 'front';
     frame.floorY = 192;
     const barY = 16;
     const isChinUp = poseType === 'chin_up_front';
+    const isBarHang = poseType === 'bar_hang';
     frame.props.push({ type: 'rig_uprights', barY, floorY: 192 });
 
-    // Vertical range: full straight-arm dead hang (p=0: shoulderY=62) to clean chin-over-bar (p=1: shoulderY=20, headY=6, chin Y=15.8 < 16)
-    const shoulderY = this.lerp(62, 20, p);
+    // Vertical range: pull/chin pulls up to bar; bar_hang holds completely stationary dead hang
+    const shoulderY = isBarHang ? 62 : this.lerp(62, 20, p);
     const hipY = shoulderY + L_TORSO;
     const leftHipX = 91, rightHipX = 109;
 
-    if (isChinUp) {
+    if (isBarHang) {
+      const leftShoulderX = 85;
+      const rightShoulderX = 115;
+      frame.frontTorso = {
+        leftShoulderX, rightShoulderX, shoulderY,
+        leftHipX, rightHipX, hipY,
+        headX: 100, headY: shoulderY - 14
+      };
+      const leftHandX = 76, rightHandX = 124, handY = barY;
+      const armL = this.solveFrontArm(leftShoulderX, shoulderY, leftHandX, handY, true);
+      const armR = this.solveFrontArm(rightShoulderX, shoulderY, rightHandX, handY, false);
+      addLimb('armL', 'arm', leftShoulderX, shoulderY, armL.jx, armL.jy, armL.ex, armL.ey, '#38bdf8', '#38bdf8', 5, 'hand');
+      addLimb('armR', 'arm', rightShoulderX, shoulderY, armR.jx, armR.jy, armR.ex, armR.ey, '#38bdf8', '#38bdf8', 5, 'hand');
+    } else if (isChinUp) {
       // Chin-ups: narrow underhand grip, elbows track directly in front of the ribcage staying ~20cm (20px) apart
       const leftShoulderX = 85, rightShoulderX = 115;
       frame.frontTorso = {
@@ -234,11 +248,15 @@ function _computePose(poseType, timestamp) {
       return frame;
     }
 
-    const ankleX = 36, ankleY = 162;
-    const handX = 140, handY = 162;
+    frame.floorY = 168;
+    const toeX = 36, toeY = 165;
+    const handX = 140, handY = 164;
 
-    // Rigid plank rotates cleanly around planted toes (ankleX, ankleY)
-    const plankAngle = this.lerp(-0.42, -0.11, p);
+    // Rigid plank pivots cleanly around stationary planted toes while heels/ankles rotate above the floor
+    const plankAngle = this.lerp(-0.34, -0.02, p);
+    const soleAngleApprox = plankAngle + Math.PI * 0.52;
+    const ankleX = toeX - Math.cos(soleAngleApprox) * 10.5;
+    const ankleY = toeY - Math.sin(soleAngleApprox) * 10.5;
     const legLen = 62.5;
     const hipX = ankleX + Math.cos(plankAngle) * legLen;
     const hipY = ankleY + Math.sin(plankAngle) * legLen;
@@ -246,12 +264,12 @@ function _computePose(poseType, timestamp) {
     frame.torso = this.torsoFromHip(hipX, hipY, plankAngle, 1, -0.05);
     const { shoulderX, shoulderY } = frame.torso;
 
-    const legBack = this.solveIK(hipX - 2, hipY, ankleX - 2, ankleY, L_THIGH, L_SHIN, -1);
-    const legFront = this.solveIK(hipX, hipY, ankleX, ankleY, L_THIGH, L_SHIN, -1);
+    const legBack = this.solveLegToePivot(hipX - 2, hipY, toeX - 2, toeY, L_THIGH, L_SHIN, -1, 1);
+    const legFront = this.solveLegToePivot(hipX, hipY, toeX, toeY, L_THIGH, L_SHIN, -1, 1);
     const arm = this.solveIK(shoulderX, shoulderY, handX, handY, L_UPPER_ARM, L_FOREARM, 1);
 
-    addLimb('legB', 'leg', hipX - 2, hipY, legBack.jx, legBack.jy, legBack.ex, legBack.ey, '#64748b', '#475569', 5.4, 'foot', 1);
-    addLimb('legF', 'leg', hipX, hipY, legFront.jx, legFront.jy, legFront.ex, legFront.ey, '#bef264', '#94a3b8', 6, 'foot', 1);
+    addLimb('legB', 'leg', hipX - 2, hipY, legBack.jx, legBack.jy, legBack.ex, legBack.ey, '#64748b', '#475569', 5.4, 'foot', 1, 200);
+    addLimb('legF', 'leg', hipX, hipY, legFront.jx, legFront.jy, legFront.ex, legFront.ey, '#bef264', '#94a3b8', 6, 'foot', 1, 200);
     addLimb('arm', 'arm', shoulderX, shoulderY, arm.jx, arm.jy, arm.ex, arm.ey, '#38bdf8', '#38bdf8', 5.5, 'hand');
     return frame;
   }
@@ -293,34 +311,38 @@ function _computePose(poseType, timestamp) {
   // ===========================================================================
   if (poseType === 'hspu') {
     frame.floorY = 170;
-    frame.props.push({ type: 'wall', x: 142, y1: 16, y2: 170 });
+    frame.props.push({ type: 'wall', x: 136, y1: 16, y2: 170 });
 
-    const handX = 112, handY = 166;
-    const shoulderX = this.lerp(112, 105, p);
+    const handX = 118, handY = 166;
+    const shoulderX = this.lerp(120, 114, p);
     const shoulderY = this.lerp(120, 143, p);
-    const spineAngle = this.lerp(1.44, 1.38, p); // hip -> shoulder points downward
-    frame.torso = this.torsoFromShoulder(shoulderX, shoulderY, spineAngle, -1, 0.05);
+    const spineAngle = this.lerp(1.62, 1.66, p); // inverted hip -> shoulder nearly vertical facing away from right wall
+    frame.torso = this.torsoFromShoulder(shoulderX, shoulderY, spineAngle, -1, 0.04);
     const { hipX, hipY } = frame.torso;
 
-    const ankleX = 135;
-    const ankleY = hipY - 60.5;
+    const ankleX = 130;
+    const ankleY = hipY - 62.8;
     const legBack = this.solveIK(hipX + 2, hipY, ankleX + 1, ankleY, L_THIGH, L_SHIN, -1);
     const legFront = this.solveIK(hipX, hipY, ankleX, ankleY, L_THIGH, L_SHIN, -1);
     const arm = this.solveIK(shoulderX, shoulderY, handX, handY, L_UPPER_ARM, L_FOREARM, -1);
 
-    addLimb('legB', 'leg', hipX + 2, hipY, legBack.jx, legBack.jy, legBack.ex, legBack.ey, '#64748b', '#475569', 5.4, 'foot', -1, 200);
-    addLimb('legF', 'leg', hipX, hipY, legFront.jx, legFront.jy, legFront.ex, legFront.ey, '#bef264', '#94a3b8', 6, 'foot', -1, 200);
+    addLimb('legB', 'leg', hipX + 2, hipY, legBack.jx, legBack.jy, legBack.ex, legBack.ey, '#64748b', '#475569', 5.4, 'foot', 1, 200);
+    addLimb('legF', 'leg', hipX, hipY, legFront.jx, legFront.jy, legFront.ex, legFront.ey, '#bef264', '#94a3b8', 6, 'foot', 1, 200);
     addLimb('arm', 'arm', shoulderX, shoulderY, arm.jx, arm.jy, arm.ex, arm.ey, '#38bdf8', '#38bdf8', 5.5, 'hand');
     return frame;
   }
 
   // ===========================================================================
-  // 5. RING / PARALLEL BAR DIPS (SIDE VIEW - LOCKED SUPPORT TO DEEP DIP)
+  // 5. RING DIPS & PARALLEL BAR DIPS (SIDE VIEW - LOCKED SUPPORT TO DEEP DIP)
   // ===========================================================================
-  if (poseType === 'ring_dip') {
+  if (poseType === 'ring_dip' || poseType === 'parallel_bar_dip') {
     frame.floorY = 176;
     const handX = 104, handY = 82;
-    frame.props.push({ type: 'gym_ring', strapX: 104, strapY: 14, cx: handX, cy: handY, r: 8.5 });
+    if (poseType === 'ring_dip') {
+      frame.props.push({ type: 'gym_ring', strapX: 104, strapY: 14, cx: handX, cy: handY, r: 8.5 });
+    } else {
+      frame.props.push({ type: 'parallel_bars', x1: 68, x2: 138, barY: handY, floorY: 176 });
+    }
 
     // Top support (p=0): shoulder stacked over rings at (102, 36); Bottom dip (p=1): shoulder drops to (110, 78) below elbow crease
     const shoulderX = this.lerp(102, 110, p);
@@ -354,7 +376,7 @@ function _computePose(poseType, timestamp) {
       if (poseType === 'inverted_row_side') {
         frame.props.push({ type: 'gym_ring', strapX: 104, strapY: 14, cx: handX, cy: handY, r: 8.5 });
       } else {
-        frame.props.push({ type: 'low_barbell', barX: handX, barY: handY, floorY: 170 });
+        frame.props.push({ type: 'parallel_bars', x1: 52, x2: 132, barY: handY, floorY: 170 });
       }
 
       const ankleX = 156, ankleY = 166;
@@ -540,14 +562,22 @@ function _computePose(poseType, timestamp) {
   }
 
   // ===========================================================================
-  // 9. OVERHEAD PRESS, PUSH JERK, BARBELL THRUSTER, DB THRUSTER & WALL BALLS
+  // 9. OVERHEAD PRESSES, PUSH PRESSES, PUSH JERKS, THRUSTERS & WALL BALLS
   //    (Kinetic chain transfer: leg drive precedes rapid vertical arm punch!)
   // ===========================================================================
   if (
+    poseType === 'kb_strict_press' ||
+    poseType === 'db_strict_press' ||
+    poseType === 'bb_strict_press' ||
+    poseType === 'kb_push_press' ||
     poseType === 'overhead_press' ||
+    poseType === 'bb_push_press' ||
+    poseType === 'kb_push_jerk' ||
+    poseType === 'db_push_jerk' ||
     poseType === 'push_jerk' ||
-    poseType === 'thruster' ||
+    poseType === 'kb_thruster' ||
     poseType === 'db_thruster' ||
+    poseType === 'thruster' ||
     poseType === 'wall_ball'
   ) {
     frame.floorY = 170;
@@ -560,28 +590,35 @@ function _computePose(poseType, timestamp) {
       frame.originY = 170;
     }
 
-    if (poseType === 'push_jerk') {
-      // Barbell Push Jerk:
-      // 0) Front Rack -> 1) Vertical Dip -> 2) Explosive Upward Leg Drive ->
-      // 3) Rapid Drop-Under into Quarter-Squat Catch with Locked Arms ->
-      // 4) Stabilize Catch -> 5) Stand Tall to Overhead Lockout -> 6) Return to Rack
+    if (poseType === 'push_jerk' || poseType === 'kb_push_jerk' || poseType === 'db_push_jerk') {
+      // Push Jerk / S2OH across Barbell, Dumbbells, and Kettlebell
       const jerkKF = [
-        // 0: Tall Front Rack setup (bar resting on front delts)
+        // 0: Tall Front Rack setup (shoulders stacked, load resting in front rack)
         { hx: 95, hy: 104, spine: -1.55, bx: 104, by: 56 },
-        // 1: Controlled Vertical Dip (hips drop straight down, torso stays vertical, bar stays on shoulders)
+        // 1: Controlled Vertical Dip (hips drop straight down, torso stays vertical)
         { hx: 91, hy: 116, spine: -1.52, bx: 102, by: 68 },
-        // 2: Explosive Upward Leg Drive! (hips & knees extend violently to hy=101, launching bar upward)
+        // 2: Explosive Upward Leg Drive (hips & knees extend violently to hy=101)
         { hx: 96, hy: 101, spine: -1.56, bx: 100, by: 42 },
-        // 3: Rapid Drop-Under into Quarter-Squat Catch! (hips drop to hy=123 while arms lock out overhead!)
+        // 3: Rapid Drop-Under into Quarter-Squat Catch with locked overhead arms
         { hx: 83, hy: 123, spine: -1.42, bx: 97, by: 30 },
         // 4: Hold Quarter-Squat Catch briefly
         { hx: 85, hy: 120, spine: -1.44, bx: 97, by: 27 },
-        // 5: Stand Tall with Bar Locked Out Overhead
+        // 5: Stand Tall with Load Locked Out Overhead
         { hx: 95, hy: 104, spine: -1.55, bx: 97, by: 11 },
-        // 6: Lower bar controlled back to Front Rack
+        // 6: Lower controlled back to Front Rack
         { hx: 93, hy: 108, spine: -1.52, bx: 104, by: 60 }
       ];
-      const st = this.sampleKeyframes(jerkKF, normT);
+      const isKBPushJerk = poseType === 'kb_push_jerk';
+      let sampleNorm = normT;
+      let isSecondArm = false;
+      if (isKBPushJerk) {
+        const kbCycleMs = 3800;
+        const fullNorm = ((timestamp % kbCycleMs) + kbCycleMs) % kbCycleMs / kbCycleMs;
+        isSecondArm = fullNorm >= 0.5;
+        sampleNorm = (fullNorm % 0.5) * 2;
+        frame.props.push({ type: 'hud_badge', text: isSecondArm ? 'LEFT ARM' : 'RIGHT ARM', second: isSecondArm });
+      }
+      const st = this.sampleKeyframes(jerkKF, sampleNorm);
       frame.torso = this.torsoFromHip(st.hx, st.hy, st.spine, 1, 0.06);
       const { shoulderX, shoulderY } = frame.torso;
 
@@ -590,22 +627,51 @@ function _computePose(poseType, timestamp) {
       addLimb('legB', 'leg', st.hx - 3, st.hy, legBack.jx, legBack.jy, legBack.ex, legBack.ey, '#64748b', '#475569', 5.4, 'foot', 1);
       addLimb('legF', 'leg', st.hx, st.hy, legFront.jx, legFront.jy, legFront.ex, legFront.ey, '#bef264', '#94a3b8', 6, 'foot', 1);
 
-      const arm = this.solveIK(shoulderX, shoulderY, st.bx, st.by, L_UPPER_ARM, L_FOREARM, 1);
-      addLimb('arm', 'arm', shoulderX, shoulderY, arm.jx, arm.jy, arm.ex, arm.ey, '#38bdf8', '#38bdf8', 5.5, 'hand');
-      frame.props.push({ type: 'barbell_end', x: arm.ex, y: arm.ey, r: 8.5 });
+      if (poseType === 'db_push_jerk') {
+        const armB = this.solveIK(shoulderX - 3, shoulderY, st.bx - 2, st.by, L_UPPER_ARM, L_FOREARM, 1);
+        const armF = this.solveIK(shoulderX, shoulderY, st.bx, st.by, L_UPPER_ARM, L_FOREARM, 1);
+        addLimb('armB', 'arm', shoulderX - 3, shoulderY, armB.jx, armB.jy, armB.ex, armB.ey, '#64748b', '#475569', 5, 'hand');
+        frame.props.push({ type: 'dumbbell_far', x: armB.ex, y: armB.ey });
+        addLimb('armF', 'arm', shoulderX, shoulderY, armF.jx, armF.jy, armF.ex, armF.ey, '#38bdf8', '#38bdf8', 5.4, 'hand');
+        frame.props.push({ type: 'dumbbell_near', x: armF.ex, y: armF.ey });
+      } else if (poseType === 'kb_push_jerk') {
+        const freeArm = this.solveFK(shoulderX - 2, shoulderY, 1.48, 1.35, L_UPPER_ARM, L_FOREARM);
+        const armF = this.solveIK(shoulderX, shoulderY, st.bx, st.by, L_UPPER_ARM, L_FOREARM, 1);
+        addLimb(isSecondArm ? 'armF' : 'armB', 'arm', shoulderX - 2, shoulderY, freeArm.jx, freeArm.jy, freeArm.ex, freeArm.ey, '#64748b', '#475569', isSecondArm ? 5.5 : 5, 'hand');
+        addLimb(isSecondArm ? 'armB' : 'armF', 'arm', shoulderX, shoulderY, armF.jx, armF.jy, armF.ex, armF.ey, '#38bdf8', '#38bdf8', isSecondArm ? 5 : 5.5, 'hand');
+        frame.props.push({ type: 'kettlebell', x: armF.ex - 5, y: armF.ey + 6.5, r: 7.2, midground: isSecondArm });
+      } else {
+        const arm = this.solveIK(shoulderX, shoulderY, st.bx, st.by, L_UPPER_ARM, L_FOREARM, 1);
+        addLimb('arm', 'arm', shoulderX, shoulderY, arm.jx, arm.jy, arm.ex, arm.ey, '#38bdf8', '#38bdf8', 5.5, 'hand');
+        frame.props.push({ type: 'barbell_end', x: arm.ex, y: arm.ey, r: 8.5 });
+      }
       return frame;
     }
 
-    const isFullSquat = poseType === 'thruster' || poseType === 'db_thruster' || poseType === 'wall_ball';
-    const isDumbbell = poseType === 'db_thruster' || poseType === 'overhead_press';
+    const isStrict = poseType === 'kb_strict_press' || poseType === 'db_strict_press' || poseType === 'bb_strict_press';
+    const isFullSquat = poseType === 'thruster' || poseType === 'db_thruster' || poseType === 'kb_thruster' || poseType === 'wall_ball';
+    const isDumbbell = poseType === 'db_thruster' || poseType === 'overhead_press' || poseType === 'db_strict_press';
+    const isKettlebell = poseType === 'kb_thruster' || poseType === 'kb_push_press' || poseType === 'kb_strict_press';
+    const isBarbell = poseType === 'thruster' || poseType === 'bb_push_press' || poseType === 'bb_strict_press';
 
-    const legDrive = this.smoothstep(this.clamp(p / 0.78, 0, 1));
-    const armPunch = this.smoothstep(this.clamp((p - 0.22) / 0.78, 0, 1));
+    let activeP = p;
+    let isSecondKBArm = false;
+    if (isKettlebell) {
+      const kbCycleMs = 3800;
+      const fullNorm = ((timestamp % kbCycleMs) + kbCycleMs) % kbCycleMs / kbCycleMs;
+      isSecondKBArm = fullNorm >= 0.5;
+      const repNorm = (fullNorm % 0.5) * 2;
+      activeP = 0.5 - 0.5 * Math.cos(repNorm * Math.PI * 2);
+      frame.props.push({ type: 'hud_badge', text: isSecondKBArm ? 'LEFT ARM' : 'RIGHT ARM', second: isSecondKBArm });
+    }
 
-    const hipX = this.lerp(isFullSquat ? 70 : 89, 95, legDrive);
-    const hipY = this.lerp(isFullSquat ? 139 : 115, 104, legDrive);
-    const spineAngle = this.lerp(isFullSquat ? -1.22 : -1.46, -1.55, legDrive);
-    frame.torso = this.torsoFromHip(hipX, hipY, spineAngle, 1, 0.08 * (1 - legDrive));
+    const legDrive = isStrict ? 1 : this.smoothstep(this.clamp(activeP / 0.78, 0, 1));
+    const armPunch = isStrict ? this.smoothstep(activeP) : this.smoothstep(this.clamp((activeP - 0.22) / 0.78, 0, 1));
+
+    const hipX = isStrict ? 95 : this.lerp(isFullSquat ? 70 : 89, 95, legDrive);
+    const hipY = isStrict ? 104 : this.lerp(isFullSquat ? 139 : 115, 104, legDrive);
+    const spineAngle = isStrict ? -1.55 : this.lerp(isFullSquat ? -1.22 : -1.46, -1.55, legDrive);
+    frame.torso = this.torsoFromHip(hipX, hipY, spineAngle, 1, isStrict ? 0.04 : 0.08 * (1 - legDrive));
     const { shoulderX, shoulderY } = frame.torso;
 
     const legBack = this.solveIK(hipX - 3, hipY, ankleX - 3, ankleY, L_THIGH, L_SHIN, -1);
@@ -626,8 +692,20 @@ function _computePose(poseType, timestamp) {
       frame.props.push({ type: 'dumbbell_far', x: armBack.ex, y: armBack.ey });
       addLimb('armF', 'arm', shoulderX, shoulderY, armFront.jx, armFront.jy, armFront.ex, armFront.ey, '#38bdf8', '#38bdf8', 5.4, 'hand');
       frame.props.push({ type: 'dumbbell_near', x: armFront.ex, y: armFront.ey });
-    } else if (poseType === 'thruster') {
-      // Barbell Thruster: high horizontal front-rack elbows extending to overhead barbell lockout
+    } else if (isKettlebell) {
+      // Single-arm Kettlebell racked on collarbones pressed/thrusted into bicep-by-ear lockout
+      const startUA = 0.62, startFA = -1.98;
+      const endUA = -1.54, endFA = -1.54;
+      const ua = this.lerp(startUA, endUA, armPunch);
+      const fa = this.lerp(startFA, endFA, armPunch);
+
+      const freeArm = this.solveFK(shoulderX - 2, shoulderY, 1.50, 1.38, L_UPPER_ARM, L_FOREARM);
+      const workArm = this.solveFK(shoulderX, shoulderY, ua, fa, L_UPPER_ARM, L_FOREARM);
+      addLimb(isSecondKBArm ? 'armF' : 'armB', 'arm', shoulderX - 2, shoulderY, freeArm.jx, freeArm.jy, freeArm.ex, freeArm.ey, '#64748b', '#475569', isSecondKBArm ? 5.5 : 5, 'hand');
+      addLimb(isSecondKBArm ? 'armB' : 'armF', 'arm', shoulderX, shoulderY, workArm.jx, workArm.jy, workArm.ex, workArm.ey, '#38bdf8', '#38bdf8', isSecondKBArm ? 5 : 5.5, 'hand');
+      frame.props.push({ type: 'kettlebell', x: workArm.ex - 5, y: workArm.ey + 6.5, r: 7.2, midground: isSecondKBArm });
+    } else if (isBarbell) {
+      // Barbell Press / Thruster: high front-rack elbows extending to overhead barbell lockout
       const startUA = 0.16, startFA = -2.45;
       const endUA = -1.52, endFA = -1.52;
       const ua = this.lerp(startUA, endUA, armPunch);
@@ -653,46 +731,146 @@ function _computePose(poseType, timestamp) {
   }
 
   // ===========================================================================
-  // 10. STEPPING LUNGES (ALTERNATING L & R) vs. JUMPING LUNGES
+  // 10. LUNGES (STEP-FORWARD, STEP-BACK, BULGARIAN SPLIT SQUAT & JUMPING)
   // ===========================================================================
-  if (poseType === 'stepping_lunge' || poseType === 'jumping_lunge') {
+  if (
+    poseType === 'stepping_lunge' ||
+    poseType === 'step_back_lunge' ||
+    poseType === 'bulgarian_split_squat' ||
+    poseType === 'kb_bulgarian_split_squat' ||
+    poseType === 'db_bulgarian_split_squat' ||
+    poseType === 'bb_bulgarian_split_squat' ||
+    poseType === 'jumping_lunge'
+  ) {
     frame.floorY = 170;
 
-    if (poseType === 'stepping_lunge') {
+    const isBulgarian =
+      poseType === 'bulgarian_split_squat' ||
+      poseType === 'kb_bulgarian_split_squat' ||
+      poseType === 'db_bulgarian_split_squat' ||
+      poseType === 'bb_bulgarian_split_squat';
+
+    if (isBulgarian) {
+      const bssCycleMs = 3800;
+      const fullNorm = ((timestamp % bssCycleMs) + bssCycleMs) % bssCycleMs / bssCycleMs;
+      const isSecondLeg = fullNorm >= 0.5;
+      const repNorm = (fullNorm % 0.5) * 2;
+      const repP = 0.5 - 0.5 * Math.cos(repNorm * Math.PI * 2);
+
+      const boxY = 144;
+      frame.props.push({ type: 'plyo_box', x: 26, y: boxY, w: 30, h: 26 });
+      frame.props.push({ type: 'hud_badge', text: isSecondLeg ? 'LEFT LEG' : 'RIGHT LEG', second: isSecondLeg });
+      const frontAnkleX = 114, frontAnkleY = 166;
+      const rearToeX = 48, rearToeY = 141;
+
+      const hipX = this.lerp(95, 92, repP);
+      const hipY = this.lerp(108, 128, repP);
+      const spineAngle = this.lerp(-1.46, -1.36, repP);
+      frame.torso = this.torsoFromHip(hipX, hipY, spineAngle, 1, 0.08);
+      const { shoulderX, shoulderY } = frame.torso;
+
+      if (poseType === 'db_bulgarian_split_squat') {
+        const handX = hipX + 2;
+        const handY = shoulderY + 46;
+        const armBack = this.solveIK(shoulderX - 2, shoulderY, handX - 2, handY, L_UPPER_ARM, L_FOREARM, 1);
+        addLimb('armB', 'arm', shoulderX - 2, shoulderY, armBack.jx, armBack.jy, armBack.ex, armBack.ey, '#64748b', '#475569', 5, 'hand');
+        frame.props.push({ type: 'dumbbell_far', x: armBack.ex, y: armBack.ey });
+      }
+
+      const rearLeg = this.solveLegToePivot(hipX - 2, hipY, rearToeX, rearToeY, L_THIGH, L_SHIN, -1, 1);
+      const frontLeg = this.solveIK(hipX, hipY, frontAnkleX, frontAnkleY, L_THIGH, L_SHIN, -1);
+      const rearName = isSecondLeg ? 'legF' : 'legB';
+      const frontName = isSecondLeg ? 'legB' : 'legF';
+      addLimb(rearName, 'leg', hipX - 2, hipY, rearLeg.jx, rearLeg.jy, rearLeg.ex, rearLeg.ey, '#64748b', '#475569', isSecondLeg ? 6 : 5.4, 'foot', 1, 200);
+      addLimb(frontName, 'leg', hipX, hipY, frontLeg.jx, frontLeg.jy, frontLeg.ex, frontLeg.ey, '#bef264', '#94a3b8', isSecondLeg ? 5.4 : 6, 'foot', 1);
+
+      if (poseType === 'kb_bulgarian_split_squat') {
+        const handX = shoulderX + 13;
+        const handY = shoulderY + 12;
+        const arm = this.solveIK(shoulderX, shoulderY, handX, handY, L_UPPER_ARM, L_FOREARM, 1);
+        addLimb('arm', 'arm', shoulderX, shoulderY, arm.jx, arm.jy, arm.ex, arm.ey, '#38bdf8', '#38bdf8', 5.4, 'hand');
+        frame.props.push({ type: 'kettlebell', x: handX + 1, y: handY + 3, r: 7.2 });
+      } else if (poseType === 'db_bulgarian_split_squat') {
+        const handX = hipX + 2;
+        const handY = shoulderY + 46;
+        const armFront = this.solveIK(shoulderX, shoulderY, handX, handY, L_UPPER_ARM, L_FOREARM, 1);
+        addLimb('armF', 'arm', shoulderX, shoulderY, armFront.jx, armFront.jy, armFront.ex, armFront.ey, '#38bdf8', '#38bdf8', 5.4, 'hand');
+        frame.props.push({ type: 'dumbbell_near', x: armFront.ex, y: armFront.ey });
+      } else if (poseType === 'bb_bulgarian_split_squat') {
+        const handX = shoulderX + 11;
+        const handY = shoulderY + 5;
+        const arm = this.solveIK(shoulderX, shoulderY, handX, handY, L_UPPER_ARM, L_FOREARM, 1);
+        addLimb('arm', 'arm', shoulderX, shoulderY, arm.jx, arm.jy, arm.ex, arm.ey, '#38bdf8', '#38bdf8', 5.4, 'hand');
+        frame.props.push({ type: 'barbell_end', x: shoulderX + 7, y: shoulderY + 2, r: 9.5 });
+      } else {
+        const handX = this.lerp(shoulderX + 6, shoulderX + 24, repP);
+        const handY = this.lerp(shoulderY + 43, shoulderY + 18, repP);
+        const arm = this.solveIK(shoulderX, shoulderY, handX, handY, L_UPPER_ARM, L_FOREARM, 1);
+        addLimb('arm', 'arm', shoulderX, shoulderY, arm.jx, arm.jy, arm.ex, arm.ey, '#38bdf8', '#38bdf8', 5.2, 'hand');
+      }
+      return frame;
+    }
+
+    if (poseType === 'stepping_lunge' || poseType === 'step_back_lunge') {
       const lungeCycleMs = 3800;
       const fullNorm = ((timestamp % lungeCycleMs) + lungeCycleMs) % lungeCycleMs / lungeCycleMs;
       const isSecondLeg = fullNorm >= 0.5;
       const repNorm = (fullNorm % 0.5) * 2;
+      const isStepBack = poseType === 'step_back_lunge';
 
-      const lungeKF = [
-        // 0: Stand tall, feet together at x=75
-        { hx: 75, hy: 104, spine: -1.54, fax: 76, fay: 166, rax: 74, ray: 166 },
-        // 1: Stepping foot lifts & strides forward cleanly over floor
-        { hx: 86, hy: 106, spine: -1.52, fax: 106, fay: 146, rax: 74, ray: 166 },
-        // 2: Stepping foot plants flat at x=128
-        { hx: 98, hy: 112, spine: -1.50, fax: 128, fay: 166, rax: 74, ray: 166 },
-        // 3: Deep 90/90 lunge bottom (back knee kisses floor at y=160, front knee at 90°)
-        { hx: 101, hy: 133, spine: -1.52, fax: 128, fay: 166, rax: 74, ray: 164 },
-        // 4: Drive up through front heel
-        { hx: 96, hy: 112, spine: -1.50, fax: 128, fay: 166, rax: 74, ray: 166 },
-        // 5: Step back together to standing
-        { hx: 82, hy: 106, spine: -1.53, fax: 96, fay: 150, rax: 74, ray: 166 }
-      ];
+      const lungeKF = isStepBack
+        ? [
+          // 0: Stand tall, feet together at x=125
+          { hx: 124, hy: 104, spine: -1.54, fax: 126, fay: 166, rax: 124, ray: 166, toeLock: 0 },
+          // 1: Trailing foot steps backward over floor
+          { hx: 112, hy: 108, spine: -1.52, fax: 126, fay: 166, rax: 96, ray: 152, toeLock: 0.4 },
+          // 2: Ball/toe of back foot touches down at x=74
+          { hx: 101, hy: 114, spine: -1.50, fax: 126, fay: 166, rax: 74, ray: 158, toeLock: 1 },
+          // 3: Deep 90/90 lunge bottom pivoting on stationary rear toe
+          { hx: 101, hy: 133, spine: -1.52, fax: 126, fay: 166, rax: 74, ray: 158, toeLock: 1 },
+          // 4: Drive up through lead heel
+          { hx: 106, hy: 112, spine: -1.50, fax: 126, fay: 166, rax: 84, ray: 154, toeLock: 0.3 },
+          // 5: Recover back leg forward to standing
+          { hx: 118, hy: 106, spine: -1.53, fax: 126, fay: 166, rax: 112, ray: 154, toeLock: 0 }
+        ]
+        : [
+          // 0: Stand tall, feet together at x=75
+          { hx: 75, hy: 104, spine: -1.54, fax: 76, fay: 166, rax: 74, ray: 166, toeLock: 0 },
+          // 1: Stepping foot lifts & strides forward cleanly over floor
+          { hx: 86, hy: 106, spine: -1.52, fax: 106, fay: 146, rax: 74, ray: 158, toeLock: 0.5 },
+          // 2: Stepping foot plants flat at x=128 while trailing toe anchors at x=74
+          { hx: 98, hy: 112, spine: -1.50, fax: 128, fay: 166, rax: 74, ray: 158, toeLock: 1 },
+          // 3: Deep 90/90 lunge bottom pivoting on trailing toe
+          { hx: 101, hy: 133, spine: -1.52, fax: 128, fay: 166, rax: 74, ray: 158, toeLock: 1 },
+          // 4: Drive up through front heel
+          { hx: 96, hy: 112, spine: -1.50, fax: 128, fay: 166, rax: 74, ray: 160, toeLock: 0.8 },
+          // 5: Step back together to standing
+          { hx: 82, hy: 106, spine: -1.53, fax: 96, fay: 150, rax: 74, ray: 166, toeLock: 0 }
+        ];
       const st = this.sampleKeyframes(lungeKF, repNorm);
       frame.torso = this.torsoFromHip(st.hx, st.hy, st.spine, 1, 0);
       const { shoulderX, shoulderY } = frame.torso;
 
       frame.props.push({ type: 'hud_badge', text: isSecondLeg ? 'LEFT LEAD' : 'RIGHT LEAD', second: isSecondLeg });
 
+      let targetRax = st.rax;
+      let targetRay = st.ray;
+      if (st.toeLock > 0.01) {
+        const pivotLeg = this.solveLegToePivot(st.hx, st.hy, 74, 167, L_THIGH, L_SHIN, -1, 1);
+        targetRax = this.lerp(st.rax, pivotLeg.ex, st.toeLock);
+        targetRay = this.lerp(st.ray, pivotLeg.ey, st.toeLock);
+      }
+
       const stepLeg = this.solveIK(st.hx, st.hy, st.fax, st.fay, L_THIGH, L_SHIN, -1);
-      const anchorLeg = this.solveIK(st.hx, st.hy, st.rax, st.ray, L_THIGH, L_SHIN, -1);
+      const anchorLeg = this.solveIK(st.hx, st.hy, targetRax, targetRay, L_THIGH, L_SHIN, -1);
+      const rearSurf = st.toeLock > 0.05 ? this.lerp(frame.floorY, 200, Math.min(1, st.toeLock)) : null;
 
       if (!isSecondLeg) {
-        addLimb('legB', 'leg', st.hx, st.hy, anchorLeg.jx, anchorLeg.jy, anchorLeg.ex, anchorLeg.ey, '#38bdf8', '#38bdf8', 5.5, 'foot', 1);
+        addLimb('legB', 'leg', st.hx, st.hy, anchorLeg.jx, anchorLeg.jy, anchorLeg.ex, anchorLeg.ey, '#38bdf8', '#38bdf8', 5.5, 'foot', 1, rearSurf);
         addLimb('legF', 'leg', st.hx, st.hy, stepLeg.jx, stepLeg.jy, stepLeg.ex, stepLeg.ey, '#bef264', '#94a3b8', 6, 'foot', 1);
       } else {
         addLimb('legB', 'leg', st.hx, st.hy, stepLeg.jx, stepLeg.jy, stepLeg.ex, stepLeg.ey, '#38bdf8', '#38bdf8', 5.8, 'foot', 1);
-        addLimb('legF', 'leg', st.hx, st.hy, anchorLeg.jx, anchorLeg.jy, anchorLeg.ex, anchorLeg.ey, '#bef264', '#94a3b8', 6, 'foot', 1);
+        addLimb('legF', 'leg', st.hx, st.hy, anchorLeg.jx, anchorLeg.jy, anchorLeg.ex, anchorLeg.ey, '#bef264', '#94a3b8', 6, 'foot', 1, rearSurf);
       }
 
       const lungeDepth = Math.max(0, (st.hy - 104) / 30);
@@ -706,6 +884,7 @@ function _computePose(poseType, timestamp) {
       const norm = ((timestamp % jlPeriod) + jlPeriod) % jlPeriod / jlPeriod;
       const isRep2 = norm >= 0.50;
       const u = isRep2 ? (norm - 0.50) / 0.50 : norm / 0.50;
+      frame.props.push({ type: 'hud_badge', text: isRep2 ? 'LEFT LEAD' : 'RIGHT LEAD', second: isRep2 });
 
       let hx = 96, hy, ax1, ay1, ax2, ay2, armUA, armFA;
       const posFrontX = 120, posBackX = 72;
@@ -832,21 +1011,18 @@ function _computePose(poseType, timestamp) {
     const breath = Math.sin(theta * 2) * 0.5;
 
     if (poseType === 'plank') {
-      const plankAngle = -0.16;
+      const plankAngle = -0.14;
       const shoulderX = 142, shoulderY = 139 + breath * 0.5;
       const hipX = shoulderX - Math.cos(plankAngle) * L_TORSO;
       const hipY = shoulderY - Math.sin(plankAngle) * L_TORSO;
 
       frame.torso = this.torsoFromHip(hipX, hipY, plankAngle, 1, 0);
 
-      const legLen = 62.5;
-      const ankleX = hipX - Math.cos(plankAngle) * legLen;
-      const ankleY = hipY - Math.sin(plankAngle) * legLen;
-
-      const legBack = this.solveIK(hipX - 2, hipY, ankleX - 2, ankleY, L_THIGH, L_SHIN, -1);
-      const legFront = this.solveIK(hipX, hipY, ankleX, ankleY, L_THIGH, L_SHIN, -1);
-      addLimb('legB', 'leg', hipX - 2, hipY, legBack.jx, legBack.jy, legBack.ex, legBack.ey, '#64748b', '#475569', 5.4, 'foot', 1);
-      addLimb('legF', 'leg', hipX, hipY, legFront.jx, legFront.jy, legFront.ex, legFront.ey, '#bef264', '#94a3b8', 6, 'foot', 1);
+      const toeX = 34.5, toeY = 165;
+      const legBack = this.solveLegToePivot(hipX - 2, hipY, toeX - 2, toeY, L_THIGH, L_SHIN, -1, 1);
+      const legFront = this.solveLegToePivot(hipX, hipY, toeX, toeY, L_THIGH, L_SHIN, -1, 1);
+      addLimb('legB', 'leg', hipX - 2, hipY, legBack.jx, legBack.jy, legBack.ex, legBack.ey, '#64748b', '#475569', 5.4, 'foot', 1, 200);
+      addLimb('legF', 'leg', hipX, hipY, legFront.jx, legFront.jy, legFront.ex, legFront.ey, '#bef264', '#94a3b8', 6, 'foot', 1, 200);
 
       // Grounded forearms parallel to mat (exact segment lengths)
       const elbowX = shoulderX, elbowY = shoulderY + L_UPPER_ARM;
@@ -880,21 +1056,18 @@ function _computePose(poseType, timestamp) {
     }
 
     if (poseType === 'straight_arm_plank') {
-      const plankAngle = -0.42;
-      const shoulderX = 140, shoulderY = 115 + breath * 0.4;
+      const plankAngle = -0.35;
+      const shoulderX = 140, shoulderY = 117 + breath * 0.4;
       const hipX = shoulderX - Math.cos(plankAngle) * L_TORSO;
       const hipY = shoulderY - Math.sin(plankAngle) * L_TORSO;
 
       frame.torso = this.torsoFromHip(hipX, hipY, plankAngle, 1, 0);
 
-      const legLen = 62.5;
-      const ankleX = hipX - Math.cos(plankAngle) * legLen;
-      const ankleY = hipY - Math.sin(plankAngle) * legLen;
-
-      const legBack = this.solveIK(hipX - 2, hipY, ankleX - 2, ankleY, L_THIGH, L_SHIN, -1);
-      const legFront = this.solveIK(hipX, hipY, ankleX, ankleY, L_THIGH, L_SHIN, -1);
-      addLimb('legB', 'leg', hipX - 2, hipY, legBack.jx, legBack.jy, legBack.ex, legBack.ey, '#64748b', '#475569', 5.4, 'foot', 1);
-      addLimb('legF', 'leg', hipX, hipY, legFront.jx, legFront.jy, legFront.ex, legFront.ey, '#bef264', '#94a3b8', 6, 'foot', 1);
+      const toeX = 41, toeY = 165;
+      const legBack = this.solveLegToePivot(hipX - 2, hipY, toeX - 2, toeY, L_THIGH, L_SHIN, -1, 1);
+      const legFront = this.solveLegToePivot(hipX, hipY, toeX, toeY, L_THIGH, L_SHIN, -1, 1);
+      addLimb('legB', 'leg', hipX - 2, hipY, legBack.jx, legBack.jy, legBack.ex, legBack.ey, '#64748b', '#475569', 5.4, 'foot', 1, 200);
+      addLimb('legF', 'leg', hipX, hipY, legFront.jx, legFront.jy, legFront.ex, legFront.ey, '#bef264', '#94a3b8', 6, 'foot', 1, 200);
 
       // Straight locked arms down to deck (exact segment lengths)
       const elbowX = shoulderX, elbowY = shoulderY + L_UPPER_ARM;
@@ -906,6 +1079,9 @@ function _computePose(poseType, timestamp) {
 
     if (poseType === 'side_plank') {
       frame.view = 'front';
+      const isSecondSide = normT >= 0.5;
+      frame.props.push({ type: 'hud_badge', text: isSecondSide ? 'RIGHT SIDE' : 'LEFT SIDE', second: isSecondSide });
+
       const elbowX = 55, elbowY = 164;
       const handX = elbowX + L_FOREARM, handY = elbowY;
       const leftSX = elbowX, leftSY = elbowY - L_UPPER_ARM;
@@ -938,12 +1114,12 @@ function _computePose(poseType, timestamp) {
       };
 
       // Supporting bottom arm grounded on deck
-      addLimb('armB', 'arm', leftSX, leftSY, elbowX, elbowY, handX, handY, '#64748b', '#475569', 5.0, 'hand');
+      addLimb(isSecondSide ? 'armF' : 'armB', 'arm', leftSX, leftSY, elbowX, elbowY, handX, handY, '#64748b', '#475569', isSecondSide ? 5.2 : 5.0, 'hand');
       // Bottom & top stacked legs
-      addLimb('legB', 'leg', leftHX, leftHY, legB.jx, legB.jy, legB.ex, legB.ey, '#64748b', '#475569', 5.4, 'foot_front');
-      addLimb('legF', 'leg', rightHX, rightHY, legF.jx, legF.jy, legF.ex, legF.ey, '#bef264', '#94a3b8', 6.0, 'foot_front');
+      addLimb(isSecondSide ? 'legF' : 'legB', 'leg', leftHX, leftHY, legB.jx, legB.jy, legB.ex, legB.ey, '#64748b', '#475569', isSecondSide ? 6.0 : 5.4, 'foot_front');
+      addLimb(isSecondSide ? 'legB' : 'legF', 'leg', rightHX, rightHY, legF.jx, legF.jy, legF.ex, legF.ey, '#bef264', '#94a3b8', isSecondSide ? 5.4 : 6.0, 'foot_front');
       // Top arm extended straight up to the ceiling
-      addLimb('armF', 'arm', rightSX, rightSY, topElbowX, topElbowY, topHandX, topHandY, '#38bdf8', '#38bdf8', 5.2, 'hand');
+      addLimb(isSecondSide ? 'armB' : 'armF', 'arm', rightSX, rightSY, topElbowX, topElbowY, topHandX, topHandY, '#38bdf8', '#38bdf8', isSecondSide ? 5.0 : 5.2, 'hand');
       return frame;
     }
 
@@ -971,82 +1147,227 @@ function _computePose(poseType, timestamp) {
   }
 
   // ===========================================================================
-  // 12. KETTLEBELL SWINGS, KB SNATCH, KB DEADLIFT, DEADLIFTS, DB BENT-OVER ROWS,
-  //     HANG POWER CLEANS & SQUAT SNATCH
+  // 12. KETTLEBELL / DUMBBELL / BARBELL HINGE, RDL, ROWS, CLEANS & SNATCH
   // ===========================================================================
   if (
     poseType === 'kb_swing' ||
     poseType === 'kb_snatch' ||
+    poseType === 'db_snatch' ||
     poseType === 'kb_deadlift' ||
+    poseType === 'db_deadlift' ||
     poseType === 'deadlift_row' ||
+    poseType === 'rfe_rdl' ||
+    poseType === 'kb_rfe_rdl' ||
+    poseType === 'db_rfe_rdl' ||
+    poseType === 'bb_rfe_rdl' ||
+    poseType === 'kb_rdl' ||
+    poseType === 'db_rdl' ||
+    poseType === 'bb_rdl' ||
+    poseType === 'kb_bent_row' ||
     poseType === 'db_bent_row' ||
+    poseType === 'bb_bent_row' ||
+    poseType === 'kb_hang_power_clean' ||
+    poseType === 'db_hang_power_clean' ||
     poseType === 'hang_power_clean' ||
     poseType === 'clean_snatch'
   ) {
     frame.floorY = 170;
     const ankleX = 92, ankleY = 166;
 
-    if (poseType === 'db_bent_row') {
+    if (poseType === 'rfe_rdl' || poseType === 'kb_rfe_rdl' || poseType === 'db_rfe_rdl' || poseType === 'bb_rfe_rdl') {
+      const rfeCycleMs = 3800;
+      const fullNorm = ((timestamp % rfeCycleMs) + rfeCycleMs) % rfeCycleMs / rfeCycleMs;
+      const isSecondLeg = fullNorm >= 0.5;
+      const repNorm = (fullNorm % 0.5) * 2;
+      const repP = 0.5 - 0.5 * Math.cos(repNorm * Math.PI * 2);
+
+      frame.props.push({ type: 'plyo_box', x: 26, y: 146, w: 30, h: 24 });
+      frame.props.push({ type: 'hud_badge', text: isSecondLeg ? 'LEFT LEG' : 'RIGHT LEG', second: isSecondLeg });
+      const frontAnkleX = 106, frontAnkleY = 166;
+      const rearToeX = 48, rearToeY = 143;
+
+      const hipX = this.lerp(94, 86, repP);
+      const hipY = this.lerp(108, 112, repP);
+      const spineAngle = this.lerp(-1.52, -0.22, repP);
+      frame.torso = this.torsoFromHip(hipX, hipY, spineAngle, 1, 0.12 * repP);
+      const { shoulderX, shoulderY } = frame.torso;
+
+      const rearLeg = this.solveLegToePivot(hipX - 2, hipY, rearToeX, rearToeY, L_THIGH, L_SHIN, -1, 1);
+      const frontLeg = this.solveIK(hipX, hipY, frontAnkleX, frontAnkleY, L_THIGH, L_SHIN, -1);
+      const rearName = isSecondLeg ? 'legF' : 'legB';
+      const frontName = isSecondLeg ? 'legB' : 'legF';
+      addLimb(rearName, 'leg', hipX - 2, hipY, rearLeg.jx, rearLeg.jy, rearLeg.ex, rearLeg.ey, '#64748b', '#475569', isSecondLeg ? 6 : 5.4, 'foot', 1, 200);
+      addLimb(frontName, 'leg', hipX, hipY, frontLeg.jx, frontLeg.jy, frontLeg.ex, frontLeg.ey, '#bef264', '#94a3b8', isSecondLeg ? 5.4 : 6, 'foot', 1);
+
+      const handX = shoulderX - 4 * repP;
+      const handY = shoulderY + 47;
+      if (poseType === 'db_rfe_rdl') {
+        const armBack = this.solveIK(shoulderX - 2, shoulderY, handX - 2, handY, L_UPPER_ARM, L_FOREARM, 1);
+        const armFront = this.solveIK(shoulderX, shoulderY, handX, handY, L_UPPER_ARM, L_FOREARM, 1);
+        addLimb('armB', 'arm', shoulderX - 2, shoulderY, armBack.jx, armBack.jy, armBack.ex, armBack.ey, '#64748b', '#475569', 5, 'hand');
+        frame.props.push({ type: 'dumbbell_far', x: armBack.ex, y: armBack.ey });
+        addLimb('armF', 'arm', shoulderX, shoulderY, armFront.jx, armFront.jy, armFront.ex, armFront.ey, '#38bdf8', '#38bdf8', 5.4, 'hand');
+        frame.props.push({ type: 'dumbbell_near', x: armFront.ex, y: armFront.ey });
+      } else {
+        const arm = this.solveIK(shoulderX, shoulderY, handX, handY, L_UPPER_ARM, L_FOREARM, 1);
+        const armName = (poseType === 'kb_rfe_rdl' && isSecondLeg) ? 'armB' : 'arm';
+        addLimb(armName, 'arm', shoulderX, shoulderY, arm.jx, arm.jy, arm.ex, arm.ey, '#38bdf8', '#38bdf8', 5.4, 'hand');
+        if (poseType === 'kb_rfe_rdl') {
+          frame.props.push({ type: 'kettlebell', x: arm.ex, y: arm.ey + 7.5, r: 7.5, midground: isSecondLeg });
+        } else if (poseType === 'bb_rfe_rdl') {
+          frame.props.push({ type: 'barbell_end', x: arm.ex, y: arm.ey, r: 9.5 });
+        }
+      }
+      return frame;
+    }
+
+    if (poseType === 'kb_rdl' || poseType === 'db_rdl' || poseType === 'bb_rdl') {
+      const hipX = this.lerp(90, 72, p);
+      const hipY = this.lerp(105, 113, p);
+      const spineAngle = this.lerp(-1.53, -0.24, p);
+      frame.torso = this.torsoFromHip(hipX, hipY, spineAngle, 1, 0.14 * p);
+      const { shoulderX, shoulderY } = frame.torso;
+
+      const legBack = this.solveIK(hipX - 3, hipY, ankleX - 3, ankleY, L_THIGH, L_SHIN, -1);
+      const legFront = this.solveIK(hipX, hipY, ankleX, ankleY, L_THIGH, L_SHIN, -1);
+      addLimb('legB', 'leg', hipX - 3, hipY, legBack.jx, legBack.jy, legBack.ex, legBack.ey, '#64748b', '#475569', 5.4, 'foot', 1);
+      addLimb('legF', 'leg', hipX, hipY, legFront.jx, legFront.jy, legFront.ex, legFront.ey, '#bef264', '#94a3b8', 6, 'foot', 1);
+
+      const handX = this.lerp(shoulderX + 2, shoulderX - 10, p);
+      const handY = shoulderY + 47;
+
+      if (poseType === 'db_rdl') {
+        const armBack = this.solveIK(shoulderX - 2, shoulderY, handX - 2, handY, L_UPPER_ARM, L_FOREARM, 1);
+        const armFront = this.solveIK(shoulderX, shoulderY, handX, handY, L_UPPER_ARM, L_FOREARM, 1);
+        addLimb('armB', 'arm', shoulderX - 2, shoulderY, armBack.jx, armBack.jy, armBack.ex, armBack.ey, '#64748b', '#475569', 5, 'hand');
+        frame.props.push({ type: 'dumbbell_far', x: armBack.ex, y: armBack.ey });
+        addLimb('armF', 'arm', shoulderX, shoulderY, armFront.jx, armFront.jy, armFront.ex, armFront.ey, '#38bdf8', '#38bdf8', 5.4, 'hand');
+        frame.props.push({ type: 'dumbbell_near', x: armFront.ex, y: armFront.ey });
+      } else {
+        const arm = this.solveIK(shoulderX, shoulderY, handX, handY, L_UPPER_ARM, L_FOREARM, 1);
+        addLimb('arm', 'arm', shoulderX, shoulderY, arm.jx, arm.jy, arm.ex, arm.ey, '#38bdf8', '#38bdf8', 5.4, 'hand');
+        if (poseType === 'kb_rdl') {
+          frame.props.push({ type: 'kettlebell', x: arm.ex, y: arm.ey + 7.5, r: 7.5 });
+        } else {
+          frame.props.push({ type: 'barbell_end', x: arm.ex, y: arm.ey, r: 9.5 });
+        }
+      }
+      return frame;
+    }
+
+    if (poseType === 'db_bent_row' || poseType === 'kb_bent_row' || poseType === 'bb_bent_row') {
       const hipX = 72, hipY = 114;
       const spineAngle = -0.52; // Fixed flat-back hinge
       frame.torso = this.torsoFromHip(hipX, hipY, spineAngle, 1, 0.15);
       const { shoulderX, shoulderY } = frame.torso;
 
-      const farPull = 0.5 + 0.5 * Math.cos(theta);
-      const farHandX = this.lerp(shoulderX + 2, hipX + 10, farPull);
-      const farHandY = this.lerp(shoulderY + 45, hipY + 2, farPull);
-      const farArm = this.solveIK(shoulderX, shoulderY, farHandX, farHandY, L_UPPER_ARM, L_FOREARM, 1);
-
       const legBack = this.solveIK(hipX - 3, hipY, ankleX - 3, ankleY, L_THIGH, L_SHIN, -1);
       const legFront = this.solveIK(hipX, hipY, ankleX, ankleY, L_THIGH, L_SHIN, -1);
 
-      const nearHandX = this.lerp(shoulderX + 4, hipX + 12, p);
-      const nearHandY = this.lerp(shoulderY + 46, hipY + 4, p);
-      const nearArm = this.solveIK(shoulderX, shoulderY, nearHandX, nearHandY, L_UPPER_ARM, L_FOREARM, 1);
+      if (poseType === 'db_bent_row') {
+        frame.props.push({ type: 'hud_badge', text: p >= 0.5 ? 'RIGHT ARM' : 'LEFT ARM', second: p < 0.5 });
+        const farPull = 0.5 + 0.5 * Math.cos(theta);
+        const farHandX = this.lerp(shoulderX + 2, hipX + 10, farPull);
+        const farHandY = this.lerp(shoulderY + 45, hipY + 2, farPull);
+        const farArm = this.solveIK(shoulderX, shoulderY, farHandX, farHandY, L_UPPER_ARM, L_FOREARM, 1);
 
-      addLimb('armB', 'arm', shoulderX, shoulderY, farArm.jx, farArm.jy, farArm.ex, farArm.ey, '#64748b', '#475569', 5, 'hand');
-      frame.props.push({ type: 'dumbbell_far', x: farArm.ex, y: farArm.ey });
-      addLimb('legB', 'leg', hipX - 3, hipY, legBack.jx, legBack.jy, legBack.ex, legBack.ey, '#64748b', '#475569', 5.4, 'foot', 1);
-      addLimb('legF', 'leg', hipX, hipY, legFront.jx, legFront.jy, legFront.ex, legFront.ey, '#bef264', '#94a3b8', 6, 'foot', 1);
-      addLimb('armF', 'arm', shoulderX, shoulderY, nearArm.jx, nearArm.jy, nearArm.ex, nearArm.ey, '#38bdf8', '#38bdf8', 5.5, 'hand');
-      frame.props.push({ type: 'dumbbell_near', x: nearArm.ex, y: nearArm.ey });
-    } else if (poseType === 'hang_power_clean' || poseType === 'clean_snatch') {
-      const isHangClean = poseType === 'hang_power_clean';
+        const nearHandX = this.lerp(shoulderX + 4, hipX + 12, p);
+        const nearHandY = this.lerp(shoulderY + 46, hipY + 4, p);
+        const nearArm = this.solveIK(shoulderX, shoulderY, nearHandX, nearHandY, L_UPPER_ARM, L_FOREARM, 1);
+
+        addLimb('armB', 'arm', shoulderX, shoulderY, farArm.jx, farArm.jy, farArm.ex, farArm.ey, '#64748b', '#475569', 5, 'hand');
+        frame.props.push({ type: 'dumbbell_far', x: farArm.ex, y: farArm.ey });
+        addLimb('legB', 'leg', hipX - 3, hipY, legBack.jx, legBack.jy, legBack.ex, legBack.ey, '#64748b', '#475569', 5.4, 'foot', 1);
+        addLimb('legF', 'leg', hipX, hipY, legFront.jx, legFront.jy, legFront.ex, legFront.ey, '#bef264', '#94a3b8', 6, 'foot', 1);
+        addLimb('armF', 'arm', shoulderX, shoulderY, nearArm.jx, nearArm.jy, nearArm.ex, nearArm.ey, '#38bdf8', '#38bdf8', 5.5, 'hand');
+        frame.props.push({ type: 'dumbbell_near', x: nearArm.ex, y: nearArm.ey });
+      } else {
+        addLimb('legB', 'leg', hipX - 3, hipY, legBack.jx, legBack.jy, legBack.ex, legBack.ey, '#64748b', '#475569', 5.4, 'foot', 1);
+        addLimb('legF', 'leg', hipX, hipY, legFront.jx, legFront.jy, legFront.ex, legFront.ey, '#bef264', '#94a3b8', 6, 'foot', 1);
+
+        if (poseType === 'kb_bent_row') {
+          const kbCycleMs = 3800;
+          const fullNorm = ((timestamp % kbCycleMs) + kbCycleMs) % kbCycleMs / kbCycleMs;
+          const isSecondRowArm = fullNorm >= 0.5;
+          const repNorm = (fullNorm % 0.5) * 2;
+          const repP = 0.5 - 0.5 * Math.cos(repNorm * Math.PI * 2);
+          frame.props.push({ type: 'hud_badge', text: isSecondRowArm ? 'LEFT ARM' : 'RIGHT ARM', second: isSecondRowArm });
+
+          const handX = this.lerp(shoulderX + 3, hipX + 12, repP);
+          const handY = this.lerp(shoulderY + 46, hipY + 4, repP);
+          const rowArm = this.solveIK(shoulderX, shoulderY, handX, handY, L_UPPER_ARM, L_FOREARM, 1);
+          const braceArm = this.solveFK(shoulderX - 2, shoulderY, 1.38, 1.32, L_UPPER_ARM, L_FOREARM);
+          addLimb(isSecondRowArm ? 'armF' : 'armB', 'arm', shoulderX - 2, shoulderY, braceArm.jx, braceArm.jy, braceArm.ex, braceArm.ey, '#64748b', '#475569', isSecondRowArm ? 5.5 : 5, 'hand');
+          addLimb(isSecondRowArm ? 'armB' : 'armF', 'arm', shoulderX, shoulderY, rowArm.jx, rowArm.jy, rowArm.ex, rowArm.ey, '#38bdf8', '#38bdf8', isSecondRowArm ? 5 : 5.5, 'hand');
+          frame.props.push({ type: 'kettlebell', x: rowArm.ex, y: rowArm.ey + 7.5, r: 7.5, midground: isSecondRowArm });
+        } else {
+          const handX = this.lerp(shoulderX + 3, hipX + 12, p);
+          const handY = this.lerp(shoulderY + 46, hipY + 4, p);
+          const rowArm = this.solveIK(shoulderX, shoulderY, handX, handY, L_UPPER_ARM, L_FOREARM, 1);
+          addLimb('arm', 'arm', shoulderX, shoulderY, rowArm.jx, rowArm.jy, rowArm.ex, rowArm.ey, '#38bdf8', '#38bdf8', 5.5, 'hand');
+          frame.props.push({ type: 'barbell_end', x: rowArm.ex, y: rowArm.ey, r: 9 });
+        }
+      }
+    } else if (poseType === 'hang_power_clean' || poseType === 'db_hang_power_clean' || poseType === 'kb_hang_power_clean' || poseType === 'clean_snatch') {
+      const isBarbellHangClean = poseType === 'hang_power_clean';
+      const isHangClean = poseType !== 'clean_snatch';
       // Keep ua and fa on the same anatomical branch throughout (no 2*PI wrap-around spin!):
-      // - Hang Power Clean: straight arms at knee (ua=1.54, fa=1.58) -> triple extension & upright pull
-      //   with elbows pulling back/up (ua=1.75, fa=0.85) -> fast elbow whip forward under the bar into
-      //   Quarter-Squat Front Rack catch (ua=0.35, fa=-1.62) -> stand tall in Front Rack (ua=0.42, fa=-1.55).
+      // - Barbell Hang Power Clean: straight arms at knee (ua=1.54, fa=1.58) -> triple extension & high pull
+      //   along torso (ua=0.92, fa=2.38) -> rapid elbow whip forward into Quarter-Squat Front-Squat Rack catch
+      //   matching bb_front_squat (ua=0.08, fa=3.433 === -2.85 + 2*PI) -> stand tall in Front-Squat Rack.
+      // - DB/KB Hang Power Clean: elbow whip under load into neutral dumbbell/kettlebell front rack (ua=0.35, fa=-1.62).
       // - Squat Snatch: setup from shin (ua=1.52, fa=1.55) -> explosive triple extension & Snatch High Pull
-      //   with elbows high above the bar (ua=-0.35, fa=0.95) -> rapid turnover into deep Overhead Squat catch
-      //   with locked-out overhead arms (ua=-1.50, fa=-1.50) -> stand tall to full Snatch Lockout (ua=-1.55, fa=-1.55).
-      const olyKF = isHangClean
+      //   with elbows high above the bar (ua=-0.35, fa=0.95) -> rapid turnover into deep Overhead Squat catch.
+      const olyKF = isBarbellHangClean
         ? [
-          // 0: Hang setup at top of knee (hips hinged back, straight arms holding bar at knee height)
-          { hx: 72, hy: 116, spine: -0.72, ua: 1.54, fa: 1.58 },
-          // 1: Violent triple extension & shrug / upright pull along thighs
-          { hx: 95, hy: 102, spine: -1.55, ua: 1.75, fa: 0.85 },
-          // 2: Whip elbows forward under bar into Quarter-Squat Front Rack Catch!
-          { hx: 82, hy: 122, spine: -1.38, ua: 0.35, fa: -1.62 },
-          // 3: Stand Tall with High Front-Rack Elbows
-          { hx: 94, hy: 104, spine: -1.54, ua: 0.42, fa: -1.55 },
-          // 4: Return bar controlled to hang position
-          { hx: 84, hy: 110, spine: -1.12, ua: 1.18, fa: 0.82 }
+          // 0: Hang setup at top of knee (hips hinged back, straight arms holding barbell at knee height)
+          { hx: 72, hy: 116, spine: -0.72, ua: 1.54, fa: 1.58, rack: 0 },
+          // 1: Violent triple extension & high pull along torso (elbows drive up/out, bar stays close)
+          { hx: 95, hy: 102, spine: -1.55, ua: 0.92, fa: 2.38, rack: 0.2 },
+          // 2: Whip elbows forward under bar into Quarter-Squat Front-Squat Rack Catch (same hand/elbow as bb_front_squat)
+          { hx: 82, hy: 122, spine: -1.38, ua: 0.08, fa: 3.433, rack: 1 },
+          // 3: Stand Tall in Front-Squat Rack
+          { hx: 94, hy: 104, spine: -1.54, ua: 0.08, fa: 3.433, rack: 1 },
+          // 4: Controlled return along torso toward hang
+          { hx: 84, hy: 110, spine: -1.12, ua: 0.98, fa: 2.32, rack: 0.15 }
         ]
-        : [
-          // 0: Snatch setup from mid-shin (deep hip hinge, straight arms down to bar)
-          { hx: 68, hy: 122, spine: -0.62, ua: 1.52, fa: 1.55 },
-          // 1: Explosive triple extension + Snatch High Pull (hips tall, elbows pull high above bar!)
-          { hx: 95, hy: 102, spine: -1.56, ua: -0.35, fa: 0.95 },
-          // 2: Rapid turnover & drop under into deep Overhead Squat Catch (arms locked overhead!)
-          { hx: 70, hy: 139, spine: -1.24, ua: -1.50, fa: -1.50 },
-          // 3: Stabilize bottom of Overhead Squat briefly
-          { hx: 72, hy: 136, spine: -1.26, ua: -1.50, fa: -1.50 },
-          // 4: Stand tall from Overhead Squat to full Snatch Lockout
-          { hx: 94, hy: 104, spine: -1.55, ua: -1.55, fa: -1.55 },
-          // 5: Controlled return toward hang
-          { hx: 82, hy: 112, spine: -1.08, ua: 0.55, fa: 0.85 }
-        ];
-      const st = this.sampleKeyframes(olyKF, normT);
+        : isHangClean
+          ? [
+            // 0: Hang setup at top of knee (hips hinged back, straight arms holding load at knee height)
+            { hx: 72, hy: 116, spine: -0.72, ua: 1.54, fa: 1.58 },
+            // 1: Violent triple extension & shrug / upright pull along thighs
+            { hx: 95, hy: 102, spine: -1.55, ua: 1.75, fa: 0.85 },
+            // 2: Whip elbows forward under load into Quarter-Squat Front Rack Catch!
+            { hx: 82, hy: 122, spine: -1.38, ua: 0.35, fa: -1.62 },
+            // 3: Stand Tall with High Front-Rack Elbows
+            { hx: 94, hy: 104, spine: -1.54, ua: 0.42, fa: -1.55 },
+            // 4: Return load controlled to hang position
+            { hx: 84, hy: 110, spine: -1.12, ua: 1.18, fa: 0.82 }
+          ]
+          : [
+            // 0: Snatch setup from mid-shin (deep hip hinge, straight arms down to bar)
+            { hx: 68, hy: 122, spine: -0.62, ua: 1.52, fa: 1.55 },
+            // 1: Explosive triple extension + Snatch High Pull (hips tall, elbows pull high above bar!)
+            { hx: 95, hy: 102, spine: -1.56, ua: -0.35, fa: 0.95 },
+            // 2: Rapid turnover & drop under into deep Overhead Squat Catch (arms locked overhead!)
+            { hx: 70, hy: 139, spine: -1.24, ua: -1.50, fa: -1.50 },
+            // 3: Stabilize bottom of Overhead Squat briefly
+            { hx: 72, hy: 136, spine: -1.26, ua: -1.50, fa: -1.50 },
+            // 4: Stand tall from Overhead Squat to full Snatch Lockout
+            { hx: 94, hy: 104, spine: -1.55, ua: -1.55, fa: -1.55 },
+            // 5: Controlled return toward hang
+            { hx: 82, hy: 112, spine: -1.08, ua: 0.55, fa: 0.85 }
+          ];
+      let sampleOlyNorm = normT;
+      let isSecondCleanArm = false;
+      if (poseType === 'kb_hang_power_clean') {
+        const kbCycleMs = 3800;
+        const fullNorm = ((timestamp % kbCycleMs) + kbCycleMs) % kbCycleMs / kbCycleMs;
+        isSecondCleanArm = fullNorm >= 0.5;
+        sampleOlyNorm = (fullNorm % 0.5) * 2;
+        frame.props.push({ type: 'hud_badge', text: isSecondCleanArm ? 'LEFT ARM' : 'RIGHT ARM', second: isSecondCleanArm });
+      }
+      const st = this.sampleKeyframes(olyKF, sampleOlyNorm);
       frame.torso = this.torsoFromHip(st.hx, st.hy, st.spine, 1, 0.10);
       const { shoulderX, shoulderY } = frame.torso;
 
@@ -1055,13 +1376,42 @@ function _computePose(poseType, timestamp) {
       addLimb('legB', 'leg', st.hx - 3, st.hy, legBack.jx, legBack.jy, legBack.ex, legBack.ey, '#64748b', '#475569', 5.4, 'foot', 1);
       addLimb('legF', 'leg', st.hx, st.hy, legFront.jx, legFront.jy, legFront.ex, legFront.ey, '#bef264', '#94a3b8', 6, 'foot', 1);
 
-      const arm = this.solveFK(shoulderX, shoulderY, st.ua, st.fa, L_UPPER_ARM, L_FOREARM);
-      addLimb('arm', 'arm', shoulderX, shoulderY, arm.jx, arm.jy, arm.ex, arm.ey, '#38bdf8', '#38bdf8', 5.4, 'hand');
-      frame.props.push({ type: 'barbell_end', x: arm.ex, y: arm.ey, r: 9 });
-    } else if (poseType === 'kb_snatch') {
-      // Kettlebell Snatch: Alternating single-arm Olympic lift
-      // 5-stage cycle: Hike back between knees -> violent hip snap & vertical zip high pull (elbow high above bell!) ->
-      // rapid punch-through to vertical overhead lockout -> lockout hold (bell on forearm) -> drop through rack
+      if (poseType === 'db_hang_power_clean') {
+        const armBack = this.solveFK(shoulderX - 2, shoulderY, st.ua, st.fa, L_UPPER_ARM, L_FOREARM);
+        const armFront = this.solveFK(shoulderX, shoulderY, st.ua, st.fa, L_UPPER_ARM, L_FOREARM);
+        addLimb('armB', 'arm', shoulderX - 2, shoulderY, armBack.jx, armBack.jy, armBack.ex, armBack.ey, '#64748b', '#475569', 5, 'hand');
+        frame.props.push({ type: 'dumbbell_far', x: armBack.ex, y: armBack.ey });
+        addLimb('armF', 'arm', shoulderX, shoulderY, armFront.jx, armFront.jy, armFront.ex, armFront.ey, '#38bdf8', '#38bdf8', 5.4, 'hand');
+        frame.props.push({ type: 'dumbbell_near', x: armFront.ex, y: armFront.ey });
+      } else if (poseType === 'kb_hang_power_clean') {
+        const freeArm = this.solveFK(shoulderX - 2, shoulderY, 1.52, 1.40, L_UPPER_ARM, L_FOREARM);
+        const workArm = this.solveFK(shoulderX, shoulderY, st.ua, st.fa, L_UPPER_ARM, L_FOREARM);
+        addLimb(isSecondCleanArm ? 'armF' : 'armB', 'arm', shoulderX - 2, shoulderY, freeArm.jx, freeArm.jy, freeArm.ex, freeArm.ey, '#64748b', '#475569', isSecondCleanArm ? 5.4 : 5, 'hand');
+        addLimb(isSecondCleanArm ? 'armB' : 'armF', 'arm', shoulderX, shoulderY, workArm.jx, workArm.jy, workArm.ex, workArm.ey, '#38bdf8', '#38bdf8', isSecondCleanArm ? 5 : 5.4, 'hand');
+        const rackT = this.clamp(-st.fa / 1.6, 0, 1);
+        frame.props.push({
+          type: 'kettlebell',
+          x: workArm.ex - 5 * rackT,
+          y: workArm.ey + this.lerp(7.5, 6.5, rackT),
+          r: 7.2,
+          midground: isSecondCleanArm
+        });
+      } else if (isBarbellHangClean) {
+        const arm = this.solveFK(shoulderX, shoulderY, st.ua, st.fa, L_UPPER_ARM, L_FOREARM);
+        addLimb('arm', 'arm', shoulderX, shoulderY, arm.jx, arm.jy, arm.ex, arm.ey, '#38bdf8', '#38bdf8', 5.4, 'hand');
+        const rackBlend = st.rack || 0;
+        const barX = this.lerp(arm.ex, shoulderX + 6, rackBlend);
+        const barY = this.lerp(arm.ey, shoulderY + 1, rackBlend);
+        frame.props.push({ type: 'barbell_end', x: barX, y: barY, r: 9 });
+      } else {
+        const arm = this.solveFK(shoulderX, shoulderY, st.ua, st.fa, L_UPPER_ARM, L_FOREARM);
+        addLimb('arm', 'arm', shoulderX, shoulderY, arm.jx, arm.jy, arm.ex, arm.ey, '#38bdf8', '#38bdf8', 5.4, 'hand');
+        frame.props.push({ type: 'barbell_end', x: arm.ex, y: arm.ey, r: 9 });
+      }
+    } else if (poseType === 'kb_snatch' || poseType === 'db_snatch') {
+      // Alternating single-arm Snatch (Kettlebell or Dumbbell)
+      // 5-stage cycle: Hike back between knees -> violent hip snap & vertical zip high pull ->
+      // rapid punch-through to vertical overhead lockout -> lockout hold -> drop through rack
       const snatchPeriod = 3400;
       const fullNorm = ((timestamp % snatchPeriod) + snatchPeriod) % snatchPeriod / snatchPeriod;
       const isSecondArm = fullNorm >= 0.5;
@@ -1077,7 +1427,7 @@ function _computePose(poseType, timestamp) {
         { hx: 90, hy: 108, spine: -1.52, ua: -1.55, fa: -1.55, fua: 1.85, ffa: 2.05, bellOff: 0.35 },
         // 3: Hold tall vertical overhead lockout (bell settled on back of forearm)
         { hx: 94, hy: 104, spine: -1.55, ua: -1.55, fa: -1.55, fua: 1.75, ffa: 1.95, bellOff: 0.35 },
-        // 4: Drop bell close to torso through rack back toward hike
+        // 4: Drop load close to torso through rack back toward hike
         { hx: 84, hy: 112, spine: -1.18, ua: 1.25, fa: 0.35, fua: 1.95, ffa: 2.10, bellOff: 0.10 }
       ];
       const st = this.sampleKeyframes(snatchKF, repNorm);
@@ -1089,27 +1439,22 @@ function _computePose(poseType, timestamp) {
       addLimb('legB', 'leg', st.hx - 3, st.hy, legBack.jx, legBack.jy, legBack.ex, legBack.ey, '#64748b', '#475569', 5.4, 'foot', 1);
       addLimb('legF', 'leg', st.hx, st.hy, legFront.jx, legFront.jy, legFront.ex, legFront.ey, '#bef264', '#94a3b8', 6, 'foot', 1);
 
+      const isDB = poseType === 'db_snatch';
       if (!isSecondArm) {
         const workArm = this.solveFK(shoulderX, shoulderY, st.ua, st.fa, L_UPPER_ARM, L_FOREARM);
         const freeArm = this.solveFK(shoulderX - 2, shoulderY, st.fua, st.ffa, L_UPPER_ARM, L_FOREARM);
         addLimb('armB', 'arm', shoulderX - 2, shoulderY, freeArm.jx, freeArm.jy, freeArm.ex, freeArm.ey, '#64748b', '#475569', 5, 'hand');
         addLimb('armF', 'arm', shoulderX, shoulderY, workArm.jx, workArm.jy, workArm.ex, workArm.ey, '#38bdf8', '#38bdf8', 5.5, 'hand');
-        frame.props.push({
-          type: 'kettlebell',
-          x: workArm.ex + Math.cos(st.ua + st.bellOff) * 8.5,
-          y: workArm.ey + Math.sin(st.ua + st.bellOff) * 8.5,
-          r: 7.5
-        });
+        frame.props.push(isDB
+          ? { type: 'dumbbell_near', x: workArm.ex, y: workArm.ey }
+          : { type: 'kettlebell', x: workArm.ex + Math.cos(st.ua + st.bellOff) * 8.5, y: workArm.ey + Math.sin(st.ua + st.bellOff) * 8.5, r: 7.5 });
       } else {
         const workArm = this.solveFK(shoulderX - 2, shoulderY, st.ua, st.fa, L_UPPER_ARM, L_FOREARM);
         const freeArm = this.solveFK(shoulderX, shoulderY, st.fua, st.ffa, L_UPPER_ARM, L_FOREARM);
         addLimb('armB', 'arm', shoulderX - 2, shoulderY, workArm.jx, workArm.jy, workArm.ex, workArm.ey, '#64748b', '#475569', 5.5, 'hand');
-        frame.props.push({
-          type: 'kettlebell',
-          x: workArm.ex + Math.cos(st.ua + st.bellOff) * 8.5,
-          y: workArm.ey + Math.sin(st.ua + st.bellOff) * 8.5,
-          r: 7.5
-        });
+        frame.props.push(isDB
+          ? { type: 'dumbbell_far', x: workArm.ex, y: workArm.ey }
+          : { type: 'kettlebell', x: workArm.ex + Math.cos(st.ua + st.bellOff) * 8.5, y: workArm.ey + Math.sin(st.ua + st.bellOff) * 8.5, r: 7.5 });
         addLimb('armF', 'arm', shoulderX, shoulderY, freeArm.jx, freeArm.jy, freeArm.ex, freeArm.ey, '#38bdf8', '#38bdf8', 5, 'hand');
       }
     } else {
@@ -1137,11 +1482,21 @@ function _computePose(poseType, timestamp) {
         });
       } else if (poseType === 'kb_deadlift') {
         // Kettlebell Deadlift: straight arms holding kettlebell handle between feet
-        const handX = this.lerp(96, 96, p);
+        const handX = 96;
         const handY = shoulderY + 47.5;
         const arm = this.solveIK(shoulderX, shoulderY, handX, handY, L_UPPER_ARM, L_FOREARM, 1);
         addLimb('arm', 'arm', shoulderX, shoulderY, arm.jx, arm.jy, arm.ex, arm.ey, '#38bdf8', '#38bdf8', 5.4, 'hand');
         frame.props.push({ type: 'kettlebell', x: arm.ex, y: arm.ey + 7.5, r: 7.5 });
+      } else if (poseType === 'db_deadlift') {
+        // Dual Dumbbell Deadlift: bells track outside ankles to deck
+        const handX = this.lerp(98, 97, p);
+        const handY = shoulderY + 47.5;
+        const armBack = this.solveIK(shoulderX - 2, shoulderY, handX - 2, handY, L_UPPER_ARM, L_FOREARM, 1);
+        const armFront = this.solveIK(shoulderX, shoulderY, handX, handY, L_UPPER_ARM, L_FOREARM, 1);
+        addLimb('armB', 'arm', shoulderX - 2, shoulderY, armBack.jx, armBack.jy, armBack.ex, armBack.ey, '#64748b', '#475569', 5, 'hand');
+        frame.props.push({ type: 'dumbbell_far', x: armBack.ex, y: armBack.ey });
+        addLimb('armF', 'arm', shoulderX, shoulderY, armFront.jx, armFront.jy, armFront.ex, armFront.ey, '#38bdf8', '#38bdf8', 5.4, 'hand');
+        frame.props.push({ type: 'dumbbell_near', x: armFront.ex, y: armFront.ey });
       } else {
         // Barbell Deadlift
         const handX = this.lerp(100, 98, p);
@@ -1161,14 +1516,14 @@ function _computePose(poseType, timestamp) {
     frame.floorY = 170;
 
     if (poseType === 'bike_erg') {
-      const crankX = 96, crankY = 138;
-      const wheelX = 148, wheelY = 138;
-      const seatX = 62, seatY = 104;
-      const barX = 130, barY = 78;
+      const crankX = 94, crankY = 138;
+      const wheelX = 148, wheelY = 136;
+      const seatX = 62, seatY = 102;
+      const barX = 132, barY = 78;
       frame.props.push({ type: 'bike_erg', crankX, crankY, wheelX, wheelY, seatX, seatY, barX, barY, theta });
 
       const hipX = seatX + 2, hipY = seatY - 4;
-      const spineAngle = -0.82; // Exact 46px torso leaning forward to handlebars
+      const spineAngle = -0.82 + 0.02 * Math.sin(theta * 2); // Forward Concept2 riding posture with subtle breathing cadence
       frame.torso = this.torsoFromHip(hipX, hipY, spineAngle, 1, 0.22);
       const { shoulderX, shoulderY } = frame.torso;
 
@@ -1417,6 +1772,7 @@ function _computePose(poseType, timestamp) {
       const norm = ((timestamp % stepPeriod) + stepPeriod) % stepPeriod / stepPeriod;
       const isRep2 = norm >= 0.50;
       const u = isRep2 ? (norm - 0.50) / 0.50 : norm / 0.50;
+      frame.props.push({ type: 'hud_badge', text: isRep2 ? 'LEFT LEAD' : 'RIGHT LEAD', second: isRep2 });
 
       let hx, hy, spine, bax, bay, fax, fay, ua, fa;
       if (u < 0.25) {

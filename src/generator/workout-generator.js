@@ -19,6 +19,46 @@ const WorkoutGenerator = {
     return { work: 20, rest: 10 };
   },
 
+  isUnilateral(mov) {
+    return Boolean(mov && (mov.unilateral === 'split' || mov.unilateral === 'alternating'));
+  },
+
+  ensureEvenUnilateralValue(mov, val) {
+    if (!this.isUnilateral(mov) || typeof val !== 'number') return val;
+    if (mov.unit === 'sec') {
+      return val % 2 !== 0 ? val + 5 : val;
+    }
+    if (mov.unit === 'reps' || !mov.unit) {
+      return val % 2 !== 0 ? val + 1 : val;
+    }
+    return val;
+  },
+
+  formatUnilateralBreakdown(mov, repVal, formatKey, compact = false) {
+    if (!this.isUnilateral(mov)) return '';
+    if (formatKey === 'INTERVALS') {
+      if (compact) return '(Alt L/R)';
+      return mov.unilateral === 'split' ? '— Alt L/R each interval' : '— Alt L/R each rep';
+    }
+    if (typeof repVal === 'number') {
+      if (repVal % 2 !== 0) {
+        return compact ? '(Alt L/R)' : '— Alt L/R';
+      }
+      const half = repVal / 2;
+      if (mov.unit === 'sec') {
+        return compact ? `(${half}s L/R)` : `(${half}s L / ${half}s R)`;
+      }
+      if (mov.unit === 'reps' || !mov.unit) {
+        return compact ? `(${half} L/R)` : `(${half} L / ${half} R)`;
+      }
+    }
+    if (typeof repVal === 'string' && /^\d+(\s*-\s*\d+)+$/.test(repVal.trim())) {
+      const halves = repVal.split('-').map(n => Math.round(Number(n.trim()) / 2)).join('-');
+      return compact ? `(${halves} L/R)` : `(${halves} L / R)`;
+    }
+    return '';
+  },
+
   /**
    * Returns the stepped descending couplet rep or distance scheme for the given tier.
    */
@@ -28,6 +68,16 @@ const WorkoutGenerator = {
       if (tier === 'moderate') return '300m - 200m - 100m';
       if (tier === 'high') return '500m - 400m - 300m';
       return '400m - 300m - 200m';
+    }
+    if (this.isUnilateral(mov)) {
+      if (hasVeryHighSkill) {
+        if (tier === 'moderate') return '12 - 8 - 4';
+        if (tier === 'high') return '20 - 16 - 10';
+        return '16 - 12 - 8';
+      }
+      if (tier === 'moderate') return '16 - 12 - 8';
+      if (tier === 'high') return '28 - 20 - 12';
+      return '20 - 16 - 12';
     }
     if (hasVeryHighSkill) {
       if (tier === 'moderate') return '12 - 9 - 6';
@@ -161,7 +211,7 @@ const WorkoutGenerator = {
       const baseSec = (mov.reps && mov.reps[formatKey === 'EMOM' ? 'emom' : (formatKey === 'FOR_TIME' ? 'forTime' : 'amrap')]) || 40;
       const intensityFactor = intensityLevel === 'moderate' ? 0.75 : (intensityLevel === 'high' ? 1.25 : 1.0);
       const durFactor = duration === 'short' ? 0.9 : (duration === 'long' ? 1.1 : 1.0);
-      return Math.round((baseSec * intensityFactor * durFactor) / 5) * 5;
+      return this.ensureEvenUnilateralValue(mov, Math.round((baseSec * intensityFactor * durFactor) / 5) * 5);
     }
     if (unit === 'm') {
       if (formatKey === 'EMOM') {
@@ -225,9 +275,9 @@ const WorkoutGenerator = {
       else if (mov.id === 'pullups') rawReps = Math.min(rawReps, intensityLevel === 'high' ? 12 : (intensityLevel === 'standard' ? 10 : 8));
       else if (mov.id === 'hspu') rawReps = Math.min(rawReps, intensityLevel === 'high' ? 10 : (intensityLevel === 'standard' ? 8 : 6));
       else if (mov.id === 'ring_muscle_up' || mov.id === 'bar_muscle_up') rawReps = Math.min(rawReps, intensityLevel === 'high' ? 6 : (intensityLevel === 'standard' ? 4 : 3));
-      else if (mov.id === 'ring_dips') rawReps = Math.min(rawReps, intensityLevel === 'high' ? 14 : (intensityLevel === 'standard' ? 10 : 8));
+      else if (mov.id === 'ring_dips' || mov.id === 'parallel_bar_dips') rawReps = Math.min(rawReps, intensityLevel === 'high' ? 14 : (intensityLevel === 'standard' ? 10 : 8));
 
-      return this.snapToStandardReps(rawReps, unit, 3, 50);
+      return this.ensureEvenUnilateralValue(mov, this.snapToStandardReps(rawReps, unit, 3, 50));
     }
 
     // Intensity scaling multiplier for FOR_TIME and AMRAP
@@ -238,13 +288,13 @@ const WorkoutGenerator = {
     if (formatKey === 'FOR_TIME') {
       const baseForTime = (mov.reps && mov.reps.forTime) ? mov.reps.forTime : 15;
       const rawReps = baseForTime * intensityScale * durFactor * interferenceMod;
-      return this.snapToStandardReps(rawReps, unit, 3, 80);
+      return this.ensureEvenUnilateralValue(mov, this.snapToStandardReps(rawReps, unit, 3, 80));
     }
 
     // 3. AMRAP Format (Default): Scale around movement's calibrated amrap baseline
     const baseAmrap = (mov.reps && mov.reps.amrap) ? mov.reps.amrap : 12;
     const rawReps = baseAmrap * intensityScale * durFactor * interferenceMod;
-    return this.snapToStandardReps(rawReps, unit, 3, 80);
+    return this.ensureEvenUnilateralValue(mov, this.snapToStandardReps(rawReps, unit, 3, 80));
   },
 
   /**
@@ -342,7 +392,16 @@ const WorkoutGenerator = {
         if (sourceMov?.id === 'single_unders' && targetMov?.id === 'double_unders') {
           return customScheme.split('-').map(n => Math.max(5, Math.round(Number(n.trim()) / 2))).join('-');
         }
-        if (srcUnit === tgtUnit) return customScheme;
+        if (srcUnit === tgtUnit) {
+          if (this.isUnilateral(targetMov)) {
+            const sep = customScheme.includes(' - ') ? ' - ' : '-';
+            return customScheme.split('-').map(n => {
+              const v = Math.round(Number(n.trim()));
+              return v % 2 !== 0 ? Math.max(2, v - 1) : v;
+            }).join(sep);
+          }
+          return customScheme;
+        }
       }
       const numVal = parseFloat(customScheme);
       if (!isNaN(numVal) && String(numVal) === customScheme.trim()) {
@@ -361,7 +420,7 @@ const WorkoutGenerator = {
         if (sourceMov?.id === 'single_unders' && targetMov?.id === 'double_unders') {
           return Math.max(5, Math.round((customScheme / 2) / 5) * 5);
         }
-        return customScheme;
+        return this.ensureEvenUnilateralValue(targetMov, customScheme);
       }
 
       // 2. Different units: convert based on relative work volume
@@ -380,15 +439,89 @@ const WorkoutGenerator = {
         return Math.max(5, Math.round(rawVal));
       }
       if (tgtUnit === 'sec') {
-        return Math.max(10, Math.round(rawVal / 5) * 5);
+        return this.ensureEvenUnilateralValue(targetMov, Math.max(10, Math.round(rawVal / 5) * 5));
       }
       // Target is standard repetitions
-      if (rawVal >= 100) return Math.round(rawVal / 10) * 10;
-      if (rawVal >= 20) return Math.round(rawVal / 5) * 5;
-      return Math.max(3, Math.round(rawVal));
+      if (rawVal >= 100) return this.ensureEvenUnilateralValue(targetMov, Math.round(rawVal / 10) * 10);
+      if (rawVal >= 20) return this.ensureEvenUnilateralValue(targetMov, Math.round(rawVal / 5) * 5);
+      return this.ensureEvenUnilateralValue(targetMov, Math.max(3, Math.round(rawVal)));
     }
 
     return customScheme;
+  },
+
+  extractLoadFromText(text) {
+    if (!text || typeof text !== 'string') return null;
+    const match = text.match(/\b(\d+(?:x\d+)?(?:\.\d+)?(?:\/\d+(?:\.\d+)?)?\s*kg)\b/i);
+    return match ? match[1].replace(/\s+/g, ' ').trim() : null;
+  },
+
+  cleanBenchmarkLabel(rawLabel, mov, repsVal) {
+    if (!rawLabel || typeof rawLabel !== 'string') return mov?.name || '';
+    let text = rawLabel.trim();
+
+    // 1. Strip leading Min 1: / Min N: / Minute X:
+    text = text.replace(/^Min(?:ute)?\s+(?:\d+|N)\s*:\s*/i, '');
+
+    // 2. Strip weight in kg from parentheticals, keeping non-weight notes like "+1 rep/min"
+    text = text.replace(/\(([^)]*\bkg\b[^)]*)\)/gi, (_full, inner) => {
+      const cleanedInner = inner
+        .replace(/\b\d+(?:x\d+)?(?:\.\d+)?(?:\/\d+(?:\.\d+)?)?\s*kg\b/gi, '')
+        .replace(/^\s*[,;•·-]+\s*|\s*[,;•·-]+\s*$/g, '')
+        .trim();
+      return cleanedInner ? `(${cleanedInner})` : '';
+    });
+
+    // 3. Strip redundant distance/rep/calorie prefixes that are already shown in the badge
+    text = text
+      .replace(/^\(?\s*4\s*\+\s*N\s*\)?\s*/i, '')
+      .replace(/^3\s*×\s*N\s+/i, '')
+      .replace(/^N\s+/i, '')
+      .replace(/^\d+(?:\/\d+)?\s*Cal\s+/i, '')
+      .replace(/^\d+(?:-\d+)+\s+/, '');
+
+    if (mov && mov.unit === 'm') {
+      text = text.replace(/^\d[\d,]*\s*m\s+/i, '');
+      text = text.replace(/\(\s*1,600\s*m\s*\)/gi, '').trim();
+    }
+
+    if (typeof repsVal === 'number' || (typeof repsVal === 'string' && /^\d+$/.test(repsVal.trim()))) {
+      const numEscaped = String(repsVal).trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      text = text.replace(new RegExp(`^${numEscaped}\\s+`), '');
+    }
+
+    text = text.replace(/\(\s*Inside each minute\s*\)/gi, '').trim();
+
+    if (typeof repsVal === 'string' && repsVal.includes('-')) {
+      const commaList = repsVal.split('-').map(s => s.trim()).join(', ');
+      text = text.replace(`(${commaList})`, '').trim();
+    }
+
+    return text.replace(/\s+/g, ' ').trim() || mov?.name || '';
+  },
+
+  applyBenchmarkItemFormatting(built, mov, rawLabel, bmFormat, headerLoad = null) {
+    if (!built || !rawLabel) return built;
+    built.benchmarkCustomLabel = rawLabel;
+    built.copyText = rawLabel;
+
+    // Item-level kg overrides header-level kg (for weighted movements), else fall back to movement default load
+    const itemLoad = this.extractLoadFromText(rawLabel);
+    const effectiveHeaderLoad = mov && mov.load ? headerLoad : null;
+    built.loadBadge = itemLoad || effectiveHeaderLoad || mov?.load || null;
+
+    if (bmFormat === 'EMOM') {
+      const minMatch = rawLabel.match(/^Min(?:ute)?\s+(\d+|N)\s*:/i);
+      built.emomMinuteBadge = minMatch ? `MIN ${minMatch[1].toUpperCase()}` : 'EVERY MIN';
+    }
+
+    const calSlashMatch = rawLabel.match(/\b(\d+\/\d+)\s*Cal\b/i);
+    if (calSlashMatch) {
+      built.repsDisplay = `${calSlashMatch[1]} Cal`;
+    }
+
+    built.prescriptionText = this.cleanBenchmarkLabel(rawLabel, mov, built.customScheme);
+    return built;
   },
 
   /**
@@ -403,19 +536,40 @@ const WorkoutGenerator = {
       : this.calculateDynamicReps(mov, formatKey, context);
 
     const unitLabel = mov.unit === 'cal' ? 'Cal' : (mov.unit === 'm' ? 'm' : (mov.unit === 'sec' ? 's' : ''));
-    const loadSuffix = mov.load ? ` (${mov.load})` : '';
+    const badgeUnitLabel = mov.unit === 'cal' ? 'Cal' : (mov.unit === 'm' ? 'm' : (mov.unit === 'sec' ? 's' : 'reps'));
+    const loadBadge = context.customLoad !== undefined ? context.customLoad : (mov.load || null);
+    const loadSuffix = loadBadge ? ` (${loadBadge})` : '';
+    const uniCompact = this.formatUnilateralBreakdown(mov, repVal, formatKey, true);
+    const uniFull = this.formatUnilateralBreakdown(mov, repVal, formatKey, false);
 
     const hasTrailingUnit = unitLabel && typeof repVal === 'string' && repVal.trim().endsWith(unitLabel);
-    let repsDisplay = `${repVal}${unitLabel && !hasTrailingUnit ? ' ' + unitLabel : ''}`;
-    let prescriptionText = `${repVal} ${unitLabel && !hasTrailingUnit ? unitLabel : ''} ${mov.name}${loadSuffix}`.replace(/\s+/g, ' ').trim();
+    const unitSep = (mov.unit === 'm' || mov.unit === 'sec') ? '' : ' ';
+    const unitText = unitLabel && !hasTrailingUnit ? `${unitSep}${unitLabel}` : '';
+    const hasTrailingBadgeUnit = badgeUnitLabel && typeof repVal === 'string' && repVal.trim().toLowerCase().endsWith(badgeUnitLabel.toLowerCase());
+    const badgeUnitSep = (mov.unit === 'm' || mov.unit === 'sec') ? '' : ' ';
+    const badgeUnitText = badgeUnitLabel && !hasTrailingBadgeUnit ? `${badgeUnitSep}${badgeUnitLabel}` : '';
+    const isAscendingScheme = typeof repVal === 'string' && repVal.includes('...');
 
-    if (formatKey === 'EMOM' && stationIndex !== null) {
-      repsDisplay = `MIN ${stationIndex + 1}: ${repVal}${unitLabel && !hasTrailingUnit ? ' ' + unitLabel : ''}`;
-      prescriptionText = `Minute ${stationIndex + 1}: ${repVal} ${unitLabel && !hasTrailingUnit ? unitLabel : ''} ${mov.name}${loadSuffix}`.replace(/\s+/g, ' ').trim();
+    let emomMinuteBadge = null;
+    if (formatKey === 'EMOM') {
+      if (isAscendingScheme) {
+        emomMinuteBadge = 'MIN N';
+      } else if (stationIndex !== null && stationIndex !== undefined) {
+        emomMinuteBadge = `MIN ${stationIndex + 1}`;
+      }
+    }
+
+    let repsDisplay = `${repVal}${badgeUnitText}${uniCompact ? ' ' + uniCompact : ''}`.trim();
+    let prescriptionText = mov.name;
+    let copyText = `${repVal}${unitText} ${mov.name}${loadSuffix}${uniFull ? ' ' + uniFull : ''}`.replace(/\s+/g, ' ').trim();
+
+    if (formatKey === 'EMOM' && stationIndex !== null && !isAscendingScheme) {
+      copyText = `Minute ${stationIndex + 1}: ${repVal}${unitText} ${mov.name}${loadSuffix}${uniFull ? ' ' + uniFull : ''}`.replace(/\s+/g, ' ').trim();
     } else if (formatKey === 'INTERVALS' && stationIndex !== null) {
       const split = this.getIntervalSplit(context.intensity);
-      repsDisplay = `8x ${split.work}s:${split.rest}s`;
-      prescriptionText = `Block ${stationIndex + 1} (4 Min): 8x (${split.work}s Max ${mov.name}${loadSuffix} / ${split.rest}s Rest)`;
+      repsDisplay = `8x ${split.work}s:${split.rest}s${uniCompact ? ' ' + uniCompact : ''}`;
+      prescriptionText = `${mov.name} (${split.work}s Work / ${split.rest}s Rest)`.replace(/\s+/g, ' ').trim();
+      copyText = `Block ${stationIndex + 1} (4 Min): 8x (${split.work}s Max ${mov.name}${loadSuffix} ${uniFull || ''} / ${split.rest}s Rest)`.replace(/\s+/g, ' ').trim();
     }
 
     // 1. Equipment Alternative (collision-free against usedMovementIds)
@@ -426,18 +580,22 @@ const WorkoutGenerator = {
         const altLoad = altMov.load ? ` (${altMov.load})` : '';
         if (formatKey === 'INTERVALS') {
           const split = this.getIntervalSplit(context.intensity);
+          const altUni = this.formatUnilateralBreakdown(altMov, null, formatKey, false);
           altPrescription = {
             movement: altMov,
             repVal: null,
-            text: `${altMov.name}${altLoad} (${split.work}s:${split.rest}s)`.replace(/\s+/g, ' ').trim()
+            text: `${altMov.name}${altLoad} (${split.work}s:${split.rest}s${altUni ? ' ' + altUni : ''})`.replace(/\s+/g, ' ').trim()
           };
         } else {
           const altRepVal = this.convertCustomScheme(mov, altMov, formatKey, customScheme, context);
           const altUnit = altMov.unit === 'cal' ? 'Cal' : (altMov.unit === 'm' ? 'm' : (altMov.unit === 'sec' ? 's' : ''));
+          const altUnitSep = (altMov.unit === 'm' || altMov.unit === 'sec') ? '' : ' ';
+          const altUnitStr = altUnit ? `${altUnitSep}${altUnit}` : '';
+          const altUni = this.formatUnilateralBreakdown(altMov, altRepVal, formatKey, false);
           altPrescription = {
             movement: altMov,
             repVal: altRepVal,
-            text: `${altRepVal} ${altUnit} ${altMov.name}${altLoad}`.replace(/\s+/g, ' ').trim()
+            text: `${altRepVal}${altUnitStr} ${altMov.name}${altLoad}${altUni ? ' ' + altUni : ''}`.replace(/\s+/g, ' ').trim()
           };
         }
       }
@@ -451,20 +609,24 @@ const WorkoutGenerator = {
       const scLoad = scMov.load ? ` (${scMov.load})` : '';
       if (formatKey === 'INTERVALS') {
         const split = this.getIntervalSplit(context.intensity);
+        const scUni = this.formatUnilateralBreakdown(scMov, null, formatKey, false);
         scaleDownPrescription = {
           movement: scMov,
           repVal: null,
           note: scaleResolved.note,
-          text: `${scMov.name}${scLoad} (${split.work}s:${split.rest}s)`.replace(/\s+/g, ' ').trim()
+          text: `${scMov.name}${scLoad} (${split.work}s:${split.rest}s${scUni ? ' ' + scUni : ''})`.replace(/\s+/g, ' ').trim()
         };
       } else {
         const scRepVal = this.convertCustomScheme(mov, scMov, formatKey, customScheme, context);
         const scUnit = scMov.unit === 'cal' ? 'Cal' : (scMov.unit === 'm' ? 'm' : (scMov.unit === 'sec' ? 's' : ''));
+        const scUnitSep = (scMov.unit === 'm' || scMov.unit === 'sec') ? '' : ' ';
+        const scUnitStr = scUnit ? `${scUnitSep}${scUnit}` : '';
+        const scUni = this.formatUnilateralBreakdown(scMov, scRepVal, formatKey, false);
         scaleDownPrescription = {
           movement: scMov,
           repVal: scRepVal,
           note: scaleResolved.note,
-          text: `${scRepVal} ${scUnit} ${scMov.name}${scLoad}`.replace(/\s+/g, ' ').trim()
+          text: `${scRepVal}${scUnitStr} ${scMov.name}${scLoad}${scUni ? ' ' + scUni : ''}`.replace(/\s+/g, ' ').trim()
         };
       }
     }
@@ -478,8 +640,11 @@ const WorkoutGenerator = {
       formatKey,
       stationIndex,
       customScheme,
+      emomMinuteBadge,
       repsDisplay,
+      loadBadge,
       prescriptionText,
+      copyText,
       isOptionalGear,
       isMissingGear,
       alternative: altPrescription,
@@ -508,6 +673,7 @@ const WorkoutGenerator = {
     if (!wod || !Array.isArray(wod.items)) return wod;
     const usedIds = new Set(wod.items.map(it => it.movement.id));
     const context = this.buildWodContext(wod);
+    const headerLoad = wod.isBenchmark ? this.extractLoadFromText(wod.prescriptionHeader) : null;
 
     wod.items = wod.items.map((item, idx) => {
       const built = this.buildItemPrescription(
@@ -519,8 +685,7 @@ const WorkoutGenerator = {
         context
       );
       if (wod.isBenchmark && item.benchmarkCustomLabel) {
-        built.prescriptionText = item.benchmarkCustomLabel;
-        built.benchmarkCustomLabel = item.benchmarkCustomLabel;
+        this.applyBenchmarkItemFormatting(built, item.movement, item.benchmarkCustomLabel, wod.format, headerLoad);
       }
       return built;
     });
@@ -547,7 +712,10 @@ const WorkoutGenerator = {
     if (isCouplet) {
       wod.isDescendingCouplet = true;
       const hasVeryHighSkill = roundMovements.some(m => (m.intensity || 1.8) >= 5.0);
-      const scheme = this.getDescendingCoupletScheme({ unit: 'reps' }, tier, hasVeryHighSkill);
+      const schemeSampleMov = roundMovements.every(m => this.isUnilateral(m))
+        ? { unit: 'reps', unilateral: 'split' }
+        : { unit: 'reps' };
+      const scheme = this.getDescendingCoupletScheme(schemeSampleMov, tier, hasVeryHighSkill);
       wod.badgeFormat = `${scheme} FOR TIME`;
       wod.prescriptionHeader = `${scheme} Reps For Time:`;
     } else if (wod.format === 'INTERVALS') {
@@ -739,12 +907,11 @@ const WorkoutGenerator = {
 
   formatBenchmarkWod(bm) {
     const usedIds = new Set(bm.items.map(i => i.movementId));
+    const headerLoad = this.extractLoadFromText(bm.prescriptionHeader);
     const enrichedItems = bm.items.map((item, idx) => {
       const mov = globalThis.MOVEMENTS_DB.find(m => m.id === item.movementId) || globalThis.MOVEMENTS_DB[0];
       const built = this.buildItemPrescription(mov, bm.format, bm.format === 'EMOM' ? idx : null, item.reps, usedIds);
-      built.prescriptionText = item.label;
-      built.benchmarkCustomLabel = item.label;
-      built.repsDisplay = String(item.reps);
+      this.applyBenchmarkItemFormatting(built, mov, item.label, bm.format, headerLoad);
       return built;
     });
 
@@ -804,7 +971,7 @@ const WorkoutGenerator = {
       return {
         isBenchmark: false,
         title: this.generateName(),
-        badgeType: 'ALGORITHMIC EMOM',
+        badgeType: 'ALGORITHMIC',
         format: 'EMOM',
         minutes: totalMinutes,
         durationCategory,
@@ -829,7 +996,10 @@ const WorkoutGenerator = {
       if (is21_15_9) {
         // High skill or heavy movement downshifts from 21-15-9 to 15-12-9
         const hasVeryHighSkill = selected.some(m => (m.intensity || 1.8) >= 5.0);
-        const standardRepScheme = this.getDescendingCoupletScheme({ unit: 'reps' }, initialIntensity, hasVeryHighSkill);
+        const schemeSampleMov = selected.every(m => this.isUnilateral(m))
+          ? { unit: 'reps', unilateral: 'split' }
+          : { unit: 'reps' };
+        const standardRepScheme = this.getDescendingCoupletScheme(schemeSampleMov, initialIntensity, hasVeryHighSkill);
 
         const context = {
           durationCategory,
@@ -848,7 +1018,7 @@ const WorkoutGenerator = {
         return {
           isBenchmark: false,
           title: this.generateName(),
-          badgeType: 'ALGORITHMIC SPRINT',
+          badgeType: 'ALGORITHMIC',
           format: 'FOR_TIME',
           minutes: capMinutes,
           durationCategory,
@@ -880,7 +1050,7 @@ const WorkoutGenerator = {
         return {
           isBenchmark: false,
           title: this.generateName(),
-          badgeType: 'ALGORITHMIC METCON',
+          badgeType: 'ALGORITHMIC',
           format: 'FOR_TIME',
           minutes: capMinutes,
           durationCategory,
@@ -918,7 +1088,7 @@ const WorkoutGenerator = {
       return {
         isBenchmark: false,
         title: this.generateName(),
-        badgeType: 'TABATA HIIT',
+        badgeType: 'ALGORITHMIC',
         format: 'INTERVALS',
         minutes: totalMinutes,
         durationCategory,
@@ -953,7 +1123,7 @@ const WorkoutGenerator = {
     return {
       isBenchmark: false,
       title: this.generateName(),
-      badgeType: 'ALGORITHMIC AMRAP',
+      badgeType: 'ALGORITHMIC',
       format: 'AMRAP',
       minutes: totalMinutes,
       durationCategory,

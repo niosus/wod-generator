@@ -133,6 +133,24 @@ function solveIK(rx, ry, tx, ty, L1, L2, bendSide = 1) {
 }
 
 /**
+ * Solves 2-bone leg IK so that the foot's toe tip (rendered with surfaceY=200 / airT=1)
+ * remains anchored at (toeX, toeY) while the ankle and heel pivot around the toe.
+ */
+function solveLegToePivot(hx, hy, toeX, toeY, l1, l2, bendSide = -1, footDir = 1) {
+  const dir = footDir >= 0 ? 1 : -1;
+  let ax = toeX;
+  let ay = toeY - 10.5;
+  for (let i = 0; i < 6; i++) {
+    const leg = solveIK(hx, hy, ax, ay, l1, l2, bendSide);
+    const shinAngle = Math.atan2(leg.ey - leg.jy, leg.ex - leg.jx);
+    const soleAngle = shinAngle - dir * Math.PI * 0.48;
+    ax = toeX - Math.cos(soleAngle) * 10.5;
+    ay = toeY - Math.sin(soleAngle) * 10.5;
+  }
+  return solveIK(hx, hy, ax, ay, l1, l2, bendSide);
+}
+
+/**
  * Forward Kinematics 2-Bone solver (exact segment lengths L1, L2 from angles a1, a2)
  */
 function solveFK(rx, ry, angle1, angle2, L1, L2) {
@@ -254,6 +272,7 @@ const KinematicMath = {
   sampleTimedKeyframes,
   sampleKeyframes,
   solveIK,
+  solveLegToePivot,
   solveFK,
   solveFrontArm,
   solveFrontLeg,

@@ -13,10 +13,11 @@ const SCALE_LADDERS = [
     description: 'Foundational knee push-ups scaling to standard deck push-ups, dips, and inverted HSPU.',
     steps: [
       { movementId: 'knee_pushups', level: 1, tier: 'easy', label: 'Knee Push-Ups' },
-      { movementId: 'pushups', level: 2, tier: 'normal', label: 'Standard Push-Ups (Rx Baseline)' },
-      { movementId: 'ring_dips', level: 3, tier: 'normal', label: 'Ring / Parallel Bar Dips' },
+      { movementId: 'pushups', level: 2, tier: 'normal', label: 'Push-Ups (Rx Baseline)' },
+      { movementId: 'parallel_bar_dips', level: 3, tier: 'normal', label: 'Parallel Bar Dips' },
       { movementId: 'pike_pushups', level: 3, tier: 'normal', label: 'Pike Push-Ups' },
-      { movementId: 'hspu', level: 4, tier: 'hard', label: 'Handstand Push-Ups (HSPU)' }
+      { movementId: 'ring_dips', level: 4, tier: 'normal', label: 'Ring Dips' },
+      { movementId: 'hspu', level: 5, tier: 'hard', label: 'Handstand Push-Ups (HSPU)' }
     ]
   },
   {
@@ -52,12 +53,14 @@ const SCALE_LADDERS = [
     id: 'squat_lunge_ladder',
     name: 'Squat & Unilateral Leg Progression',
     pattern: 'SQUAT',
-    description: 'Bilateral air squats advancing to walking lunges, jumping lunges, and single-leg pistols.',
+    description: 'Bilateral air squats advancing through step-back lunges, step-forward lunges, Bulgarian split squats, jumping lunges, and single-leg pistols.',
     steps: [
       { movementId: 'air_squats', level: 1, tier: 'normal', label: 'Air Squats (Rx Baseline)' },
-      { movementId: 'walking_lunges', level: 2, tier: 'normal', label: 'Alternating Walking Lunges' },
-      { movementId: 'jumping_lunges', level: 3, tier: 'hard', label: 'Alternating Jumping Lunges' },
-      { movementId: 'pistol_squats', level: 4, tier: 'hard', label: 'Alternating Pistol Squats (Single-Leg)' }
+      { movementId: 'step_back_lunges', level: 2, tier: 'normal', label: 'Alternating Step-Back Lunges' },
+      { movementId: 'walking_lunges', level: 3, tier: 'normal', label: 'Alternating Step-Forward Lunges' },
+      { movementId: 'bulgarian_split_squats', level: 4, tier: 'normal', label: 'Bulgarian Split Squats (Rear-Foot Elevated)' },
+      { movementId: 'jumping_lunges', level: 5, tier: 'hard', label: 'Alternating Jumping Lunges' },
+      { movementId: 'pistol_squats', level: 6, tier: 'hard', label: 'Alternating Pistol Squats (Single-Leg)' }
     ]
   },
   {
@@ -105,47 +108,6 @@ const SCALE_LADDERS = [
       { movementId: 'single_unders', level: 1, tier: 'normal', label: 'Single-Unders (Jump Rope)' },
       { movementId: 'double_unders', level: 2, tier: 'hard', label: 'Double-Unders (Jump Rope)' }
     ]
-  },
-  {
-    id: 'deadlift_hinge_ladder',
-    name: 'Posterior Hinge & Deadlift Progression',
-    pattern: 'HINGE_CORE',
-    description: 'Single-kettlebell posterior hinge advancing to standard loaded barbell deadlifts.',
-    steps: [
-      { movementId: 'kb_deadlifts', level: 1, tier: 'normal', label: 'Kettlebell Deadlifts' },
-      { movementId: 'bb_deadlifts', level: 2, tier: 'normal', label: 'Barbell Deadlifts (100/70 kg)' }
-    ]
-  },
-  {
-    id: 'thruster_ladder',
-    name: 'Thruster & Squat-to-Overhead Progression',
-    pattern: 'FULL_BODY',
-    description: 'Dual dumbbell thrusters progressing to standard barbell thrusters.',
-    steps: [
-      { movementId: 'db_thrusters', level: 1, tier: 'normal', label: 'Dumbbell Thrusters (2x15/10 kg)' },
-      { movementId: 'bb_thrusters', level: 2, tier: 'normal', label: 'Barbell Thrusters (43/30 kg)' }
-    ]
-  },
-  {
-    id: 'snatch_ladder',
-    name: 'Snatch & Explosive Ground-to-Overhead',
-    pattern: 'FULL_BODY',
-    description: 'Kettlebell swings to single-arm snatches and full Olympic barbell squat snatches.',
-    steps: [
-      { movementId: 'kb_swings', level: 1, tier: 'normal', label: 'Kettlebell Swings' },
-      { movementId: 'kb_snatch', level: 2, tier: 'normal', label: 'Alternating Kettlebell Snatches' },
-      { movementId: 'bb_squat_snatch', level: 3, tier: 'hard', label: 'Barbell Squat Snatch' }
-    ]
-  },
-  {
-    id: 'overhead_press_ladder',
-    name: 'Overhead Press Progression',
-    pattern: 'PUSH',
-    description: 'Dual dumbbell push press advancing to barbell push jerk / shoulder-to-overhead.',
-    steps: [
-      { movementId: 'db_push_press', level: 1, tier: 'normal', label: 'Dumbbell Push Press' },
-      { movementId: 'bb_push_jerk', level: 2, tier: 'normal', label: 'Barbell Push Jerk / S2OH' }
-    ]
   }
 ];
 
@@ -188,17 +150,19 @@ const ProgressionEngine = {
 
   /**
    * Filters an active movement pool so that for any scale ladder represented in the pool,
-   * only movements of the MAXIMUM allowed level on that ladder remain eligible for primary selection.
+   * only movements of the MAXIMUM allowed difficulty tier on that ladder remain eligible
+   * for primary selection (preserving variety across same-tier implements and variations).
    *
    * This guarantees:
-   * - Knee push-ups are never picked when Standard Push-Ups are allowed.
+   * - Knee push-ups are never picked when Push-Ups are allowed.
    * - Table rows/towel rows are never picked when Pull-Ups or Inverted Rows are allowed.
    * - Sprawls are never picked when Burpees are allowed.
    * - Box step-ups are never picked when Box Jumps are allowed.
-   * - Single-unders are never picked when Double-Unders are allowed.
+   * - Same-tier progressions (DB vs KB vs BB, Step-Back vs Step-Forward Lunges, RDL vs Deadlift) stay selectable together.
    */
   filterPoolToHardestLadderMovements(pool) {
     if (!Array.isArray(pool) || pool.length === 0) return [];
+    const TIER_RANK = { easy: 1, normal: 2, hard: 3 };
     const poolIds = new Set(pool.map(m => m.id));
     const demotedIds = new Set();
 
@@ -206,9 +170,9 @@ const ProgressionEngine = {
       const activeSteps = ladder.steps.filter(s => poolIds.has(s.movementId));
       if (activeSteps.length <= 1) return;
 
-      const maxLevel = Math.max(...activeSteps.map(s => s.level));
+      const maxTier = Math.max(...activeSteps.map(s => TIER_RANK[s.tier] || 2));
       activeSteps.forEach(s => {
-        if (s.level < maxLevel) {
+        if ((TIER_RANK[s.tier] || 2) < maxTier) {
           demotedIds.add(s.movementId);
         }
       });
