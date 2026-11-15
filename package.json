@@ -20,6 +20,8 @@
     "kinematics"
   ],
   "author": "Igor Bogoslavskyi",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "posthog-js": "^1.450.0"
+  }
 }
-
