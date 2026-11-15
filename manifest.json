@@ -1,13 +1,17 @@
 {
   "name": "WODROLL — Precision HIIT & CrossFit WOD Generator",
   "short_name": "WODROLL",
-  "description": "Free, zero-signup CrossFit, Hyrox, and HIIT WOD generator tailored to your equipment, skill level, and timeframe, featuring 85 2D animated movements and 46 benchmark workouts.",
+  "description": "Free, zero-signup CrossFit, Hyrox, and HIIT WOD generator tailored to your equipment, skill level, and timeframe, featuring random WOD generation, 2D animated movements, and classic benchmark workouts.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "background_color": "#09090b",
   "theme_color": "#09090b",
-  "categories": ["fitness", "health", "sports"],
+  "categories": [
+    "fitness",
+    "health",
+    "sports"
+  ],
   "icons": [
     {
       "src": "icons/icon-192.png",

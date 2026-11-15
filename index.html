@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>WODROLL — Precision HIIT &amp; CrossFit WOD Generator</title>
   <meta name="description"
-    content="Free, zero-signup CrossFit, Hyrox, and HIIT WOD generator tailored to your exact equipment, skill level, and timeframe — featuring 85 2D animated movements, 46 classic benchmarks, and instant URL &amp; PNG card sharing." />
+    content="Free, zero-signup CrossFit, Hyrox, and HIIT WOD generator tailored to your exact equipment, skill level, and timeframe — featuring 2D animated movements, classic benchmarks, random WOD generation, and instant URL &amp; PNG card sharing." />
   <link rel="canonical" href="https://niosus.github.io/wod-generator/" />
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
   <link rel="manifest" href="manifest.json" />
@@ -22,7 +22,7 @@
   <meta property="og:site_name" content="WODROLL" />
   <meta property="og:title" content="WODROLL — Precision HIIT &amp; CrossFit WOD Generator" />
   <meta property="og:description"
-    content="Generate CrossFit, Hyrox, and HIIT workouts tailored to your equipment, skill level, and timeframe. Includes 85 2D animated movements, 46 benchmark WODs, scaling ladders, and PNG/URL sharing." />
+    content="Generate CrossFit, Hyrox, and HIIT workouts tailored to your equipment, skill level, and timeframe. Includes random WOD generation, 2D animated movements, classic benchmark WODs, scaling ladders, and PNG/URL sharing." />
   <meta property="og:url" content="https://niosus.github.io/wod-generator/" />
   <meta property="og:image" content="https://niosus.github.io/wod-generator/og-image.png" />
   <meta property="og:image:width" content="1200" />
@@ -34,7 +34,7 @@
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="WODROLL — Precision HIIT &amp; CrossFit WOD Generator" />
   <meta name="twitter:description"
-    content="Free, zero-signup CrossFit, Hyrox, and HIIT WOD generator with 85 2D animated movements, 46 benchmark WODs, and 14-item gear scaling." />
+    content="Free, zero-signup CrossFit, Hyrox, and HIIT WOD generator with random WOD generation, 2D animated movements, classic benchmark WODs, and custom gear scaling." />
   <meta name="twitter:image" content="https://niosus.github.io/wod-generator/og-image.png" />
   <meta name="twitter:image:alt"
     content="WODROLL — Precision HIIT &amp; CrossFit WOD Generator with 2D movement animations" />
@@ -47,7 +47,7 @@
       "name": "WODROLL",
       "url": "https://niosus.github.io/wod-generator/",
       "image": "https://niosus.github.io/wod-generator/og-image.png",
-      "description": "Free, zero-signup CrossFit, Hyrox, and HIIT WOD generator tailored to your equipment, skill level, and timeframe with 85 2D animated movements and 46 benchmark workouts.",
+      "description": "Free, zero-signup CrossFit, Hyrox, and HIIT WOD generator tailored to your equipment, skill level, and timeframe with random WOD generation, 2D animated movements, and classic benchmark workouts.",
       "applicationCategory": "HealthApplication",
       "operatingSystem": "Any",
       "isAccessibleForFree": true,
@@ -127,7 +127,7 @@
         <!-- All Movements & Scaling Progressions Library -->
         <button id="openScaleModalBtn"
           class="flex items-center gap-1.5 px-2 sm:px-2.5 py-1.5 rounded-lg bg-transparent hover:bg-zinc-100 dark:hover:bg-zinc-900 border border-transparent hover:border-zinc-200 dark:hover:border-zinc-800 text-xs font-medium text-zinc-600 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-white transition shrink-0"
-          title="Browse All 85 Movements &amp; Scaling Progressions">
+          title="Browse All Movements &amp; Scaling Progressions">
           <i data-lucide="layout-grid" class="w-3.5 h-3.5"></i>
           <span class="hidden sm:inline">Movements</span>
         </button>
@@ -451,13 +451,13 @@
         class="mt-2.5 pt-2.5 border-t border-zinc-200/70 dark:border-zinc-800/70 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs leading-relaxed text-zinc-600 dark:text-zinc-400">
         <p>
           <strong class="text-zinc-800 dark:text-zinc-200">Tailored to Your Gear:</strong>
-          Generate instant bodyweight, home-gym, minimal-equipment, or full-gym workouts across AMRAP, EMOM, For Time
-          (21-15-9 / 15-12-9), and Tabata formats for 10, 15, or 25+ minute sessions.
+          Generate random bodyweight, home-gym, minimal-equipment, or full-gym workouts across AMRAP, EMOM, For Time, and
+          Tabata formats for short, medium, or long sessions.
         </p>
         <p>
-          <strong class="text-zinc-800 dark:text-zinc-200">Animated Movements &amp; Classic benchmark workouts:</strong>
-          Includes multi-view 2D biomechanical stick-figure form demos, 8 collision-free scaling ladders, and classic
-          Girl, Hero, Hyrox, and Death By benchmark WODs with URL and PNG card sharing.
+          <strong class="text-zinc-800 dark:text-zinc-200">Animated Movements &amp; Classic Benchmarks:</strong>
+          Includes multi-view 2D biomechanical stick-figure form demos, collision-free scaling ladders, and classic Girl,
+          Hero, Hyrox, and Death By benchmark WODs with URL and PNG card sharing.
         </p>
       </div>
     </details>
@@ -671,7 +671,7 @@
             <div class="flex flex-wrap items-center gap-1.5">
               <button id="toggleShowAllMovementsBtn" type="button"
                 class="px-2.5 py-1 rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-[11px] font-mono font-semibold text-zinc-700 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-700 transition">
-                Show All 85 Movements
+                Show All Movements
               </button>
               <button id="enableAllMovementsBtn"
                 class="px-2.5 py-1 rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-[11px] font-mono font-semibold text-zinc-700 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-700 transition">
@@ -894,11 +894,11 @@
             class="inline-flex p-0.5 rounded-xl bg-zinc-100 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800">
             <button data-scale-view="all" type="button"
               class="scale-view-btn px-3 py-1.5 rounded-lg text-xs font-semibold transition">
-              All Movements (85)
+              All Movements
             </button>
             <button data-scale-view="ladders" type="button"
               class="scale-view-btn px-3 py-1.5 rounded-lg text-xs font-semibold transition">
-              Scaling Ladders (8)
+              Scaling Ladders
             </button>
           </div>
 
