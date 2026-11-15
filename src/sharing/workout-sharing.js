@@ -175,6 +175,163 @@ const WorkoutSharing = {
         return restoredWod;
       },
 
+      encodeConfig(appState = globalThis.AppState) {
+        if (!appState) return '';
+        const themes = ['system', 'light', 'dark'];
+        const durations = ['short', 'medium', 'long'];
+        const modes = ['smart', 'algorithmic', 'benchmark'];
+        const formats = ['ANY', 'AMRAP', 'EMOM', 'FOR_TIME', 'INTERVALS'];
+        const eqStateMap = { off: 0, optional: 1, available: 2 };
+
+        const catalog = globalThis.EQUIPMENT_CATALOG || [];
+        const db = globalThis.MOVEMENTS_DB || [];
+
+        const themeIdx = Math.max(0, themes.indexOf(appState.theme || 'system'));
+        const durationIdx = Math.max(0, durations.indexOf(appState.duration || 'medium'));
+        const includeHard = appState.includeHardMovements ? 1 : 0;
+        const modeIdx = Math.max(0, modes.indexOf(appState.mode || 'smart'));
+        const formatIdx = Math.max(0, formats.indexOf(appState.format || 'ANY'));
+        const hasCustomMov = typeof appState.hasCustomMovementExclusions === 'function'
+          ? (appState.hasCustomMovementExclusions() ? 1 : 0)
+          : 0;
+
+        const byteLen = hasCustomMov ? 13 : 5;
+        const bytes = new Uint8Array(byteLen);
+
+        // Byte 0: version (0..2) | theme (3..4) | duration (5..6) | includeHard (7)
+        bytes[0] = (1 & 0b111) | ((themeIdx & 0b11) << 3) | ((durationIdx & 0b11) << 5) | ((includeHard & 1) << 7);
+
+        // Byte 1: mode (0..1) | format (2..4) | hasCustomMov (5) | eq[0] (6..7)
+        const eq0 = catalog[0] ? (eqStateMap[appState.equipmentStates[catalog[0].id]] ?? 0) : 2;
+        bytes[1] = (modeIdx & 0b11) | ((formatIdx & 0b111) << 2) | ((hasCustomMov & 1) << 5) | ((eq0 & 0b11) << 6);
+
+        // Bytes 2..4: eq[1..12] (4 items per byte, 2 bits each)
+        for (let i = 1; i < catalog.length && i <= 12; i++) {
+          const val = eqStateMap[appState.equipmentStates[catalog[i].id]] ?? 0;
+          const byteIdx = 2 + Math.floor((i - 1) / 4);
+          const shift = ((i - 1) % 4) * 2;
+          bytes[byteIdx] |= (val & 0b11) << shift;
+        }
+
+        // Optional Bytes 5..12: 64-bit movement exclusion bitmask
+        if (hasCustomMov && appState.excludedMovements) {
+          for (let i = 0; i < db.length && i < 64; i++) {
+            if (appState.excludedMovements.has(db[i].id)) {
+              bytes[5 + (i >> 3)] |= (1 << (i & 7));
+            }
+          }
+        }
+
+        return this.toBase64Url(bytes);
+      },
+
+      decodeConfig(encodedStr) {
+        if (!encodedStr || typeof encodedStr !== 'string') return null;
+        const bytes = this.fromBase64Url(encodedStr.trim());
+        if (bytes.length !== 5 && bytes.length !== 13) return null;
+
+        const version = bytes[0] & 0b111;
+        if (version !== 1) return null;
+
+        const themes = ['system', 'light', 'dark'];
+        const durations = ['short', 'medium', 'long'];
+        const modes = ['smart', 'algorithmic', 'benchmark'];
+        const formats = ['ANY', 'AMRAP', 'EMOM', 'FOR_TIME', 'INTERVALS'];
+        const eqStates = ['off', 'optional', 'available'];
+
+        const catalog = globalThis.EQUIPMENT_CATALOG || [];
+        const db = globalThis.MOVEMENTS_DB || [];
+
+        const themeIdx = (bytes[0] >> 3) & 0b11;
+        const durationIdx = (bytes[0] >> 5) & 0b11;
+        const includeHardMovements = Boolean((bytes[0] >> 7) & 1);
+
+        const modeIdx = bytes[1] & 0b11;
+        const formatIdx = (bytes[1] >> 2) & 0b111;
+        const hasCustomMov = Boolean((bytes[1] >> 5) & 1);
+
+        const equipmentStates = {};
+        if (catalog[0]) {
+          equipmentStates[catalog[0].id] = eqStates[(bytes[1] >> 6) & 0b11] || 'off';
+        }
+        for (let i = 1; i < catalog.length && i <= 12; i++) {
+          const byteIdx = 2 + Math.floor((i - 1) / 4);
+          const shift = ((i - 1) % 4) * 2;
+          const val = (bytes[byteIdx] >> shift) & 0b11;
+          equipmentStates[catalog[i].id] = eqStates[val] || 'off';
+        }
+
+        const anyUsable = Object.values(equipmentStates).some(s => s === 'available' || s === 'optional');
+        if (!anyUsable) {
+          equipmentStates.bodyweight = 'available';
+        }
+
+        const excludedMovements = new Set();
+        if (hasCustomMov && bytes.length >= 13) {
+          for (let i = 0; i < db.length && i < 64; i++) {
+            if ((bytes[5 + (i >> 3)] >> (i & 7)) & 1) {
+              excludedMovements.add(db[i].id);
+            }
+          }
+        } else if (!includeHardMovements) {
+          db.forEach(m => {
+            if (m.difficulty === 'hard') excludedMovements.add(m.id);
+          });
+        }
+
+        return {
+          theme: themes[themeIdx] || 'system',
+          duration: durations[durationIdx] || 'medium',
+          includeHardMovements,
+          mode: modes[modeIdx] || 'smart',
+          format: formats[formatIdx] || 'ANY',
+          equipmentStates,
+          excludedMovements
+        };
+      },
+
+      getConfigPayloadFromUrl() {
+        try {
+          const params = new URLSearchParams(window.location.search);
+          if (params.has('cfg')) return params.get('cfg');
+
+          const hash = (window.location.hash || '').replace(/^#/, '');
+          if (hash && !hash.startsWith('z.') && !hash.startsWith('u.')) {
+            const hashParams = new URLSearchParams(hash);
+            if (hashParams.has('cfg')) return hashParams.get('cfg');
+          }
+        } catch (e) {
+          console.warn('Error reading config URL params:', e);
+        }
+        return null;
+      },
+
+      loadConfigFromUrl() {
+        const payload = this.getConfigPayloadFromUrl();
+        if (!payload) return null;
+        try {
+          return this.decodeConfig(payload);
+        } catch (err) {
+          console.warn('Could not decode config from URL:', err);
+          return null;
+        }
+      },
+
+      createConfigShareUrl(appState = globalThis.AppState) {
+        const encoded = this.encodeConfig(appState);
+        const url = new URL(window.location.href);
+        if (url.protocol === 'file:') {
+          url.search = '';
+          url.hash = 'cfg=' + encoded;
+        } else {
+          url.searchParams.delete('wod');
+          url.searchParams.delete('share');
+          url.searchParams.set('cfg', encoded);
+          url.hash = '';
+        }
+        return url.toString();
+      },
+
       getPayloadFromUrl() {
         try {
           const params = new URLSearchParams(window.location.search);
@@ -182,9 +339,12 @@ const WorkoutSharing = {
           if (params.has('share')) return params.get('share');
 
           const hash = (window.location.hash || '').replace(/^#/, '');
-          if (hash.startsWith('wod=')) return hash.slice(4);
-          if (hash.startsWith('share=')) return hash.slice(6);
           if (hash.startsWith('z.') || hash.startsWith('u.')) return hash;
+          if (hash) {
+            const hashParams = new URLSearchParams(hash);
+            if (hashParams.has('wod')) return hashParams.get('wod');
+            if (hashParams.has('share')) return hashParams.get('share');
+          }
         } catch (e) {
           console.warn('Error reading URL params:', e);
         }
@@ -209,6 +369,8 @@ const WorkoutSharing = {
           url.search = '';
           url.hash = 'wod=' + encoded;
         } else {
+          url.searchParams.delete('cfg');
+          url.searchParams.delete('share');
           url.searchParams.set('wod', encoded);
           url.hash = '';
         }

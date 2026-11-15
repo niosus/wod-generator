@@ -8,10 +8,12 @@ tailwind.config = {
       },
       colors: {
         volt: {
-          DEFAULT: '#bef264',
-          400: '#a3e635',
-          500: '#84cc16',
-          glow: 'rgba(190, 242, 100, 0.25)'
+          DEFAULT: '#38bdf8',
+          400: '#7dd3fc',
+          500: '#0ea5e9',
+          600: '#0284c7',
+          700: '#0369a1',
+          glow: 'rgba(56, 189, 248, 0.25)'
         },
         slate: {
           850: '#131c2e',

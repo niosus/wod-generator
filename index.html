@@ -1,10 +1,32 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
 
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>WODFORGE // Precision HIIT WOD Generator</title>
+  <title>WODFORGE — Precision HIIT WOD Generator</title>
+  <!-- Prevent Theme FOUC before Tailwind/CSS loads -->
+  <script>
+    (function () {
+      try {
+        var theme = 'system';
+        var raw = localStorage.getItem('wodforge_local_prefs_v3');
+        if (raw) {
+          var parsed = JSON.parse(raw);
+          if (parsed && (parsed.theme === 'light' || parsed.theme === 'dark' || parsed.theme === 'system')) {
+            theme = parsed.theme;
+          }
+        }
+        var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        var isDark = theme === 'dark' || (theme === 'system' && prefersDark);
+        document.documentElement.classList.toggle('dark', isDark);
+      } catch (e) {
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+          document.documentElement.classList.add('dark');
+        }
+      }
+    })();
+  </script>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Tailwind Configuration -->
@@ -21,171 +43,173 @@
   <link rel="stylesheet" href="css/styles.css">
 </head>
 
-<body class="bg-gym-grid min-h-screen flex flex-col selection:bg-volt selection:text-slate-950">
+<body class="bg-gym-grid min-h-screen flex flex-col text-zinc-950 dark:text-zinc-50 selection:bg-volt selection:text-zinc-950">
 
   <!-- TOP NAVIGATION BAR -->
-  <header class="sticky top-0 z-30 backdrop-blur-xl bg-slate-950/90 border-b border-slate-800/80">
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
-      <!-- Brand Identity: Logo Only -->
-      <a href="#" class="flex items-center gap-2.5 shrink-0 group" title="WODFORGE">
+  <header class="sticky top-0 z-30 backdrop-blur-xl bg-white/85 dark:bg-zinc-950/85 border-b border-zinc-200/80 dark:border-zinc-800/80 transition-colors">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 py-2.5 flex items-center justify-between gap-2">
+      <!-- Brand Identity -->
+      <a href="#" class="flex items-center gap-2 shrink-0 group" title="WODFORGE">
         <div
-          class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-volt flex items-center justify-center text-slate-950 font-black shadow-lg shadow-volt/20 group-hover:scale-105 transition-transform shrink-0">
-          <i data-lucide="zap" class="w-5 h-5 sm:w-6 sm:h-6 stroke-[2.5]"></i>
+          class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-zinc-950 dark:bg-volt flex items-center justify-center text-white dark:text-zinc-950 font-black group-hover:scale-105 transition-transform shrink-0">
+          <i data-lucide="zap" class="w-4 h-4 stroke-[2.5]"></i>
         </div>
-        <h1 class="font-black tracking-tight text-xl sm:text-2xl text-white">WOD<span class="text-volt">FORGE</span>
-        </h1>
+        <span class="font-black tracking-tight text-base sm:text-lg text-zinc-950 dark:text-white">
+          WOD<span class="text-volt-600 dark:text-volt">FORGE</span>
+        </span>
       </a>
 
-      <!-- Quick Status & Actions -->
-      <div class="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
-        <!-- Active Pool Badge / Jump to Movements -->
-        <button id="openMatrixQuickBtn"
-          class="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-700/80 text-xs font-medium text-slate-200 transition shrink-0 whitespace-nowrap"
-          title="Jump to Movement Library">
-          <span class="w-2 h-2 rounded-full bg-volt shrink-0 shadow-[0_0_6px_rgba(216,255,62,0.6)]"></span>
-          <span id="activePoolSummary" class="flex items-center gap-1 font-mono">
-            <span class="font-bold text-white">0/0</span>
-            <span class="hidden sm:inline text-slate-400">Movements</span>
-            <span class="hidden sm:inline text-slate-300">Active</span>
-          </span>
-          <i data-lucide="sliders-horizontal" class="w-3.5 h-3.5 text-slate-400 shrink-0 hidden sm:inline"></i>
-        </button>
-
-        <!-- Benchmark Library Button -->
+      <!-- Minimal Header Actions -->
+      <nav class="flex items-center gap-1 sm:gap-1.5 shrink-0">
+        <!-- Benchmark Library -->
         <button id="openBenchmarksModalBtn"
-          class="flex items-center gap-1.5 px-2.5 py-1.5 sm:px-3 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700/80 text-xs font-medium text-cyan-300 transition shrink-0"
+          class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-transparent hover:bg-zinc-100 dark:hover:bg-zinc-900 border border-transparent hover:border-zinc-200 dark:hover:border-zinc-800 text-xs font-medium text-zinc-600 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-white transition shrink-0"
           title="Browse Classical Benchmarks">
           <i data-lucide="trophy" class="w-3.5 h-3.5"></i>
-          <span class="hidden md:inline">Benchmarks</span>
+          <span class="hidden sm:inline">Benchmarks</span>
         </button>
 
-        <!-- Scale Progressions / Ladders Button -->
+        <!-- All Progressions Library -->
         <button id="openScaleModalBtn"
-          class="flex items-center gap-1.5 px-2.5 py-1.5 sm:px-3 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700/80 text-xs font-medium text-amber-300 transition shrink-0"
-          title="View Movement Scale Progressions & Ladders">
+          class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-transparent hover:bg-zinc-100 dark:hover:bg-zinc-900 border border-transparent hover:border-zinc-200 dark:hover:border-zinc-800 text-xs font-medium text-zinc-600 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-white transition shrink-0"
+          title="View Movement Scale Progressions">
           <i data-lucide="git-merge" class="w-3.5 h-3.5"></i>
-          <span class="hidden md:inline">Scale Ladders</span>
+          <span class="hidden sm:inline">Progressions</span>
         </button>
 
-        <!-- Reset Local Preferences -->
-        <button id="resetPrefsBtn"
-          class="p-2 sm:px-2.5 sm:py-1.5 rounded-xl bg-slate-900 hover:bg-rose-950/60 border border-slate-800 hover:border-rose-500/40 text-slate-400 hover:text-rose-300 transition shrink-0"
-          title="Reset Local Preferences to Default">
-          <i data-lucide="rotate-ccw" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i>
+        <!-- Copy Short Setup Link (?cfg=...) -->
+        <button id="shareConfigBtn"
+          class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-transparent hover:bg-zinc-100 dark:hover:bg-zinc-900 border border-transparent hover:border-zinc-200 dark:hover:border-zinc-800 text-xs font-medium text-zinc-600 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-white transition shrink-0"
+          title="Copy Short Setup Link">
+          <i data-lucide="link" class="w-3.5 h-3.5"></i>
+          <span id="shareConfigLabel" class="hidden md:inline">Share Setup</span>
         </button>
-      </div>
+
+        <!-- Theme Toggle (Immediate Flip + Auto Reset) -->
+        <div class="inline-flex items-center p-0.5 rounded-lg bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shrink-0">
+          <button id="themeToggleBtn" type="button"
+            class="flex items-center gap-1.5 px-2 py-1 rounded-md hover:bg-zinc-200/80 dark:hover:bg-zinc-800 text-xs font-medium text-zinc-700 dark:text-zinc-300 transition shrink-0"
+            title="Toggle Light / Dark Theme">
+            <i id="themeToggleIcon" data-lucide="sun" class="w-3.5 h-3.5"></i>
+            <span id="themeToggleLabel" class="hidden sm:inline text-[11px] font-mono">Auto</span>
+          </button>
+          <button id="themeAutoResetBtn" type="button"
+            class="hidden items-center px-1.5 py-1 rounded-md text-[10px] font-mono font-semibold text-zinc-500 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white hover:bg-zinc-200/60 dark:hover:bg-zinc-800 border-l border-zinc-200/80 dark:border-zinc-800 transition shrink-0"
+            title="Reset to System Theme (Auto)">
+            Auto
+          </button>
+        </div>
+      </nav>
     </div>
   </header>
 
-  <!-- MAIN WORKSPACE -->
-  <main class="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 py-6 flex flex-col gap-8">
+  <!-- MAIN WORKSPACE: SINGLE-COLUMN CENTERED LAYOUT -->
+  <main class="flex-1 max-w-3xl w-full mx-auto px-3.5 sm:px-6 py-4 sm:py-7 flex flex-col gap-3.5">
 
     <!-- HERO SECTION: FRONT & CENTRAL GENERATED WOD BOARD -->
     <section id="heroWodSection" class="w-full relative">
-      <!-- SHARED WORKOUT NOTIFICATION BANNER -->
+      <!-- SHARED WORKOUT / CONFIG BANNER -->
       <div id="sharedWodNotice"
-        class="hidden mb-3.5 px-4 py-2.5 rounded-xl bg-slate-900/95 border border-cyan-500/40 text-xs text-cyan-200 flex items-center justify-between gap-3 shadow-lg backdrop-blur-md transition-all">
-        <div class="flex items-center gap-2.5 min-w-0">
-          <span class="w-2.5 h-2.5 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.9)] shrink-0"></span>
+        class="hidden mb-3 px-3.5 py-2 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 text-xs text-zinc-700 dark:text-zinc-300 flex items-center justify-between gap-3 shadow-sm transition-all">
+        <div class="flex items-center gap-2 min-w-0">
+          <span class="w-2 h-2 rounded-full bg-volt-600 dark:bg-volt shrink-0"></span>
           <span class="truncate">
-            Viewing shared workout: <strong id="sharedWodTitleNotice" class="text-white font-bold"></strong>
+            Viewing shared workout: <strong id="sharedWodTitleNotice" class="text-zinc-950 dark:text-white font-bold"></strong>
           </span>
         </div>
-        <div class="flex items-center gap-2 shrink-0">
-          <button id="dismissSharedNoticeBtn"
-            class="text-slate-400 hover:text-white text-xs font-semibold px-2 py-1 rounded transition flex items-center gap-1">
-            <span>Dismiss</span>
-            <i data-lucide="x" class="w-3.5 h-3.5"></i>
-          </button>
-        </div>
+        <button id="dismissSharedNoticeBtn"
+          class="text-zinc-500 hover:text-zinc-950 dark:hover:text-white text-xs font-medium px-2 py-0.5 rounded transition flex items-center gap-1 shrink-0">
+          <span>Dismiss</span>
+          <i data-lucide="x" class="w-3.5 h-3.5"></i>
+        </button>
       </div>
 
       <!-- ACTIVE WOD WHITEBOARD CARD -->
       <div id="wodCardContainer"
-        class="bg-slate-925/95 border border-slate-800 rounded-2xl p-4 sm:p-7 shadow-2xl relative overflow-hidden transition-all duration-300">
-        <!-- Decorative Top Accent Bar with animation sweep -->
-        <div id="wodAccentBar" class="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-volt via-cyan-400 to-volt">
+        class="bg-white dark:bg-zinc-900/95 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4 sm:p-6 shadow-sm dark:shadow-2xl relative overflow-hidden transition-all duration-300">
+        <!-- Minimal Top Accent Line with sweep animation -->
+        <div id="wodAccentBar" class="absolute top-0 inset-x-0 h-[2px] bg-gradient-to-r from-zinc-900 via-volt-600 to-zinc-900 dark:from-volt dark:via-zinc-200 dark:to-volt">
         </div>
 
-        <!-- WOD Header (Responsive layout: stacks cleanly on mobile, side-by-side on desktop) -->
+        <!-- WOD Header -->
         <div
-          class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 pb-4 border-b border-slate-800/90">
+          class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4 pb-4 border-b border-zinc-200/80 dark:border-zinc-800/80">
           <div id="wodTitleSection" class="min-w-0 flex-1 transition-all duration-300">
-            <div class="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-1.5">
-              <span id="wodBadgeType"
-                class="px-2.5 py-0.5 rounded-md text-[11px] font-mono font-bold uppercase bg-volt/15 text-volt border border-volt/30 whitespace-nowrap">
-                ALGORITHMIC METCON
-              </span>
+            <div class="flex flex-wrap items-center gap-1.5 mb-2">
               <span id="wodBadgeFormat"
-                class="px-2.5 py-0.5 rounded-md text-[11px] font-mono font-bold uppercase bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 whitespace-nowrap">
+                class="px-2 py-0.5 rounded-md text-[10px] font-mono font-bold uppercase bg-zinc-950 text-white dark:bg-volt dark:text-zinc-950 whitespace-nowrap">
                 15 MIN AMRAP
               </span>
+              <span id="wodBadgeType"
+                class="px-2 py-0.5 rounded-md text-[10px] font-mono font-semibold uppercase text-zinc-500 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-800/60 border border-zinc-200/80 dark:border-zinc-800 whitespace-nowrap">
+                ALGORITHMIC METCON
+              </span>
               <span id="wodBadgeDifficulty"
-                class="px-2.5 py-0.5 rounded-md text-[11px] font-mono uppercase bg-slate-800 text-slate-300 whitespace-nowrap">
+                class="px-2 py-0.5 rounded-md text-[10px] font-mono text-zinc-500 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-800/60 border border-zinc-200/80 dark:border-zinc-800 whitespace-nowrap">
                 Balanced Triplet
               </span>
             </div>
-            <h2 id="wodTitle" class="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-white break-words">
+            <h1 id="wodTitle" class="text-2xl sm:text-3xl font-black tracking-tight text-zinc-950 dark:text-white break-words">
               "IRON ENGINE"
-            </h2>
+            </h1>
           </div>
 
-          <!-- Action Buttons: Share, Copy & Re-roll WOD (Full width on mobile, side-by-side on desktop) -->
-          <div class="flex items-center gap-2 w-full sm:w-auto sm:shrink-0 pt-1 sm:pt-0">
+          <!-- Action Buttons: Share, Copy & Re-Roll -->
+          <div class="flex items-center gap-1.5 w-full sm:w-auto sm:shrink-0 pt-0.5">
             <button id="shareWodBtn"
-              class="flex-1 sm:flex-none justify-center px-3 sm:px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-cyan-500/30 hover:border-cyan-400/60 text-xs font-semibold text-cyan-300 hover:text-white flex items-center gap-1.5 transition whitespace-nowrap"
-              title="Share Workout Link with Friends">
-              <i data-lucide="share-2" class="w-4 h-4 text-cyan-400 shrink-0"></i>
+              class="flex-1 sm:flex-none justify-center px-3 py-2 rounded-xl bg-zinc-100 dark:bg-zinc-800/80 hover:bg-zinc-200/80 dark:hover:bg-zinc-800 border border-zinc-200 dark:border-zinc-700/80 text-xs font-semibold text-zinc-700 dark:text-zinc-200 flex items-center gap-1.5 transition whitespace-nowrap"
+              title="Share Workout Link">
+              <i data-lucide="share-2" class="w-3.5 h-3.5 shrink-0"></i>
               <span id="shareWodLabel">Share</span>
             </button>
             <button id="copyWodBtn"
-              class="flex-1 sm:flex-none justify-center px-3 sm:px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700/80 text-xs font-semibold text-slate-300 flex items-center gap-1.5 transition whitespace-nowrap"
-              title="Copy Workout to Clipboard">
-              <i data-lucide="copy" class="w-4 h-4 shrink-0"></i>
+              class="flex-1 sm:flex-none justify-center px-3 py-2 rounded-xl bg-zinc-100 dark:bg-zinc-800/80 hover:bg-zinc-200/80 dark:hover:bg-zinc-800 border border-zinc-200 dark:border-zinc-700/80 text-xs font-semibold text-zinc-700 dark:text-zinc-200 flex items-center gap-1.5 transition whitespace-nowrap"
+              title="Copy Workout Text">
+              <i data-lucide="copy" class="w-3.5 h-3.5 shrink-0"></i>
               <span id="copyWodLabel">Copy</span>
             </button>
             <span id="rerollSideDot"
-              class="hidden w-2.5 h-2.5 rounded-full bg-volt shadow-[0_0_8px_rgba(216,255,62,0.8)] border border-volt/50 shrink-0"
+              class="hidden w-2.5 h-2.5 rounded-full bg-volt-600 dark:bg-volt shrink-0"
               title="Settings changed"></span>
             <button id="rerollWodBtn"
-              class="flex-1 sm:flex-none justify-center px-3.5 sm:px-4 py-2 rounded-xl bg-volt hover:bg-volt-400 active:scale-[0.98] text-slate-950 font-black text-xs uppercase tracking-wider flex items-center gap-1.5 shadow-md shadow-volt/20 transition whitespace-nowrap"
+              class="flex-1 sm:flex-none justify-center px-4 py-2 rounded-xl bg-zinc-950 hover:bg-zinc-800 dark:bg-volt dark:hover:bg-volt-400 active:scale-[0.98] text-white dark:text-zinc-950 font-bold text-xs uppercase tracking-wider flex items-center gap-1.5 shadow-sm transition whitespace-nowrap"
               title="Generate Another WOD">
-              <i data-lucide="refresh-cw" class="w-4 h-4 stroke-[2.5] shrink-0"></i>
-              <span>Re-Roll</span>
+              <i data-lucide="refresh-cw" class="w-3.5 h-3.5 stroke-[2.5] shrink-0"></i>
+              <span id="rerollWodLabel">Re-Roll</span>
             </button>
           </div>
         </div>
 
         <!-- Outdated-Muted Card Body Wrapper -->
         <div id="wodCardBody" class="transition-opacity duration-300">
-          <!-- Workout Prescription + Intensity Bar (Stacked on mobile, unified single bar on md+) -->
+          <!-- Workout Prescription + Clock + Intensity Bar -->
           <div
-            class="my-3.5 flex flex-col md:flex-row md:items-center md:justify-between md:bg-slate-900/90 md:border md:border-slate-800/90 md:rounded-xl md:px-3.5 md:py-2">
-            <!-- Workout Prescription + Clock -->
+            class="my-3.5 flex flex-col md:flex-row md:items-center md:justify-between gap-2 md:bg-zinc-50 dark:md:bg-zinc-950/60 md:border md:border-zinc-200/80 dark:md:border-zinc-800/80 md:rounded-xl md:px-3.5 md:py-2">
+            <!-- Workout Prescription & Timecap Clock -->
             <div
-              class="flex items-center justify-between gap-2.5 bg-slate-900/90 border border-slate-800/90 rounded-xl px-3.5 py-2 md:flex-1 md:min-w-0 md:bg-transparent md:border-0 md:rounded-none md:p-0">
-              <p id="wodPrescriptionHeader" class="text-sm sm:text-base font-bold text-slate-100 leading-snug">
+              class="flex items-center justify-between gap-2.5 bg-zinc-50 dark:bg-zinc-950/60 border border-zinc-200/80 dark:border-zinc-800/80 rounded-xl px-3.5 py-2 md:flex-1 md:min-w-0 md:bg-transparent md:border-0 md:rounded-none md:p-0">
+              <p id="wodPrescriptionHeader" class="text-sm font-bold text-zinc-900 dark:text-zinc-100 leading-snug min-w-0">
                 AMRAP • Max Rounds &amp; Reps:
               </p>
               <span id="wodTimeCapBadge"
-                class="inline-flex items-center gap-1.5 text-xs font-mono font-bold text-amber-300 bg-amber-500/10 border border-amber-500/30 px-2.5 py-1 rounded-lg whitespace-nowrap shrink-0">
-                <i data-lucide="clock" class="w-3.5 h-3.5 shrink-0"></i>
+                class="inline-flex items-center gap-1.5 text-xs sm:text-sm font-mono font-bold tabular-nums text-zinc-800 dark:text-zinc-200 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 px-2.5 py-1 rounded-lg whitespace-nowrap shrink-0">
+                <i data-lucide="clock" class="w-3.5 h-3.5 text-zinc-500 dark:text-zinc-400 shrink-0"></i>
                 <span id="wodTimeCapText">15:00</span>
               </span>
             </div>
 
-            <!-- Post-Generation Workout Intensity Choice (Separate line on small screens, inline right on md+, hidden when not needed) -->
-            <div id="wodIntensityPanel" class="intensity-panel-collapse mt-2.5 md:mt-0 md:ml-3 md:shrink-0">
+            <!-- Post-Generation Workout Intensity Choice -->
+            <div id="wodIntensityPanel" class="intensity-panel-collapse md:ml-3 md:shrink-0">
               <div class="intensity-panel-inner">
                 <div
-                  class="flex flex-wrap md:flex-nowrap items-center justify-between gap-2 bg-slate-900/75 border border-slate-800/90 rounded-xl px-3.5 py-2 md:w-max md:bg-transparent md:border-0 md:rounded-none md:p-0 md:pl-3 md:border-l md:border-slate-800">
+                  class="flex flex-wrap md:flex-nowrap items-center justify-between gap-2 bg-zinc-50 dark:bg-zinc-950/60 border border-zinc-200/80 dark:border-zinc-800/80 rounded-xl px-3 py-1.5 md:w-max md:bg-transparent md:border-0 md:rounded-none md:p-0 md:pl-3 md:border-l md:border-zinc-200 dark:md:border-zinc-800">
                   <div class="flex items-center gap-1.5 min-w-0">
-                    <i data-lucide="gauge" class="w-3.5 h-3.5 text-volt shrink-0"></i>
-                    <span class="text-[11px] font-bold uppercase tracking-wider text-slate-300">Intensity</span>
+                    <i data-lucide="gauge" class="w-3.5 h-3.5 text-zinc-500 dark:text-zinc-400 shrink-0"></i>
+                    <span class="text-[11px] font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Intensity</span>
                   </div>
 
                   <div id="wodIntensityChoiceGrid"
-                    class="inline-grid grid-cols-3 gap-0.5 bg-slate-950/90 p-0.5 rounded-lg border border-slate-800/80 shrink-0"
+                    class="inline-grid grid-cols-3 gap-0.5 bg-zinc-200/70 dark:bg-zinc-900 p-0.5 rounded-lg border border-zinc-200 dark:border-zinc-800 shrink-0"
                     role="radiogroup" aria-label="Workout intensity tier">
                     <button type="button" data-wod-intensity="moderate" role="radio" aria-checked="false"
                       class="wod-intensity-choice-btn py-1 px-2.5 rounded-md text-[11px] font-mono font-bold transition">
@@ -205,165 +229,224 @@
             </div>
           </div>
 
-          <!-- Movements Prescription List (With Real-Time 2D IK Canvas Previews & Optional Gear Sub Bar) -->
-          <div id="wodMovementsList" class="space-y-3 my-4">
+          <!-- Movements Prescription List (Primary Visual Focus) -->
+          <div id="wodMovementsList" class="space-y-2.5 my-4">
             <!-- Populated dynamically by JS -->
           </div>
 
-          <!-- Biomechanical Balance & Stimulus Notes -->
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-4 border-t border-slate-800/80">
-            <!-- Coach's Stimulus & Pacing -->
-            <div class="bg-slate-900/70 border border-slate-800/80 rounded-xl p-3.5">
-              <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-volt mb-1.5">
-                <i data-lucide="flame" class="w-4 h-4"></i>
-                <span>Intended Stimulus & Pacing</span>
+          <!-- Collapsible Coach's Stimulus & Logic Disclosure -->
+          <details id="wodCoachNotesDetails"
+            class="group mt-4 pt-3.5 border-t border-zinc-200/80 dark:border-zinc-800/80">
+            <summary
+              class="flex items-center justify-between gap-3 cursor-pointer list-none select-none py-1 text-xs text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white transition">
+              <div class="flex items-center gap-2 min-w-0">
+                <i data-lucide="sparkles" class="w-3.5 h-3.5 text-volt-600 dark:text-volt shrink-0"></i>
+                <span class="font-semibold text-zinc-800 dark:text-zinc-200 shrink-0">Coach's Notes &amp; Stimulus</span>
+                <span id="wodCoachPreviewText" class="text-[11px] text-zinc-500 dark:text-zinc-400 truncate hidden sm:inline"></span>
               </div>
-              <p id="wodStimulusText" class="text-xs text-slate-300 leading-relaxed"></p>
-            </div>
+              <i data-lucide="chevron-down"
+                class="w-4 h-4 text-zinc-400 transition-transform duration-200 group-open:rotate-180 shrink-0"></i>
+            </summary>
 
-            <!-- Biomechanical Pattern Breakdown -->
-            <div class="bg-slate-900/70 border border-slate-800/80 rounded-xl p-3.5">
-              <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-cyan-300 mb-1.5">
-                <i data-lucide="shield-check" class="w-4 h-4"></i>
-                <span>HIIT Programming Logic</span>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5 pt-3">
+              <div class="bg-zinc-50 dark:bg-zinc-950/60 border border-zinc-200/80 dark:border-zinc-800/80 rounded-xl p-3">
+                <div class="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-zinc-800 dark:text-zinc-200 mb-1">
+                  <i data-lucide="flame" class="w-3.5 h-3.5 text-volt-600 dark:text-volt"></i>
+                  <span>Intended Stimulus</span>
+                </div>
+                <p id="wodStimulusText" class="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed"></p>
               </div>
-              <p id="wodLogicText" class="text-xs text-slate-300 leading-relaxed mb-2"></p>
-              <div id="wodPatternTags" class="flex flex-wrap gap-1.5"></div>
-            </div>
-          </div>
 
-          <!-- Bottom Jump Bar to Customize Section -->
-          <div
-            class="mt-5 pt-4 border-t border-slate-800/60 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-400">
-            <span class="flex items-center gap-1.5">
-              <i data-lucide="sliders-horizontal" class="w-4 h-4 text-cyan-400"></i>
-              Want to adapt your equipment, format, or movement animations?
-            </span>
-            <button id="scrollToCustomizeBtn"
-              class="px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-cyan-300 hover:text-white border border-cyan-500/30 flex items-center gap-1.5 font-semibold transition">
-              <span>Adapt Settings Below</span>
-              <i data-lucide="arrow-down" class="w-3.5 h-3.5"></i>
-            </button>
-          </div>
+              <div class="bg-zinc-50 dark:bg-zinc-950/60 border border-zinc-200/80 dark:border-zinc-800/80 rounded-xl p-3">
+                <div class="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-zinc-800 dark:text-zinc-200 mb-1">
+                  <i data-lucide="shield-check" class="w-3.5 h-3.5 text-zinc-500 dark:text-zinc-400"></i>
+                  <span>Programming Logic</span>
+                </div>
+                <p id="wodLogicText" class="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed mb-2"></p>
+                <div id="wodPatternTags" class="flex flex-wrap gap-1"></div>
+              </div>
+            </div>
+          </details>
         </div>
       </div>
 
-      <!-- Zero-Shift Outdated Floating Pill Overlay (Floats over the dimmed card at full brightness) -->
+      <!-- Zero-Shift Outdated Floating Pill Overlay -->
       <div id="wodOutdatedBadge" class="hidden absolute inset-0 pointer-events-none items-center justify-center z-20">
-        <div
-          class="px-5 py-2.5 rounded-full bg-slate-950/95 border border-volt/40 shadow-2xl backdrop-blur-md flex items-center gap-2.5">
-          <span class="w-2.5 h-2.5 rounded-full bg-volt shadow-[0_0_8px_rgba(216,255,62,0.9)]"></span>
-          <span class="font-mono text-xs sm:text-sm font-black uppercase tracking-wider text-slate-100">
-            Workout Outdated • Settings Modified
+        <button id="outdatedOverlayRollBtn" type="button"
+          class="pointer-events-auto cursor-pointer hover:scale-[1.02] active:scale-[0.98] transition px-4 py-2 rounded-full bg-white/95 dark:bg-zinc-950/95 border border-zinc-300 dark:border-volt/50 shadow-xl backdrop-blur-md flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-volt-600 dark:bg-volt"></span>
+          <span class="font-mono text-xs font-bold uppercase tracking-wider text-zinc-900 dark:text-zinc-100">
+            Settings Modified • Tap Re-Roll
           </span>
-        </div>
+        </button>
       </div>
     </section>
 
-    <!-- CUSTOMIZATION SECTION: ADAPT EQUIPMENT, PARAMETERS & MOVEMENT LIBRARY -->
-    <section id="customizeSection" class="w-full flex flex-col gap-6 pt-2">
-
-      <div class="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h2 class="text-xl sm:text-2xl font-black text-white flex items-center gap-2">
-            <i data-lucide="sliders-horizontal" class="w-5 h-5 text-volt"></i>
-            <span>Adapt Equipment & Movements</span>
-          </h2>
-          <p class="text-xs text-slate-400 mt-0.5">
-            Modify available gear, time domain and format, and visually choose your active movement animations.
-          </p>
+    <!-- SIMPLE MODE QUICK SETUP BAR (Positioned below Workout Card so WOD leads immediately) -->
+    <section aria-label="Quick Setup" class="w-full">
+      <div class="flex flex-wrap items-center gap-1.5 sm:gap-2 bg-white/90 dark:bg-zinc-900/90 border border-zinc-200 dark:border-zinc-800 rounded-xl p-2 shadow-sm">
+        <!-- Gear Preset Group (Row 1 on mobile, inline on sm+) -->
+        <div class="w-full sm:w-auto flex items-center p-0.5 rounded-lg bg-zinc-100 dark:bg-zinc-950 border border-zinc-200/80 dark:border-zinc-800" role="group" aria-label="Equipment preset">
+          <button type="button" data-preset="bodyweight"
+            class="quick-preset-btn flex-1 sm:flex-initial px-2 sm:px-2.5 py-1 rounded-md text-[11px] font-semibold transition whitespace-nowrap text-center">
+            Bodyweight
+          </button>
+          <button type="button" data-preset="minimal"
+            class="quick-preset-btn flex-1 sm:flex-initial px-2 sm:px-2.5 py-1 rounded-md text-[11px] font-semibold transition whitespace-nowrap text-center"
+            title="Bodyweight, Pull-Up Bar + Optional Rings, KB, BikeErg, Rope, Running">
+            Minimal
+          </button>
+          <button type="button" data-preset="full"
+            class="quick-preset-btn flex-1 sm:flex-initial px-2 sm:px-2.5 py-1 rounded-md text-[11px] font-semibold transition whitespace-nowrap text-center">
+            Full Gym
+          </button>
+          <button type="button" id="customPresetBadge"
+            class="hidden flex-1 sm:flex-initial px-2 sm:px-2.5 py-1 rounded-md text-[11px] font-semibold bg-zinc-950 text-white dark:bg-volt dark:text-zinc-950 transition whitespace-nowrap text-center"
+            title="Custom equipment selection active — click to edit">
+            Custom
+          </button>
         </div>
 
-        <!-- Section CTA Button -->
-        <div class="flex items-center gap-2.5">
-          <span id="generateWodSideDot"
-            class="hidden w-2.5 h-2.5 rounded-full bg-volt shadow-[0_0_8px_rgba(216,255,62,0.8)] border border-volt/50"
-            title="Settings changed"></span>
-          <button id="generateWodBtn"
-            class="px-5 py-2.5 rounded-xl bg-volt hover:bg-volt-400 active:scale-95 text-slate-950 font-black text-xs uppercase tracking-wider flex items-center gap-2 shadow-lg shadow-volt/20 transition">
-            <i data-lucide="shuffle" class="w-4 h-4 stroke-[2.5]"></i>
-            <span id="generateWodBtnLabel">Generate Workout</span>
+        <!-- Duration Group (Row 2 on mobile, inline on sm+) -->
+        <div class="inline-flex items-center p-0.5 rounded-lg bg-zinc-100 dark:bg-zinc-950 border border-zinc-200/80 dark:border-zinc-800" role="group" aria-label="Workout duration">
+          <button type="button" data-duration="short"
+            class="quick-duration-btn px-2 py-1 rounded-md text-[11px] font-mono font-semibold transition whitespace-nowrap"
+            title="8 – 12 Min">
+            ~10m
+          </button>
+          <button type="button" data-duration="medium"
+            class="quick-duration-btn px-2 py-1 rounded-md text-[11px] font-mono font-semibold transition whitespace-nowrap"
+            title="14 – 20 Min">
+            ~15m
+          </button>
+          <button type="button" data-duration="long"
+            class="quick-duration-btn px-2 py-1 rounded-md text-[11px] font-mono font-semibold transition whitespace-nowrap"
+            title="24 – 40 Min">
+            25m+
+          </button>
+        </div>
+
+        <!-- Skill Tier Quick Toggle -->
+        <button type="button" id="quickSkillToggleBtn"
+          class="px-2 sm:px-2.5 py-1.5 rounded-lg border text-[11px] font-mono font-semibold transition whitespace-nowrap flex items-center gap-1.5"
+          title="Toggle High-Skill Rx+ Movements (Muscle-Ups, HSPU, Pistols, Double-Unders, Squat Snatch)">
+          <span id="quickSkillDot" class="w-1.5 h-1.5 rounded-full"></span>
+          <span id="quickSkillLabel">Standard</span>
+        </button>
+
+        <!-- Advanced Mode Trigger (Right-aligned on Row 2 on mobile, right-aligned on sm+) -->
+        <button type="button" id="openAdvancedModalBtn"
+          class="ml-auto flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-zinc-100 dark:bg-zinc-800/80 hover:bg-zinc-200/80 dark:hover:bg-zinc-800 border border-zinc-200 dark:border-zinc-700/80 text-[11px] font-semibold text-zinc-800 dark:text-zinc-200 transition shrink-0 whitespace-nowrap"
+          title="Open Advanced Equipment, Format & Movement Pool Controls">
+          <i data-lucide="sliders-horizontal" class="w-3.5 h-3.5"></i>
+          <span>Tune</span>
+          <span id="advancedActiveBadge"
+            class="hidden px-1.5 py-0.2 rounded-full text-[10px] font-mono font-bold bg-zinc-950 text-white dark:bg-volt dark:text-zinc-950">0</span>
+        </button>
+      </div>
+    </section>
+  </main>
+
+  <!-- ADVANCED MODE MODAL: EQUIPMENT, FORMAT & MOVEMENT POOL -->
+  <div id="advancedModal"
+    class="fixed inset-0 z-50 hidden items-center justify-center p-2 sm:p-4 bg-zinc-950/50 dark:bg-zinc-950/80 backdrop-blur-sm">
+    <div id="advancedModalCard"
+      class="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl max-w-4xl w-full max-h-[92vh] sm:max-h-[88vh] flex flex-col shadow-2xl relative overflow-hidden">
+
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between px-4 sm:px-6 pt-4 sm:pt-5 pb-3 border-b border-zinc-200 dark:border-zinc-800 shrink-0">
+        <div>
+          <h2 class="text-base sm:text-lg font-black text-zinc-950 dark:text-white flex items-center gap-2">
+            <i data-lucide="sliders-horizontal" class="w-4 h-4 text-volt-600 dark:text-volt"></i>
+            <span>Tune Setup &amp; Movement Pool</span>
+          </h2>
+          <p class="text-[11px] text-zinc-500 dark:text-zinc-400 mt-0.5">
+            Fine-tune available equipment, workout format rules, or individual movement animations.
+          </p>
+        </div>
+        <button id="closeAdvancedModalBtn"
+          class="w-8 h-8 rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-600 dark:text-zinc-300 flex items-center justify-center transition shrink-0 ml-2">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <!-- Segmented Tabs -->
+      <div class="px-4 sm:px-6 py-2.5 bg-zinc-50 dark:bg-zinc-950/60 border-b border-zinc-200 dark:border-zinc-800 shrink-0">
+        <div class="inline-flex items-center gap-1 p-1 rounded-xl bg-zinc-200/70 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 w-full sm:w-auto">
+          <button type="button" data-adv-tab="equipment"
+            class="adv-tab-btn flex-1 sm:flex-none px-3 py-1.5 rounded-lg text-xs font-semibold transition">
+            Equipment
+          </button>
+          <button type="button" data-adv-tab="rules"
+            class="adv-tab-btn flex-1 sm:flex-none px-3 py-1.5 rounded-lg text-xs font-semibold transition">
+            Format &amp; Rules
+          </button>
+          <button type="button" data-adv-tab="movements"
+            class="adv-tab-btn flex-1 sm:flex-none px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center justify-center gap-1.5">
+            <span>Movements</span>
+            <span id="activePoolSummary" class="font-mono text-[10px] opacity-80">0/0</span>
           </button>
         </div>
       </div>
 
-      <!-- Top Row: Equipment Matrix & Programming Parameters -->
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      <!-- Tab Panels Container -->
+      <div id="advancedModalBody" class="flex-1 overflow-y-auto p-4 sm:p-6">
 
-        <!-- STEP 1: 3-STATE EQUIPMENT SELECTOR CARD -->
-        <div
-          class="lg:col-span-7 bg-slate-925/90 border border-slate-800/90 rounded-2xl p-4 sm:p-5 shadow-xl space-y-3.5">
+        <!-- TAB 1: EQUIPMENT MATRIX -->
+        <div id="advTabEquipment" class="space-y-4">
           <div class="flex flex-wrap items-center justify-between gap-2">
-            <div class="flex items-center gap-2">
-              <span
-                class="w-6 h-6 rounded-lg bg-volt/15 border border-volt/40 text-volt font-mono text-xs font-bold flex items-center justify-center">1</span>
-              <h3 class="font-bold text-sm sm:text-base uppercase tracking-wider text-slate-100">Equipment Matrix</h3>
-            </div>
-
-            <!-- Quick Presets -->
+            <span class="text-xs font-semibold text-zinc-700 dark:text-zinc-300">Quick Gear Presets</span>
             <div class="flex items-center gap-1.5">
               <button data-preset="bodyweight"
-                class="preset-btn text-[11px] font-medium px-2.5 py-1 rounded-lg bg-slate-800/90 hover:bg-slate-700 text-slate-300 border border-slate-700 transition">
+                class="preset-btn text-[11px] font-medium px-2.5 py-1 rounded-lg border transition">
                 Bodyweight
               </button>
               <button data-preset="minimal"
-                class="preset-btn text-[11px] font-medium px-2.5 py-1 rounded-lg bg-slate-800/90 hover:bg-slate-700 text-slate-300 border border-slate-700 transition"
-                title="Bodyweight + Pull-up Bar HAVE; Running Area, Rings, KB, BikeErg, Jump Rope OPT">
-                Home Minimal
+                class="preset-btn text-[11px] font-medium px-2.5 py-1 rounded-lg border transition">
+                Minimal
               </button>
               <button data-preset="full"
-                class="preset-btn text-[11px] font-medium px-2.5 py-1 rounded-lg bg-slate-800/90 hover:bg-slate-700 text-slate-300 border border-slate-700 transition">
+                class="preset-btn text-[11px] font-medium px-2.5 py-1 rounded-lg border transition">
                 Full Gym
               </button>
             </div>
           </div>
 
-          <!-- Legend for 3-State Equipment -->
           <div
-            class="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-slate-400 bg-slate-900/80 border border-slate-800/80 rounded-xl px-3 py-2">
-            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-volt"></span><strong
-                class="text-slate-200">HAVE:</strong> Primary gear</span>
-            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span><strong
-                class="text-amber-300">OPTIONAL:</strong> Inline subs</span>
-            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-slate-700"></span><strong
-                class="text-slate-400">OFF:</strong> Excluded</span>
+            class="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-zinc-600 dark:text-zinc-400 bg-zinc-50 dark:bg-zinc-950/60 border border-zinc-200 dark:border-zinc-800 rounded-xl px-3 py-2">
+            <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-zinc-950 dark:bg-volt"></span><strong
+                class="text-zinc-900 dark:text-zinc-100">HAVE:</strong> Primary gear</span>
+            <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-amber-600 dark:bg-amber-500"></span><strong
+                class="text-amber-800 dark:text-amber-300">OPT:</strong> Inline subs</span>
+            <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-zinc-400 dark:bg-zinc-600"></span><strong
+                class="text-zinc-500 dark:text-zinc-400">OFF:</strong> Excluded</span>
           </div>
 
-          <!-- 3-State Equipment Grid -->
-          <div id="equipmentGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-            <!-- Dynamically populated by JS -->
+          <div id="equipmentGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+            <!-- Populated by JS -->
           </div>
         </div>
 
-        <!-- STEP 2: WORKOUT GENERATOR PARAMETERS -->
-        <div
-          class="lg:col-span-5 bg-slate-925/90 border border-slate-800/90 rounded-2xl p-4 sm:p-5 shadow-xl space-y-4">
-          <div class="flex items-center justify-between">
-            <div class="flex items-center gap-2">
-              <span
-                class="w-6 h-6 rounded-lg bg-volt/15 border border-volt/40 text-volt font-mono text-xs font-bold flex items-center justify-center">2</span>
-              <h3 class="font-bold text-sm sm:text-base uppercase tracking-wider text-slate-100">Parameters</h3>
-            </div>
-            <span class="text-[11px] font-mono text-slate-400">HIIT Constraint Solver</span>
-          </div>
-
-          <!-- Generation Mode -->
+        <!-- TAB 2: FORMAT & RULES -->
+        <div id="advTabRules" class="hidden space-y-5">
+          <!-- Programming Source -->
           <div>
-            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Programming
-              Source</label>
+            <label class="block text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-2">
+              Programming Source
+            </label>
             <div class="grid grid-cols-3 gap-2" id="modeSelectorGrid">
               <button data-mode="smart"
-                class="mode-btn py-2 px-2 rounded-xl border text-xs font-semibold transition flex flex-col items-center text-center gap-0.5">
+                class="mode-btn py-2.5 px-2 rounded-xl border text-xs font-semibold transition flex flex-col items-center text-center gap-0.5">
                 <span>Smart Mixed</span>
                 <span class="text-[10px] font-normal opacity-75">Algo + Classics</span>
               </button>
               <button data-mode="algorithmic"
-                class="mode-btn py-2 px-2 rounded-xl border text-xs font-semibold transition flex flex-col items-center text-center gap-0.5">
+                class="mode-btn py-2.5 px-2 rounded-xl border text-xs font-semibold transition flex flex-col items-center text-center gap-0.5">
                 <span>Custom HIIT</span>
                 <span class="text-[10px] font-normal opacity-75">Pure Rules</span>
               </button>
               <button data-mode="benchmark"
-                class="mode-btn py-2 px-2 rounded-xl border text-xs font-semibold transition flex flex-col items-center text-center gap-0.5">
+                class="mode-btn py-2.5 px-2 rounded-xl border text-xs font-semibold transition flex flex-col items-center text-center gap-0.5">
                 <span>Classics Only</span>
                 <span class="text-[10px] font-normal opacity-75">CF / Hyrox</span>
               </button>
@@ -372,8 +455,9 @@
 
           <!-- Workout Format -->
           <div>
-            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Workout
-              Format</label>
+            <label class="block text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-2">
+              Workout Format
+            </label>
             <div class="grid grid-cols-3 sm:grid-cols-5 gap-1.5" id="formatSelectorGrid">
               <button data-format="ANY"
                 class="format-btn py-2 px-2 rounded-xl border text-xs font-mono font-semibold transition">ANY</button>
@@ -382,8 +466,7 @@
               <button data-format="EMOM"
                 class="format-btn py-2 px-2 rounded-xl border text-xs font-mono font-semibold transition">EMOM</button>
               <button data-format="FOR_TIME"
-                class="format-btn py-2 px-2 rounded-xl border text-xs font-mono font-semibold transition">FOR
-                TIME</button>
+                class="format-btn py-2 px-2 rounded-xl border text-xs font-mono font-semibold transition">FOR TIME</button>
               <button data-format="INTERVALS"
                 class="format-btn py-2 px-2 rounded-xl border text-xs font-mono font-semibold transition col-span-2 sm:col-span-1">TABATA</button>
             </div>
@@ -391,309 +474,312 @@
 
           <!-- Time Domain -->
           <div>
-            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Time
-              Domain</label>
+            <label class="block text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-2">
+              Time Domain
+            </label>
             <div class="grid grid-cols-3 gap-2" id="durationSelectorGrid">
               <button data-duration="short"
-                class="duration-btn py-2 px-2.5 rounded-xl border text-xs font-semibold transition flex flex-col items-center">
+                class="duration-btn py-2.5 px-2.5 rounded-xl border text-xs font-semibold transition flex flex-col items-center">
                 <span>Sprint / Short</span>
                 <span class="text-[10px] font-mono opacity-75">8 – 12 Min</span>
               </button>
               <button data-duration="medium"
-                class="duration-btn py-2 px-2.5 rounded-xl border text-xs font-semibold transition flex flex-col items-center">
+                class="duration-btn py-2.5 px-2.5 rounded-xl border text-xs font-semibold transition flex flex-col items-center">
                 <span>Classic Metcon</span>
                 <span class="text-[10px] font-mono opacity-75">14 – 20 Min</span>
               </button>
               <button data-duration="long"
-                class="duration-btn py-2 px-2.5 rounded-xl border text-xs font-semibold transition flex flex-col items-center">
+                class="duration-btn py-2.5 px-2.5 rounded-xl border text-xs font-semibold transition flex flex-col items-center">
                 <span>Engine / Hyrox</span>
                 <span class="text-[10px] font-mono opacity-75">24 – 40 Min</span>
               </button>
             </div>
           </div>
-        </div>
 
-      </div>
-
-      <!-- STEP 3: VISUAL MOVEMENT LIBRARY & ANIMATION SELECTION (FULL WIDTH) -->
-      <div id="movementMatrixCard"
-        class="bg-slate-925/90 border border-slate-800/90 rounded-2xl p-4 sm:p-6 shadow-xl space-y-5">
-        <div class="flex flex-wrap items-center justify-between gap-3">
-          <div class="flex items-center gap-2">
-            <span
-              class="w-6 h-6 rounded-lg bg-cyan-500/15 border border-cyan-400/40 text-cyan-300 font-mono text-xs font-bold flex items-center justify-center">3</span>
-            <div>
-              <h3
-                class="font-bold text-base sm:text-lg uppercase tracking-wider text-slate-100 flex items-center gap-2">
-                <span>Movement Animations & Pool Selection</span>
-              </h3>
-              <p class="text-xs text-slate-400">
-                Click any movement card to toggle it in your generator pool. Click "Cues" to inspect form and scaling
-                options.
-              </p>
-            </div>
-          </div>
-
-          <!-- Quick Actions: Select All / Deselect All -->
-          <div class="flex items-center gap-2">
-            <button id="enableAllMovementsBtn"
-              class="px-2.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-[11px] font-mono font-bold text-slate-300 border border-slate-800 transition">
-              Select All Visible
-            </button>
-            <button id="disableAllMovementsBtn"
-              class="px-2.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-[11px] font-mono font-bold text-slate-400 border border-slate-800 transition">
-              Deselect All
-            </button>
-          </div>
-        </div>
-
-        <!-- Skill Tier Bar (Normal vs Hard switch) -->
-        <div class="bg-slate-900/95 border border-slate-800 rounded-xl p-3.5 space-y-3">
-          <div class="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <div class="flex items-center gap-2">
-                <span class="text-xs font-extrabold uppercase tracking-wider text-white">Include "Hard" High-Skill
-                  Movements</span>
-                <span id="hardCountBadge"
-                  class="text-[10px] font-mono px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-500/30 font-bold">
-                  0 Active
-                </span>
+          <!-- High-Skill Movements Toggle -->
+          <div class="bg-zinc-50 dark:bg-zinc-950/60 border border-zinc-200 dark:border-zinc-800 rounded-xl p-3.5 space-y-3">
+            <div class="flex items-center justify-between gap-3">
+              <div>
+                <div class="flex items-center gap-2">
+                  <span class="text-xs font-bold uppercase tracking-wider text-zinc-950 dark:text-white">
+                    High-Skill Rx+ Movements
+                  </span>
+                  <span id="hardCountBadge"
+                    class="text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-200 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 font-bold">
+                    0 Active
+                  </span>
+                </div>
+                <p class="text-[11px] text-zinc-500 dark:text-zinc-400 mt-0.5">
+                  Muscle-Ups, HSPU, Pistol Squats, Squat Snatch, Devil Press, Double-Unders, Toes-to-Bar
+                </p>
               </div>
-              <p class="text-[11px] text-slate-400 mt-0.5">
-                Muscle-Ups, HSPU, Pistol Squats, Squat Snatch, Devil Press, Double-Unders, Toes-to-Bar
-              </p>
+              <button id="toggleHardSwitch" role="switch" aria-checked="false"
+                class="relative inline-flex h-7 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none bg-zinc-300 dark:bg-zinc-700"
+                style="width: 52px;">
+                <span id="toggleHardKnob"
+                  class="pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow transition duration-200 ease-in-out translate-x-0"></span>
+              </button>
             </div>
 
-            <!-- Toggle Switch -->
-            <button id="toggleHardSwitch" role="switch" aria-checked="true"
-              class="relative inline-flex h-7 w-13 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none bg-rose-500"
-              style="width: 52px;">
-              <span id="toggleHardKnob"
-                class="pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out translate-x-6"></span>
-            </button>
-          </div>
-
-          <!-- Quick Skill Filter Pills -->
-          <div class="grid grid-cols-3 gap-1.5 pt-1">
-            <button data-skillpreset="normal_only"
-              class="skill-preset-btn py-1.5 px-2 rounded-lg text-[11px] font-mono font-bold border transition">
-              Normal Only (No Hard)
-            </button>
-            <button data-skillpreset="all_enabled"
-              class="skill-preset-btn py-1.5 px-2 rounded-lg text-[11px] font-mono font-bold border transition">
-              All Available (Normal+Hard)
-            </button>
-            <button data-skillpreset="custom"
-              class="skill-preset-btn py-1.5 px-2 rounded-lg text-[11px] font-mono font-bold border transition">
-              Custom Selection
-            </button>
+            <div class="grid grid-cols-3 gap-1.5">
+              <button data-skillpreset="normal_only"
+                class="skill-preset-btn py-1.5 px-2 rounded-lg text-[10px] font-mono font-bold border transition">
+                Standard Only
+              </button>
+              <button data-skillpreset="all_enabled"
+                class="skill-preset-btn py-1.5 px-2 rounded-lg text-[10px] font-mono font-bold border transition">
+                All Available
+              </button>
+              <button data-skillpreset="custom"
+                class="skill-preset-btn py-1.5 px-2 rounded-lg text-[10px] font-mono font-bold border transition">
+                Custom Pool
+              </button>
+            </div>
           </div>
         </div>
 
-        <!-- Pattern Filter Tabs & Difficulty Filter -->
-        <div class="flex flex-wrap items-center justify-between gap-3 pt-1">
-          <div id="matrixCategoryTabs" class="flex flex-wrap gap-1.5">
-            <!-- Dynamically populated category buttons -->
+        <!-- TAB 3: VISUAL MOVEMENT POOL -->
+        <div id="advTabMovements" class="hidden space-y-4">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <p class="text-xs text-zinc-500 dark:text-zinc-400">
+              Click a card to include or exclude it. Click "Cues" for form &amp; progression.
+            </p>
+            <div class="flex items-center gap-1.5">
+              <button id="enableAllMovementsBtn"
+                class="px-2.5 py-1 rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-[11px] font-mono font-semibold text-zinc-700 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-700 transition">
+                Select Visible
+              </button>
+              <button id="disableAllMovementsBtn"
+                class="px-2.5 py-1 rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-[11px] font-mono font-semibold text-zinc-500 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-700 transition">
+                Clear Visible
+              </button>
+            </div>
           </div>
 
-          <div class="flex items-center gap-1.5 flex-wrap">
-            <span
-              class="text-[10px] font-mono text-slate-400 uppercase tracking-wider mr-1 hidden sm:inline">Tier:</span>
-            <button data-difffilter="ALL"
-              class="diff-filter-btn px-2.5 py-1 rounded-lg text-[11px] font-mono font-bold bg-slate-800 text-white">ALL</button>
-            <button data-difffilter="easy"
-              class="diff-filter-btn px-2.5 py-1 rounded-lg text-[11px] font-mono font-bold bg-slate-900 text-amber-300 border border-amber-500/30">EASY</button>
-            <button data-difffilter="normal"
-              class="diff-filter-btn px-2.5 py-1 rounded-lg text-[11px] font-mono font-bold bg-slate-900 text-emerald-300 border border-emerald-500/30">NORMAL</button>
-            <button data-difffilter="hard"
-              class="diff-filter-btn px-2.5 py-1 rounded-lg text-[11px] font-mono font-bold bg-slate-900 text-rose-300 border border-rose-500/30">HARD</button>
+          <div class="flex flex-wrap items-center justify-between gap-2.5">
+            <div id="matrixCategoryTabs" class="flex flex-wrap gap-1.5"></div>
+            <div class="flex items-center gap-1 flex-wrap">
+              <button data-difffilter="ALL"
+                class="diff-filter-btn px-2 py-1 rounded-lg text-[10px] font-mono font-bold border transition">ALL</button>
+              <button data-difffilter="easy"
+                class="diff-filter-btn px-2 py-1 rounded-lg text-[10px] font-mono font-bold border transition">EASY</button>
+              <button data-difffilter="normal"
+                class="diff-filter-btn px-2 py-1 rounded-lg text-[10px] font-mono font-bold border transition">NORMAL</button>
+              <button data-difffilter="hard"
+                class="diff-filter-btn px-2 py-1 rounded-lg text-[10px] font-mono font-bold border transition">HARD</button>
+            </div>
           </div>
-        </div>
 
-        <!-- Visual Animated Movements Grid -->
-        <div id="movementAnimatedGrid"
-          class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3.5 pt-2">
-          <!-- Dynamically populated by JS with live 2D animations on canvases -->
+          <div id="movementAnimatedGrid"
+            class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 pt-1">
+            <!-- Populated by JS -->
+          </div>
         </div>
       </div>
 
-    </section>
-  </main>
+      <!-- Modal Footer -->
+      <div
+        class="flex flex-wrap items-center justify-between gap-2 px-4 sm:px-6 py-3 border-t border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950/60 shrink-0">
+        <div class="flex items-center gap-2">
+          <button id="resetPrefsBtn"
+            class="px-2.5 py-1.5 rounded-lg border border-zinc-200 dark:border-zinc-800 hover:border-rose-400/60 text-xs font-medium text-zinc-600 dark:text-zinc-400 hover:text-rose-600 dark:hover:text-rose-400 flex items-center gap-1.5 transition">
+            <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+            <span>Reset</span>
+          </button>
+          <button id="copyConfigModalBtn"
+            class="px-2.5 py-1.5 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-xs font-medium text-zinc-700 dark:text-zinc-300 flex items-center gap-1.5 transition">
+            <i data-lucide="link" class="w-3.5 h-3.5"></i>
+            <span>Copy Setup Link</span>
+          </button>
+        </div>
 
-  <!-- MOVEMENT DEMO & 2D INVERSE KINEMATICS MODAL -->
+        <div class="flex items-center gap-2 ml-auto">
+          <span id="generateWodSideDot"
+            class="hidden w-2.5 h-2.5 rounded-full bg-volt-600 dark:bg-volt"></span>
+          <button id="generateWodBtn"
+            class="px-4 py-2 rounded-xl bg-zinc-950 hover:bg-zinc-800 dark:bg-volt dark:hover:bg-volt-400 active:scale-[0.98] text-white dark:text-zinc-950 font-bold text-xs uppercase tracking-wider flex items-center gap-1.5 shadow-sm transition">
+            <i data-lucide="refresh-cw" class="w-3.5 h-3.5 stroke-[2.5]"></i>
+            <span id="generateWodBtnLabel">Apply &amp; Roll Workout</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MOVEMENT DEMO, CUES & SCALING PROGRESSION MODAL -->
   <div id="movementDemoModal"
-    class="fixed inset-0 z-[60] hidden items-center justify-center p-2 sm:p-4 bg-slate-950/80 backdrop-blur-md touch-none">
+    class="fixed inset-0 z-[60] hidden items-center justify-center p-2 sm:p-4 bg-zinc-950/60 dark:bg-zinc-950/85 backdrop-blur-sm">
     <div id="movementDemoCard"
-      class="bg-slate-925 border border-slate-700 rounded-2xl max-w-lg w-full max-h-[94vh] sm:max-h-[88vh] overflow-y-auto p-4 sm:p-6 shadow-2xl relative">
+      class="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl max-w-xl w-full max-h-[92vh] sm:max-h-[88vh] overflow-y-auto p-4 sm:p-6 shadow-2xl relative">
       <!-- Close Button -->
       <button id="closeDemoModalBtn"
-        class="absolute top-4 right-4 w-9 h-9 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center transition">
-        <i data-lucide="x" class="w-5 h-5"></i>
+        class="sticky float-right top-0 z-10 w-8 h-8 rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-600 dark:text-zinc-300 flex items-center justify-center transition">
+        <i data-lucide="x" class="w-4 h-4"></i>
       </button>
 
       <!-- Header -->
-      <div class="flex flex-wrap items-center gap-2 mb-1">
+      <div class="flex flex-wrap items-center gap-1.5 mb-1.5 pr-10">
         <span id="demoModalPatternBadge"
-          class="text-[11px] font-mono font-bold uppercase px-2.5 py-0.5 rounded-md bg-volt/15 text-volt border border-volt/30">
+          class="text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded-md border">
           SQUAT / LUNGE
         </span>
-        <span id="demoModalDifficultyBadge" class="text-[11px] font-mono font-bold uppercase px-2.5 py-0.5 rounded-md">
+        <span id="demoModalDifficultyBadge" class="text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded-md border">
           NORMAL
         </span>
         <span id="demoModalEquipBadge"
-          class="text-[11px] font-mono uppercase px-2.5 py-0.5 rounded-md bg-slate-800 text-slate-300">
+          class="text-[10px] font-mono uppercase px-2 py-0.5 rounded-md bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700">
           Bodyweight
         </span>
       </div>
-      <h3 id="demoModalTitle" class="text-xl sm:text-2xl font-black text-white mb-3">
+      <h3 id="demoModalTitle" class="text-xl sm:text-2xl font-black text-zinc-950 dark:text-white mb-3 pr-10">
         Air Squat
       </h3>
 
       <!-- High-Precision 2D Inverse Kinematics Canvas Viewport -->
       <div
-        class="bg-slate-950 border border-slate-800 rounded-2xl p-3 flex flex-col items-center justify-center relative overflow-hidden mb-4">
-        <canvas id="demoModalCanvas" width="280" height="230" class="w-[280px] h-[230px] block"></canvas>
+        class="bg-zinc-100 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl p-2 flex flex-col items-center justify-center relative overflow-hidden mb-4">
+        <canvas id="demoModalCanvas" width="260" height="210" class="w-[260px] h-[210px] block"></canvas>
       </div>
 
-      <!-- Execution Cues, Scaling & Alternative -->
-      <div class="space-y-2.5 text-xs sm:text-sm">
-        <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-3">
-          <div class="font-bold text-volt uppercase text-xs tracking-wider mb-1">Execution & Biomechanical Cues</div>
-          <p id="demoModalCues" class="text-slate-300 leading-relaxed"></p>
+      <!-- Execution Cues & Quick Scaling Note -->
+      <div class="space-y-2 text-xs sm:text-sm mb-4">
+        <div class="bg-zinc-50 dark:bg-zinc-950/60 border border-zinc-200 dark:border-zinc-800 rounded-xl p-3">
+          <div class="font-bold text-zinc-900 dark:text-zinc-100 uppercase text-[10px] tracking-wider mb-1">Execution &amp; Biomechanical Cues</div>
+          <p id="demoModalCues" class="text-zinc-600 dark:text-zinc-300 leading-relaxed text-xs"></p>
         </div>
-        <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-3">
-          <div class="font-bold text-cyan-300 uppercase text-xs tracking-wider mb-1">Scaling</div>
-          <p id="demoModalScaling" class="text-slate-300 leading-relaxed"></p>
+        <div class="bg-zinc-50 dark:bg-zinc-950/60 border border-zinc-200 dark:border-zinc-800 rounded-xl p-3">
+          <div class="font-bold text-zinc-900 dark:text-zinc-100 uppercase text-[10px] tracking-wider mb-1">Scaling Summary</div>
+          <p id="demoModalScaling" class="text-zinc-600 dark:text-zinc-300 leading-relaxed text-xs"></p>
         </div>
+      </div>
+
+      <!-- Interactive Scaling Progression Section for this Movement -->
+      <div id="demoModalProgressionSection"
+        class="pt-4 border-t border-zinc-200 dark:border-zinc-800 space-y-3">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <div class="text-[10px] font-mono font-bold uppercase tracking-wider text-volt-700 dark:text-volt">
+              Movement Scaling Progression
+            </div>
+            <h4 id="demoModalProgressionTitle" class="text-sm font-black text-zinc-950 dark:text-white">
+              Progression Ladder
+            </h4>
+            <p id="demoModalProgressionSubtitle" class="text-[11px] text-zinc-500 dark:text-zinc-400"></p>
+          </div>
+        </div>
+
+        <div id="demoModalProgressionSteps" class="space-y-2">
+          <!-- Populated dynamically by JS -->
+        </div>
+
+        <button id="demoToAllProgressionsBtn" type="button"
+          class="w-full py-2.5 px-3 rounded-xl bg-zinc-100 dark:bg-zinc-800/80 hover:bg-zinc-200/80 dark:hover:bg-zinc-800 border border-zinc-200 dark:border-zinc-700/80 text-xs font-semibold text-zinc-800 dark:text-zinc-200 flex items-center justify-center gap-1.5 transition">
+          <i data-lucide="git-merge" class="w-3.5 h-3.5"></i>
+          <span>View All Scaling Progressions</span>
+          <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+        </button>
       </div>
     </div>
   </div>
 
   <!-- CLASSICAL BENCHMARKS BROWSER MODAL -->
   <div id="benchmarksModal"
-    class="fixed inset-0 z-50 hidden items-center justify-center p-2 sm:p-4 bg-slate-950/80 backdrop-blur-md">
+    class="fixed inset-0 z-50 hidden items-center justify-center p-2 sm:p-4 bg-zinc-950/50 dark:bg-zinc-950/80 backdrop-blur-sm">
     <div id="benchmarksModalCard"
-      class="bg-slate-925 border border-slate-700 rounded-2xl max-w-4xl w-full max-h-[92vh] sm:max-h-[88vh] flex flex-col shadow-2xl relative overflow-hidden">
+      class="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl max-w-4xl w-full max-h-[92vh] sm:max-h-[88vh] flex flex-col shadow-2xl relative overflow-hidden">
       <div
-        class="flex items-center justify-between px-4 sm:px-6 pt-4 sm:pt-6 pb-3 sm:pb-4 border-b border-slate-800 shrink-0">
+        class="flex items-center justify-between px-4 sm:px-6 pt-4 sm:pt-5 pb-3 border-b border-zinc-200 dark:border-zinc-800 shrink-0">
         <div>
-          <h3 class="text-lg sm:text-xl font-black text-white flex items-center gap-2">
-            <i data-lucide="trophy" class="w-5 h-5 text-volt"></i>
-            <span>Classical CrossFit, Hero & Hyrox Benchmarks</span>
+          <h3 class="text-base sm:text-lg font-black text-zinc-950 dark:text-white flex items-center gap-2">
+            <i data-lucide="trophy" class="w-4 h-4 text-volt-600 dark:text-volt"></i>
+            <span>Classical Benchmarks</span>
           </h3>
-          <p class="text-[11px] sm:text-xs text-slate-400 mt-0.5">
-            40+ classic benchmarks honoring The Girls and fallen Heroes. Click any benchmark to load it onto the
-            board.
+          <p class="text-[11px] text-zinc-500 dark:text-zinc-400 mt-0.5">
+            40+ classic CrossFit Girls, Hero WODs &amp; Hyrox benchmarks. Click any workout to load it.
           </p>
         </div>
         <button id="closeBenchmarksModalBtn"
-          class="w-9 h-9 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center transition shrink-0 ml-2">
-          <i data-lucide="x" class="w-5 h-5"></i>
+          class="w-8 h-8 rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-600 dark:text-zinc-300 flex items-center justify-center transition shrink-0 ml-2">
+          <i data-lucide="x" class="w-4 h-4"></i>
         </button>
       </div>
 
       <!-- Filter Bar -->
-      <div class="flex flex-wrap items-center justify-between gap-2 px-4 sm:px-6 my-2.5 sm:my-3 shrink-0">
-        <div class="flex flex-wrap items-center gap-1 sm:gap-1.5">
+      <div class="flex flex-wrap items-center justify-between gap-2 px-4 sm:px-6 my-3 shrink-0">
+        <div class="flex flex-wrap items-center gap-1.5">
           <button data-bfilter="all"
-            class="bfilter-btn px-2.5 sm:px-3 py-1.5 rounded-xl text-[11px] sm:text-xs font-semibold bg-volt text-slate-950">All
-            Classics</button>
+            class="bfilter-btn px-2.5 py-1 rounded-lg text-[11px] font-semibold transition">All Classics</button>
           <button data-bfilter="girls"
-            class="bfilter-btn px-2.5 sm:px-3 py-1.5 rounded-xl text-[11px] sm:text-xs font-semibold bg-slate-800 text-rose-300">The
-            Girls</button>
+            class="bfilter-btn px-2.5 py-1 rounded-lg text-[11px] font-semibold transition">The Girls</button>
           <button data-bfilter="heroes"
-            class="bfilter-btn px-2.5 sm:px-3 py-1.5 rounded-xl text-[11px] sm:text-xs font-semibold bg-slate-800 text-cyan-300">Hero
-            WODs</button>
+            class="bfilter-btn px-2.5 py-1 rounded-lg text-[11px] font-semibold transition">Hero WODs</button>
           <button data-bfilter="eligible"
-            class="bfilter-btn px-2.5 sm:px-3 py-1.5 rounded-xl text-[11px] sm:text-xs font-semibold bg-slate-800 text-emerald-300">Ready
-            With My
-            Gear</button>
+            class="bfilter-btn px-2.5 py-1 rounded-lg text-[11px] font-semibold transition">Ready With My Gear</button>
         </div>
         <div class="relative w-full sm:w-56">
           <input id="benchmarksSearchInput" type="text" placeholder="Search workouts..."
-            class="w-full px-3 py-1.5 text-xs bg-slate-900 border border-slate-700 rounded-xl text-slate-200 placeholder-slate-500 focus:outline-none focus:border-volt" />
+            class="w-full px-3 py-1.5 text-xs bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-lg text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-none focus:border-zinc-400 dark:focus:border-volt" />
         </div>
       </div>
 
       <!-- Benchmarks List -->
       <div id="benchmarksListContainer"
-        class="flex-1 overflow-y-auto px-4 sm:px-6 pb-4 sm:pb-6 grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3">
+        class="flex-1 overflow-y-auto px-4 sm:px-6 pb-5 grid grid-cols-1 sm:grid-cols-2 gap-2.5">
         <!-- Populated by JS -->
       </div>
     </div>
   </div>
 
-  <!-- MOVEMENT SCALE PROGRESSIONS & LADDERS MODAL -->
+  <!-- ALL MOVEMENT SCALE PROGRESSIONS & LADDERS MODAL -->
   <div id="scaleModal"
-    class="fixed inset-0 z-50 hidden items-center justify-center p-2 sm:p-4 bg-slate-950/80 backdrop-blur-md">
+    class="fixed inset-0 z-50 hidden items-center justify-center p-2 sm:p-4 bg-zinc-950/50 dark:bg-zinc-950/80 backdrop-blur-sm">
     <div id="scaleModalCard"
-      class="bg-slate-925 border border-slate-700 rounded-2xl max-w-4xl w-full max-h-[92vh] sm:max-h-[88vh] flex flex-col shadow-2xl relative overflow-hidden">
+      class="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl max-w-4xl w-full max-h-[92vh] sm:max-h-[88vh] flex flex-col shadow-2xl relative overflow-hidden">
       <div
-        class="flex items-center justify-between px-4 sm:px-6 pt-4 sm:pt-6 pb-3 sm:pb-4 border-b border-slate-800 shrink-0">
-        <div>
-          <h3 class="text-lg sm:text-xl font-black text-white flex items-center gap-2">
-            <i data-lucide="git-merge" class="w-5 h-5 text-amber-400"></i>
-            <span>Movement Scale Progressions & Ladders</span>
-          </h3>
-          <p class="text-[11px] sm:text-xs text-slate-400 mt-0.5">
-            Biomechanical progression ladders from foundational regressions to elite Rx skills. Click any movement
-            to
-            view live kinematic animation & cues.
-          </p>
+        class="flex items-center justify-between px-4 sm:px-6 pt-4 sm:pt-5 pb-3 border-b border-zinc-200 dark:border-zinc-800 shrink-0">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <button id="scaleModalBackBtn" type="button"
+            class="hidden items-center gap-1 px-2.5 py-1.5 rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-xs font-semibold text-zinc-700 dark:text-zinc-200 transition shrink-0">
+            <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
+            <span>Back</span>
+          </button>
+          <div class="min-w-0">
+            <h3 class="text-base sm:text-lg font-black text-zinc-950 dark:text-white flex items-center gap-2 truncate">
+              <i data-lucide="git-merge" class="w-4 h-4 text-volt-600 dark:text-volt shrink-0"></i>
+              <span class="truncate">All Scaling Progressions</span>
+            </h3>
+            <p class="text-[11px] text-zinc-500 dark:text-zinc-400 mt-0.5 truncate">
+              Biomechanical ladders from regressions to Rx skills. Tap any movement for cues.
+            </p>
+          </div>
         </div>
         <button id="closeScaleModalBtn"
-          class="w-9 h-9 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center transition shrink-0 ml-2">
-          <i data-lucide="x" class="w-5 h-5"></i>
+          class="w-8 h-8 rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-600 dark:text-zinc-300 flex items-center justify-center transition shrink-0 ml-2">
+          <i data-lucide="x" class="w-4 h-4"></i>
         </button>
       </div>
 
       <!-- Filter Bar -->
-      <div class="flex flex-wrap items-center justify-between gap-2 px-4 sm:px-6 my-2.5 sm:my-3 shrink-0">
-        <div id="scalePatternTabs" class="flex flex-wrap gap-1 sm:gap-1.5">
-          <button data-spattern="ALL"
-            class="spattern-btn px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl text-[11px] sm:text-xs font-semibold bg-amber-400 text-slate-950 font-bold whitespace-nowrap">All
-            Patterns</button>
-          <button data-spattern="PUSH"
-            class="spattern-btn px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl text-[11px] sm:text-xs font-semibold bg-slate-800 text-slate-300 whitespace-nowrap">Push</button>
-          <button data-spattern="PULL"
-            class="spattern-btn px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl text-[11px] sm:text-xs font-semibold bg-slate-800 text-slate-300 whitespace-nowrap">Pull</button>
-          <button data-spattern="SQUAT"
-            class="spattern-btn px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl text-[11px] sm:text-xs font-semibold bg-slate-800 text-slate-300 whitespace-nowrap">Squat</button>
-          <button data-spattern="HINGE_CORE"
-            class="spattern-btn px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl text-[11px] sm:text-xs font-semibold bg-slate-800 text-slate-300 whitespace-nowrap">Hinge
-            & Core</button>
-          <button data-spattern="FULL_BODY"
-            class="spattern-btn px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl text-[11px] sm:text-xs font-semibold bg-slate-800 text-slate-300 whitespace-nowrap">Full
-            Body</button>
-          <button data-spattern="CARDIO"
-            class="spattern-btn px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl text-[11px] sm:text-xs font-semibold bg-slate-800 text-slate-300 whitespace-nowrap">Cardio</button>
+      <div class="flex flex-wrap items-center justify-between gap-2 px-4 sm:px-6 my-3 shrink-0">
+        <div id="scalePatternTabs" class="flex flex-wrap gap-1.5">
+          <button data-spattern="ALL" class="spattern-btn px-2.5 py-1 rounded-lg text-[11px] font-semibold whitespace-nowrap transition">All Patterns</button>
+          <button data-spattern="PUSH" class="spattern-btn px-2.5 py-1 rounded-lg text-[11px] font-semibold whitespace-nowrap transition">Push</button>
+          <button data-spattern="PULL" class="spattern-btn px-2.5 py-1 rounded-lg text-[11px] font-semibold whitespace-nowrap transition">Pull</button>
+          <button data-spattern="SQUAT" class="spattern-btn px-2.5 py-1 rounded-lg text-[11px] font-semibold whitespace-nowrap transition">Squat</button>
+          <button data-spattern="HINGE_CORE" class="spattern-btn px-2.5 py-1 rounded-lg text-[11px] font-semibold whitespace-nowrap transition">Hinge &amp; Core</button>
+          <button data-spattern="FULL_BODY" class="spattern-btn px-2.5 py-1 rounded-lg text-[11px] font-semibold whitespace-nowrap transition">Full Body</button>
+          <button data-spattern="CARDIO" class="spattern-btn px-2.5 py-1 rounded-lg text-[11px] font-semibold whitespace-nowrap transition">Cardio</button>
         </div>
       </div>
 
       <!-- Scale Ladders List Container -->
-      <div id="scaleLaddersContainer" class="flex-1 overflow-y-auto px-4 sm:px-6 pb-4 sm:pb-6 space-y-3 sm:space-y-4">
+      <div id="scaleLaddersContainer" class="flex-1 overflow-y-auto px-4 sm:px-6 pb-5 space-y-3">
         <!-- Populated by JS -->
       </div>
     </div>
   </div>
 
-  <!-- FLOATING "GENERATE WORKOUT" CTA (Appears when scrolled down) -->
-  <div id="floatingGenerateBar"
-    class="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 transition-all duration-300 opacity-0 translate-y-10 pointer-events-none">
-    <div class="flex items-center gap-2.5">
-      <span id="floatingSideDot"
-        class="hidden w-3 h-3 rounded-full bg-volt shadow-[0_0_10px_rgba(216,255,62,0.9)] border border-volt/50"
-        title="Settings changed"></span>
-      <button id="floatingGenerateBtn"
-        class="flex items-center gap-2 px-5 py-3 sm:px-6 sm:py-3.5 rounded-full bg-volt hover:bg-volt-400 active:scale-95 text-slate-950 font-black text-xs sm:text-sm tracking-wide uppercase shadow-2xl shadow-volt/30 border border-volt/50 transition">
-        <i data-lucide="shuffle" class="w-4 h-4 stroke-[2.5]"></i>
-        <span id="floatingGenerateLabel">Generate Workout</span>
-        <i data-lucide="arrow-up" class="w-4 h-4 stroke-[2.5]"></i>
-      </button>
-    </div>
-  </div>
-
-  <!-- Application Modules (Loaded in dependency order, 100% compatible with file://, open index.html & GitHub Pages) -->
+  <!-- Application Modules -->
   <script src="src/data/equipment.js"></script>
   <script src="src/data/patterns.js"></script>
   <script src="src/data/movements.js"></script>

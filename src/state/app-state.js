@@ -21,6 +21,7 @@ const STORAGE_KEY = 'wodforge_local_prefs_v3';
       excludedMovements: new Set(),
       activeMatrixCategory: 'ALL',
       activeDiffFilter: 'ALL',
+      theme: 'system',
       mode: 'smart',
       format: 'ANY',
       duration: 'medium',
@@ -62,6 +63,9 @@ const STORAGE_KEY = 'wodforge_local_prefs_v3';
               if (m.difficulty === 'hard') this.excludedMovements.add(m.id);
             });
           }
+          if (parsed.theme === 'system' || parsed.theme === 'light' || parsed.theme === 'dark') {
+            this.theme = parsed.theme;
+          }
           if (parsed.mode) this.mode = parsed.mode;
           if (parsed.format) this.format = parsed.format;
           if (parsed.duration) this.duration = parsed.duration;
@@ -76,6 +80,7 @@ const STORAGE_KEY = 'wodforge_local_prefs_v3';
       saveToStorage() {
         try {
           const payload = {
+            theme: this.theme,
             equipmentStates: this.equipmentStates,
             includeHardMovements: this.includeHardMovements,
             excludedMovements: Array.from(this.excludedMovements),
@@ -86,6 +91,83 @@ const STORAGE_KEY = 'wodforge_local_prefs_v3';
           };
           localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
         } catch (e) { }
+      },
+
+      applyEquipmentPreset(presetName) {
+        const catalog = globalThis.EQUIPMENT_CATALOG || [];
+        const presets = globalThis.EQUIPMENT_PRESETS || {};
+        catalog.forEach(e => { this.equipmentStates[e.id] = 'off'; });
+
+        if (presetName === 'full' || presets[presetName] === 'all_available') {
+          catalog.forEach(e => { this.equipmentStates[e.id] = 'available'; });
+        } else if (presets[presetName] && typeof presets[presetName] === 'object') {
+          Object.entries(presets[presetName]).forEach(([k, v]) => {
+            this.equipmentStates[k] = v;
+          });
+        } else {
+          this.equipmentStates.bodyweight = 'available';
+        }
+      },
+
+      getActiveEquipmentPreset() {
+        const catalog = globalThis.EQUIPMENT_CATALOG || [];
+        const presets = globalThis.EQUIPMENT_PRESETS || {};
+        const presetNames = ['bodyweight', 'minimal', 'full'];
+
+        for (const name of presetNames) {
+          const def = presets[name];
+          const matches = catalog.every(eq => {
+            const expected = def === 'all_available' ? 'available' : ((def && def[eq.id]) || 'off');
+            return (this.equipmentStates[eq.id] || 'off') === expected;
+          });
+          if (matches) return name;
+        }
+        return 'custom';
+      },
+
+      hasCustomMovementExclusions() {
+        const db = globalThis.MOVEMENTS_DB || [];
+        return db.some(m => {
+          const shouldBeExcluded = !this.includeHardMovements && m.difficulty === 'hard';
+          return this.excludedMovements.has(m.id) !== shouldBeExcluded;
+        });
+      },
+
+      getCustomOverridesCount() {
+        let count = 0;
+        if (this.getActiveEquipmentPreset() === 'custom') count++;
+        if (this.format && this.format !== 'ANY') count++;
+        if (this.mode && this.mode !== 'smart') count++;
+        if (this.hasCustomMovementExclusions()) count++;
+        return count;
+      },
+
+      applyConfig(cfg) {
+        if (!cfg || typeof cfg !== 'object') return;
+        if (cfg.theme === 'system' || cfg.theme === 'light' || cfg.theme === 'dark') {
+          this.theme = cfg.theme;
+        }
+        if (cfg.duration) this.duration = cfg.duration;
+        if (typeof cfg.includeHardMovements === 'boolean') {
+          this.includeHardMovements = cfg.includeHardMovements;
+        }
+        if (cfg.mode) this.mode = cfg.mode;
+        if (cfg.format) this.format = cfg.format;
+        if (cfg.equipmentStates && typeof cfg.equipmentStates === 'object') {
+          this.equipmentStates = { ...this.equipmentStates, ...cfg.equipmentStates };
+        }
+        if (cfg.excludedMovements instanceof Set) {
+          this.excludedMovements = new Set(cfg.excludedMovements);
+        } else if (Array.isArray(cfg.excludedMovements)) {
+          this.excludedMovements = new Set(cfg.excludedMovements);
+        } else {
+          this.initDefaultExclusions();
+        }
+        if (!this.includeHardMovements) {
+          (globalThis.MOVEMENTS_DB || []).forEach(m => {
+            if (m.difficulty === 'hard') this.excludedMovements.add(m.id);
+          });
+        }
       },
 
       addRecentWorkout(sig) {
