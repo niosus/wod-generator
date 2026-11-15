@@ -194,6 +194,12 @@ const UI = {
     }, 3200);
   },
 
+  captureEvent(event, properties = {}) {
+    try {
+      globalThis.posthog?.capture(event, properties);
+    } catch (e) { }
+  },
+
   async shareConfig() {
     try {
       const shareUrl = WorkoutSharing.createConfigShareUrl(AppState);
@@ -210,6 +216,12 @@ const UI = {
         setTimeout(() => { headerLabel.textContent = 'Share Setup'; }, 2000);
       }
       this.showToast('Short setup link copied! Anyone opening it gets your exact gear & settings.');
+      this.captureEvent('setup_shared', {
+        equipment_preset: AppState.getActiveEquipmentPreset(),
+        mode: AppState.mode,
+        format: AppState.format,
+        duration_category: AppState.duration
+      });
     } catch (err) {
       console.error('Share config error:', err);
       this.showToast('Could not copy setup link to clipboard.', 'error');
@@ -239,6 +251,7 @@ const UI = {
             url: shareUrl
           });
           this.showToast('Workout shared!');
+          this.captureEvent('workout_shared', { share_method: 'native_share', format: wod.format, is_benchmark: Boolean(wod.isBenchmark) });
           return;
         } catch (err) {
           if (err.name === 'AbortError') return;
@@ -253,6 +266,7 @@ const UI = {
       lucide.createIcons();
 
       this.showToast('Workout link copied to clipboard!');
+      this.captureEvent('workout_shared', { share_method: 'clipboard', format: wod.format, is_benchmark: Boolean(wod.isBenchmark) });
 
       setTimeout(() => {
         if (shareLabel) shareLabel.textContent = 'Share';
@@ -787,12 +801,29 @@ const UI = {
     }
 
     this.renderWodIntensityControl(wod);
+    this.captureEvent('workout_intensity_changed', {
+      intensity: normalized,
+      format: wod.format,
+      duration_category: wod.durationCategory
+    });
   },
 
-  generateAndDisplayWod() {
+  generateAndDisplayWod(source = null) {
     this.clearSharedUrl();
     const wod = WorkoutGenerator.generate();
     this.displayWod(wod);
+    if (source) {
+      const generationDetails = {
+        generation_source: source,
+        mode: AppState.mode,
+        format: wod.format,
+        duration_category: wod.durationCategory,
+        item_count: wod.items.length,
+        is_benchmark: Boolean(wod.isBenchmark)
+      };
+      this.captureEvent('workout_generated', generationDetails);
+      globalThis.wodforgePosthogLogger?.info('Workout generation completed', generationDetails);
+    }
   },
 
   displayWod(wod) {
@@ -1161,6 +1192,7 @@ const UI = {
     WorkoutGenerator.refreshWodCollisionFreeMetadata(wod);
     this.closeMovementDemoModal();
     this.updateWodRow(idx);
+    this.captureEvent('workout_item_modified', { modification_type: 'progression_step', format: wod.format });
   },
 
   // ===========================================================================
@@ -1848,7 +1880,7 @@ const UI = {
       this.renderEquipmentGrid();
       this.renderMovementMatrix();
       if (autoRoll) {
-        this.generateAndDisplayWod();
+        this.generateAndDisplayWod('equipment_preset');
       } else {
         this.markWodOutdated(true);
       }
@@ -1873,7 +1905,7 @@ const UI = {
         AppState.duration = btn.dataset.duration;
         AppState.saveToStorage();
         this.renderParameterControls();
-        this.generateAndDisplayWod();
+        this.generateAndDisplayWod('duration_changed');
       });
     });
 
@@ -1890,7 +1922,7 @@ const UI = {
         });
         AppState.saveToStorage();
         this.renderMovementMatrix();
-        this.generateAndDisplayWod();
+        this.generateAndDisplayWod('skill_tier_changed');
       });
     }
 
@@ -2091,15 +2123,15 @@ const UI = {
     // Generate (from Advanced Modal) & Re-Roll WOD Buttons
     document.getElementById('generateWodBtn').addEventListener('click', () => {
       this.closeAdvancedModal();
-      this.generateAndDisplayWod();
+      this.generateAndDisplayWod('advanced_setup_applied');
     });
     document.getElementById('rerollWodBtn').addEventListener('click', () => {
-      this.generateAndDisplayWod();
+      this.generateAndDisplayWod('reroll');
     });
     const outdatedRollBtn = document.getElementById('outdatedOverlayRollBtn');
     if (outdatedRollBtn) {
       outdatedRollBtn.addEventListener('click', () => {
-        this.generateAndDisplayWod();
+        this.generateAndDisplayWod('outdated_settings_applied');
       });
     }
 
@@ -2123,6 +2155,7 @@ const UI = {
           delete AppState.currentWod.items[idx].benchmarkCustomLabel;
           WorkoutGenerator.refreshWodCollisionFreeMetadata(AppState.currentWod);
           this.updateWodRow(idx);
+          this.captureEvent('workout_item_modified', { modification_type: 'substitution', format: AppState.currentWod.format });
         }
         return;
       }
@@ -2139,6 +2172,7 @@ const UI = {
           delete AppState.currentWod.items[idx].benchmarkCustomLabel;
           WorkoutGenerator.refreshWodCollisionFreeMetadata(AppState.currentWod);
           this.updateWodRow(idx);
+          this.captureEvent('workout_item_modified', { modification_type: 'scale_down', format: AppState.currentWod.format });
         }
         return;
       }
@@ -2226,6 +2260,7 @@ const UI = {
           ? 'Workout card image copied to clipboard!'
           : 'Workout text copied to clipboard!'
       );
+      this.captureEvent('workout_copied', { copy_format: result.mode, format: wod.format, is_benchmark: Boolean(wod.isBenchmark) });
 
       clearTimeout(this._copyWodTimeout);
       this._copyWodTimeout = setTimeout(() => {
@@ -2323,6 +2358,13 @@ const UI = {
         this.clearSharedUrl();
         this.displayWod(WorkoutGenerator.formatBenchmarkWod(bm));
         this.closeBenchmarksModal();
+        const benchmarkDetails = {
+          benchmark_id: bm.id,
+          benchmark_category: bm.category,
+          format: bm.format,
+        };
+        this.captureEvent('benchmark_loaded', benchmarkDetails);
+        globalThis.wodforgePosthogLogger?.info('Benchmark workout loaded', benchmarkDetails);
       }
     });
 
