@@ -1,18 +1,20 @@
-<img src="./favicon.svg" align="right" width="64" height="64" hspace="16" alt="WODFORGE Logo" />
+<img src="./favicon.svg" align="left" width="60" height="60" hspace="16" alt="WODFORGE Logo" />
 
-# WODFORGE v4
+
+
+
+### WODFORGE
 
 **Precision Biomechanical HIIT WOD Generator**
 
 <br clear="right" />
 
-[![Live App](https://img.shields.io/badge/LAUNCH_APP-Live_on_GitHub_Pages-38bdf8?style=for-the-badge&logo=vercel&logoColor=09090b&labelColor=09090b)](https://niosus.github.io/wod-generator/)
-
-[![Kinematics Audit](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fniosus%2Fwog-generator%2Fbadges%2Fkinematics.json&style=flat-square&labelColor=09090b)](https://github.com/niosus/wog-generator/actions/workflows/ci.yml)
-[![Movements](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fniosus%2Fwog-generator%2Fbadges%2Fmovements.json&style=flat-square&labelColor=09090b)](./src/data/movements.js)
-[![Benchmarks](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fniosus%2Fwog-generator%2Fbadges%2Fbenchmarks.json&style=flat-square&labelColor=09090b)](./src/data/benchmarks.js)
-[![Zero Build](https://img.shields.io/badge/Zero_Build-Static_HTML_%2B_JS-27272a?style=flat-square&labelColor=09090b)](./index.html)
-[![License: MIT](https://img.shields.io/badge/License-MIT-f59e0b?style=flat-square&labelColor=09090b)](./LICENSE)
+[![Live App](https://img.shields.io/badge/LAUNCH_APP-Live_on_GitHub_Pages-38bdf8?style=for-the-badge&logo=vercel&logoColor=09090b&labelColor=09090b)](https://niosus.github.io/wod-generator/) 
+[![Kinematics Audit](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fniosus%2Fwog-generator%2Fbadges%2Fkinematics.json&style=for-the-badge&labelColor=09090b)](https://github.com/niosus/wog-generator/actions/workflows/ci.yml)
+[![Movements](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fniosus%2Fwog-generator%2Fbadges%2Fmovements.json&style=for-the-badge&labelColor=09090b)](./src/data/movements.js)
+[![Benchmarks](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fniosus%2Fwog-generator%2Fbadges%2Fbenchmarks.json&style=for-the-badge&labelColor=09090b)](./src/data/benchmarks.js)
+[![Zero Build](https://img.shields.io/badge/Zero_Build-Static_HTML_%2B_JS-27272a?style=for-the-badge&labelColor=09090b)](./index.html)
+[![License: MIT](https://img.shields.io/badge/License-MIT-f59e0b?style=for-the-badge&labelColor=09090b)](./LICENSE)
 
 Generate competition-grade CrossFit, Hyrox, and HIIT workouts tailored to your gear, skill level, and timeframe — powered by real-time multi-view stick-figure animations, collision-free scaling ladders, and compact URL &amp; PNG card sharing.
 
