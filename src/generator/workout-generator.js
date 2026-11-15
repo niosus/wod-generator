@@ -1,5 +1,193 @@
-const WOD_ADJECTIVES = ['IRON', 'VOLT', 'APEX', 'SAVAGE', 'KINETIC', 'DIESEL', 'TITAN', 'HYBRID', 'FORGE', 'NITRO', 'RELENTLESS', 'PRIMAL'];
-const WOD_NOUNS = ['PROTOCOL', 'ENGINE', 'CRUCIBLE', 'METCON', 'GRINDER', 'IGNITION', 'TURBINE', 'MATRIX', 'SHIFT', 'SURGE', 'CATALYST'];
+const MOVEMENT_NAME_TOKENS = {
+  run: ['TARMAC', 'PAVEMENT', 'BLACKTOP', 'STRIDE', 'TRACK'],
+  pullups: ['CHALK', 'HIGH BAR', 'DEAD HANG', 'STRICT BAR', 'LATS'],
+  chin_ups: ['CHALK', 'CHIN BAR', 'DEAD HANG', 'HIGH BAR', 'LATS'],
+  bar_hang: ['DEAD HANG', 'IRON GRIP', 'STATIC BAR', 'HANG TIME'],
+  bar_muscle_up: ['HIGH BAR', 'TURNOVER', 'LOCKOUT', 'ABOVE THE BAR'],
+  ring_muscle_up: ['FALSE GRIP', 'HIGH RINGS', 'TURNOVER', 'RING LOCKOUT'],
+  ring_dips: ['STILL RINGS', 'WOOD & STRAP', 'RING SUPPORT', 'DEEP DIP'],
+  ring_rows: ['STILL RINGS', 'WOOD & STRAP', 'RING PULL', 'INVERTED ROW'],
+  parallel_bar_dips: ['PARALLEL BARS', 'FULL LOCKOUT', 'BAR SUPPORT', 'DEEP DIP'],
+  bar_inverted_rows: ['PARALLEL BARS', 'BAR ROW', 'IRON FRAME', 'HORIZONTAL PULL'],
+  hspu: ['INVERTED', 'HANDSTAND', 'WALL LINE', 'VERTICAL PRESS'],
+  pike_pushups: ['INVERTED', 'PIKE LINE', 'WALL LINE', 'VERTICAL PRESS'],
+  pushups: ['CHEST TO DECK', 'FLOOR PRESS', 'PLANK LINE', 'LOCKOUT'],
+  knee_pushups: ['CHEST TO DECK', 'FLOOR PRESS', 'PLANK LINE', 'CLEAN LOCKOUT'],
+  kb_swings: ['PENDULUM', 'CAST IRON', 'RUSSIAN SWING', 'BALLISTIC BELL'],
+  kb_snatch: ['CAST IRON', 'BELL PULL', 'HIGH BELL', 'IRON ARC'],
+  kb_hang_power_clean: ['CAST IRON', 'BELL PULL', 'FRONT RACK', 'IRON ARC'],
+  goblet_squats: ['GOBLET', 'FRONT RACK', 'IRON BELL', 'DEEP SQUAT'],
+  kb_thrusters: ['GOBLET', 'FRONT RACK', 'IRON BELL', 'HEAVY BELL'],
+  kb_strict_press: ['IRON BELL', 'STRICT PRESS', 'OVERHEAD LOCK', 'HEAVY BELL'],
+  kb_push_press: ['FRONT RACK', 'IRON BELL', 'HIP DRIVE', 'HEAVY BELL'],
+  kb_push_jerk: ['FRONT RACK', 'IRON BELL', 'SPLIT LOCK', 'HEAVY BELL'],
+  kb_deadlifts: ['CAST IRON', 'HEAVY HANDLE', 'BELL HINGE', 'FLOOR PULL'],
+  kb_rdl: ['CAST IRON', 'HAMSTRING HINGE', 'BELL HINGE', 'IRON PULL'],
+  kb_rfe_rdl: ['CAST IRON', 'SINGLE LEG BELL', 'BELL HINGE', 'IRON PULL'],
+  kb_bent_row: ['CAST IRON', 'HEAVY HANDLE', 'BELL ROW', 'IRON PULL'],
+  kb_bulgarian_split_squats: ['SPLIT BELL', 'SINGLE LEG IRON', 'LOADED LUNGE', 'IRON BELL'],
+  devil_press: ['DEVIL PRESS', 'HEX HEAD', 'FLOOR TO OVERHEAD', 'HEAVY HANDLES'],
+  man_makers: ['MAN MAKER', 'HEX HEAD', 'FLOOR TO OVERHEAD', 'HEAVY HANDLES'],
+  db_snatch: ['HEX HEAD', 'DUMBBELL', 'HEAVY HANDLES', 'IRON PAIR'],
+  db_hang_power_clean: ['HEX HEAD', 'DUMBBELL', 'HEAVY HANDLES', 'IRON PAIR'],
+  db_thrusters: ['HEX HEAD', 'DUMBBELL', 'HEAVY HANDLES', 'IRON PAIR'],
+  db_strict_press: ['HEX HEAD', 'DUMBBELL', 'HEAVY HANDLES', 'IRON PAIR'],
+  db_push_press: ['HEX HEAD', 'DUMBBELL', 'HEAVY HANDLES', 'IRON PAIR'],
+  db_push_jerk: ['HEX HEAD', 'DUMBBELL', 'HEAVY HANDLES', 'IRON PAIR'],
+  db_front_squats: ['HEX HEAD', 'DUMBBELL', 'HEAVY HANDLES', 'IRON PAIR'],
+  db_deadlifts: ['HEX HEAD', 'DUMBBELL', 'HEAVY HANDLES', 'IRON PAIR'],
+  db_rdl: ['HEX HEAD', 'DUMBBELL', 'HEAVY HANDLES', 'IRON PAIR'],
+  db_rfe_rdl: ['HEX HEAD', 'DUMBBELL', 'HEAVY HANDLES', 'IRON PAIR'],
+  db_renegade_row: ['HEX HEAD', 'DUMBBELL', 'HEAVY HANDLES', 'IRON PAIR'],
+  db_bulgarian_split_squats: ['HEX HEAD', 'DUMBBELL', 'HEAVY HANDLES', 'IRON PAIR'],
+  bb_thrusters: ['BARBELL', 'IRON BAR', 'COLLAR TO COLLAR', 'FRONT RACK', 'FLOOR PULL'],
+  bb_squat_snatch: ['BARBELL', 'IRON BAR', 'COLLAR TO COLLAR', 'OVERHEAD SQUAT', 'FLOOR PULL'],
+  bb_hang_power_clean: ['BARBELL', 'IRON BAR', 'COLLAR TO COLLAR', 'FRONT RACK', 'HANG PULL'],
+  bb_push_jerk: ['BARBELL', 'IRON BAR', 'COLLAR TO COLLAR', 'FRONT RACK', 'SPLIT LOCK'],
+  bb_push_press: ['BARBELL', 'IRON BAR', 'COLLAR TO COLLAR', 'FRONT RACK', 'HIP DRIVE'],
+  bb_strict_press: ['BARBELL', 'IRON BAR', 'COLLAR TO COLLAR', 'STRICT PRESS', 'LOCKOUT'],
+  bb_front_squats: ['BARBELL', 'IRON BAR', 'COLLAR TO COLLAR', 'FRONT RACK', 'DEEP SQUAT'],
+  bb_deadlifts: ['BARBELL', 'IRON BAR', 'COLLAR TO COLLAR', 'HEAVY PULL', 'FLOOR PULL'],
+  bb_rdl: ['BARBELL', 'IRON BAR', 'COLLAR TO COLLAR', 'HINGE', 'FLOOR PULL'],
+  bb_rfe_rdl: ['BARBELL', 'IRON BAR', 'COLLAR TO COLLAR', 'SINGLE LEG', 'HINGE'],
+  bb_bent_row: ['BARBELL', 'IRON BAR', 'COLLAR TO COLLAR', 'BENT ROW', 'FLOOR PULL'],
+  bb_bulgarian_split_squats: ['BARBELL', 'IRON BAR', 'COLLAR TO COLLAR', 'SPLIT SQUAT', 'BACK RACK'],
+  pistol_squats: ['PISTOL', 'SINGLE LEG', 'ONE LEG', 'BALANCE POINT'],
+  bulgarian_split_squats: ['SPLIT STANCE', 'DEEP LUNGE', 'SINGLE LEG', 'BACK STEP'],
+  step_back_lunges: ['SPLIT STANCE', 'DEEP LUNGE', 'SINGLE LEG', 'BACK STEP'],
+  walking_lunges: ['SPLIT STANCE', 'DEEP LUNGE', 'SINGLE LEG', 'LONG STRIDE'],
+  jumping_lunges: ['SPLIT STANCE', 'PLYO LUNGE', 'SINGLE LEG', 'FAST SWITCH'],
+  rfe_rdl: ['SPLIT STANCE', 'SINGLE LEG', 'BALANCE HINGE', 'BACK STEP'],
+  air_squats: ['BELOW PARALLEL', 'DEEP SQUAT', 'PISTON', 'OPEN HIP'],
+  burpees: ['CHEST TO FLOOR', 'SIX COUNT', 'FLOOR DROP', 'REDLINE'],
+  athletic_up_downs: ['SPRAWL', 'DECK DROP', 'FAST FEET', 'REDLINE'],
+  double_unders: ['WHIPCORD', 'FAST WRISTS', 'SPEED ROPE', 'FLIGHT TIME'],
+  single_unders: ['WHIPCORD', 'FAST WRISTS', 'SPEED ROPE', 'FLIGHT TIME'],
+  box_jumps: ['PLYO BOX', 'TIMBER', 'HIGH STEP', 'BOX TOP'],
+  box_step_ups: ['PLYO BOX', 'TIMBER', 'HIGH STEP', 'BOX TOP'],
+  wall_balls: ['TEN FOOT LINE', 'WALL TARGET', 'MEDICINE BALL', 'HIGH TARGET'],
+  row_erg_cal: ['FLYWHEEL', 'DAMPER TEN', 'LONG STROKE', 'ERG CHAIN'],
+  bike_erg_cal: ['AIR BIKE', 'HEADWIND', 'FAN WHEEL', 'PEDAL STROKE'],
+  ski_erg_cal: ['NORDIC PULL', 'SKI CORDS', 'DOUBLE POLE', 'TOP SHELF'],
+  toes_to_bar: ['HANGING CORE', 'HIGH BAR', 'KIP & TUCK', 'MIDLINE'],
+  hanging_knee_raises: ['HANGING CORE', 'HIGH BAR', 'KIP & TUCK', 'MIDLINE'],
+  l_sit: ['HOLLOW HOLD', 'STATIC CORE', 'ISOMETRIC', 'IRON MIDLINE'],
+  plank: ['HOLLOW HOLD', 'STATIC CORE', 'ISOMETRIC', 'IRON MIDLINE'],
+  knee_plank: ['HOLLOW HOLD', 'STATIC CORE', 'ISOMETRIC', 'IRON MIDLINE'],
+  straight_arm_plank: ['HOLLOW HOLD', 'STATIC CORE', 'ISOMETRIC', 'IRON MIDLINE'],
+  side_plank: ['HOLLOW HOLD', 'STATIC CORE', 'ISOMETRIC', 'IRON MIDLINE'],
+  situps: ['MIDLINE', 'HOLLOW ROCK', 'JACKKNIFE', 'CORE LINE'],
+  v_ups: ['MIDLINE', 'HOLLOW ROCK', 'JACKKNIFE', 'CORE LINE'],
+  tuck_ups: ['MIDLINE', 'HOLLOW ROCK', 'JACKKNIFE', 'CORE LINE'],
+  jumping_jacks: ['FAST FEET', 'HIGH STEP', 'FLOOR PACE', 'HIGH TURNOVER'],
+  mountain_climbers: ['FAST FEET', 'HIGH STEP', 'FLOOR PACE', 'HIGH TURNOVER'],
+  table_rows: ['LOW PULL', 'BACK LINE', 'CLEAN PULL', 'FLOOR PULL'],
+  doorway_towel_rows: ['LOW PULL', 'BACK LINE', 'CLEAN PULL', 'TOWEL GRIP'],
+  superman_pulls: ['LOW PULL', 'BACK LINE', 'CLEAN PULL', 'FLOOR PULL']
+};
+
+const FORMAT_NAME_SUFFIXES = {
+  FOR_TIME_COUPLET: ['FAST TWITCH', 'REDLINE', 'SHORT FUSE', 'DROP SET', 'BURNDOWN', 'BELL LAP', 'QUICK DRAW', 'NO BRAKES', 'FLASHPOINT', 'SPRINT'],
+  FOR_TIME_ROUNDS: ['PACEKEEPER', 'SPLIT TIME', 'NEGATIVE SPLIT', 'BEAT THE CAP', 'CLOSING SPEED', 'CLOCKWORK', 'STEADY BLEED', 'FIVE GEAR', 'STRAIGHT THROUGH'],
+  EMOM: ['ON THE BEEP', 'SWING SHIFT', 'METRONOME', 'MINUTE BY MINUTE', 'CADENCE', 'TOP OF THE MINUTE', 'STATION TO STATION', 'CLOCKWORK', 'SIXTY SECOND TAX'],
+  INTERVALS: ['TWENTY ON TEN', 'EIGHT COUNT', 'SHORT REST', 'REPEAT OFFENDER', 'SHARP BURSTS', 'TABATA TAX', 'STOP & GO', 'EIGHT ROUNDS DEEP'],
+  AMRAP_SHORT: ['OPEN THROTTLE', 'FAST TURNOVER', 'REDLINE PACE', 'HIGH CADENCE', 'SHORT TRACK', 'NO CEILING'],
+  AMRAP_MEDIUM: ['SECOND WIND', 'STEADY GRIND', 'LAP COUNTER', 'SUSTAINED OUTPUT', 'WORKING CAP', 'ENGINE ROOM', 'DEEP WATER'],
+  AMRAP_LONG: ['LONG HAUL', 'DEEP WATER', 'ENDURANCE TAX', 'DIESEL PACE', 'ROUND AFTER ROUND', 'THIRTY MINUTE GRIT', 'IRON LUNGS']
+};
+
+const FORMAT_HEADLINE_MODIFIERS = {
+  FOR_TIME_COUPLET: ['SPRINT', 'BLITZ', 'BURNDOWN', 'REDLINE', 'CHECK'],
+  FOR_TIME_ROUNDS: ['PACE', 'SPLIT', 'CLOCK', 'GRIND', 'TAX'],
+  EMOM: ['SHIFT', 'CADENCE', 'CLOCK', 'TICK', 'TAX'],
+  INTERVALS: ['BURST', 'COUNT', 'TAX', 'BLITZ', 'PACE'],
+  AMRAP_SHORT: ['THROTTLE', 'CADENCE', 'SPRINT', 'PACE', 'CHECK'],
+  AMRAP_MEDIUM: ['GRIND', 'ENGINE', 'PACE', 'LAP', 'OUTPUT'],
+  AMRAP_LONG: ['HAUL', 'GRIT', 'PACE', 'LUNGS', 'TAX']
+};
+
+const WOD_ARCHETYPE_RULES = [
+  {
+    id: 'run_bar',
+    match: p => p.ids.has('run') && (p.equipments.has('pullup_bar') || p.ids.has('pullups') || p.ids.has('chin_ups')),
+    names: ['CHALK & LUNGS', 'DEAD HANG MILE', 'BAR & PAVEMENT', 'TARMAC & LATS', 'STRIDE & PULL', 'BLACKTOP & CHALK']
+  },
+  {
+    id: 'run_kb',
+    match: p => p.ids.has('run') && p.equipments.has('kettlebell'),
+    names: ['BELL & PAVEMENT', 'RUSSIAN MILE', 'IRON STRIDE', 'SWING & STRIDE', 'CAST IRON PACE', 'BALLISTIC LUNGS']
+  },
+  {
+    id: 'kb_bar_rings',
+    match: p => p.equipments.has('kettlebell') && (p.equipments.has('pullup_bar') || p.equipments.has('gym_rings')),
+    names: ['CHALK & KETTLE', 'SWING & KIP', 'BELL & BAR', 'IRON & RINGS', 'PENDULUM & PULL', 'HOOK & BELL']
+  },
+  {
+    id: 'kb_heavy',
+    match: p => p.kbCount >= 2 || (p.ids.has('kb_swings') && ['goblet_squats', 'kb_snatch', 'kb_hang_power_clean', 'kb_thrusters'].some(id => p.ids.has(id))),
+    names: ['CAST IRON FOUNDRY', 'SWING SHIFT', 'RUSSIAN STEEL', 'BELL RINGER', 'BALLISTIC IRON', 'CANNONBALL']
+  },
+  {
+    id: 'bb_gymnastics',
+    match: p => p.equipments.has('barbell') && (p.equipments.has('pullup_bar') || p.equipments.has('gym_rings') || p.ids.has('burpees') || p.ids.has('hspu') || p.ids.has('toes_to_bar') || p.ids.has('pistol_squats')),
+    names: ['BARBELL & CHALK', 'COLLAR TO COLLAR', 'CLEAN & KIP', 'IRON & OXYGEN', 'RACK & PULL', 'REDLINE BARBELL']
+  },
+  {
+    id: 'db_featured',
+    match: p => p.equipments.has('dumbbell'),
+    names: ["DEVIL'S DUE", 'HEX HEAD HUSTLE', 'DOUBLE DUMBBELL', 'DUMBBELL TAX', 'HEAVY HANDLES', 'FLOOR TO OVERHEAD']
+  },
+  {
+    id: 'high_skill_gym',
+    match: p => ['hspu', 'ring_muscle_up', 'bar_muscle_up', 'pistol_squats', 'l_sit', 'toes_to_bar'].some(id => p.ids.has(id)),
+    names: ['GRAVITY CHECK', 'FALSE GRIP', 'INVERTED TAX', 'CHALK DUST', 'STRICT LIABILITY', 'HIGH WIRE', 'HOLLOW BODY', 'ABOVE THE RINGS']
+  },
+  {
+    id: 'rope_core',
+    match: p => (p.ids.has('double_unders') || p.ids.has('single_unders')) && (p.patterns.has('HINGE_CORE') || p.equipments.has('bodyweight')),
+    names: ['WIRE & CORE', 'WHIP & SNAP', 'FAST WRISTS', 'ROPE BURN', 'FLIGHT TIME', 'CORD & MIDLINE', 'DOUBLE TAP']
+  },
+  {
+    id: 'erg_weighted',
+    match: p => (p.equipments.has('row_erg') || p.equipments.has('bike_erg') || p.equipments.has('ski_erg')) && (p.equipments.has('kettlebell') || p.equipments.has('dumbbell') || p.equipments.has('barbell') || p.ids.has('burpees') || p.ids.has('athletic_up_downs')),
+    names: ['DAMPER TEN', 'FLYWHEEL & IRON', 'CALORIE TAX', 'ERG & FLOOR', 'HEADWIND', 'PULL THE CHAIN', 'FAN & FLOOR']
+  },
+  {
+    id: 'wallball_combo',
+    match: p => p.ids.has('wall_balls') && (p.equipments.has('plyo_box') || p.equipments.has('row_erg') || p.equipments.has('bike_erg') || p.equipments.has('ski_erg') || p.ids.has('burpees')),
+    names: ['TARGET PRACTICE', 'TWENTY FOOT TARGET', 'PAINT THE LINE', 'MEDICINE & LUNGS', 'SQUAT & THROW', 'BOX & BALL']
+  },
+  {
+    id: 'grip_tax',
+    match: p => p.gripCount >= 2,
+    names: ['FOREARM TAX', 'HOOK GRIP', 'DEAD HANG GRIT', 'CHALK BUCKET', 'KNUCKLE DOWN', 'WHITE KNUCKLE', 'NEVER DROP']
+  },
+  {
+    id: 'leg_burner',
+    match: p => p.legCount >= 2,
+    names: ['JELLY LEGS', 'QUAD TAX', 'LACTIC TRACK', 'HEAVY WHEELS', 'SPLIT & STRIDE', 'PISTOL PACE', 'BELOW PARALLEL']
+  },
+  {
+    id: 'pure_bodyweight',
+    match: p => p.isPureBodyweight,
+    names: ['NO IRON NEEDED', 'OWN YOUR WEIGHT', 'BODYWEIGHT TAX', 'CALISTHENIC PACE', 'FLOOR & FRAME', 'DECK & BAR', 'GRAVITY ALONE', 'CLEAN REPS']
+  },
+  {
+    id: 'couplet_21_15_9',
+    match: p => p.format === 'FOR_TIME' && p.isDescendingCouplet,
+    names: ['FAST TWITCH', 'REDLINE COUPLET', 'SHORT FUSE', 'FINAL NINE', 'DROP SET', 'NO BRAKES', 'TWENTY ONE DOWN', 'SPRINT COUPLET']
+  },
+  {
+    id: 'emom_rotation',
+    match: p => p.format === 'EMOM',
+    names: ['ON THE BEEP', 'SWING SHIFT', 'CLOCKWORK', 'MINUTE BY MINUTE', 'BEAT THE BEEP', 'STATION TO STATION', 'METRONOME', 'TOP OF THE MINUTE']
+  },
+  {
+    id: 'tabata_intervals',
+    match: p => p.format === 'INTERVALS',
+    names: ['TWENTY ON TEN', 'EIGHT COUNT', 'TABATA TAX', 'SHORT REST', 'SHARP BURSTS', 'REPEAT OFFENDER', 'EIGHT ROUNDS DEEP']
+  }
+];
 
 const WorkoutGenerator = {
   INTENSITY_TIERS: ['moderate', 'standard', 'high'],
@@ -143,8 +331,200 @@ const WorkoutGenerator = {
     return copy;
   },
 
-  generateName() {
-    return `"${this.pickRandom(WOD_ADJECTIVES)} ${this.pickRandom(WOD_NOUNS)}"`;
+  /**
+   * Deterministic 32-bit FNV-1a hash for mapping a canonical workout signature
+   * to a reproducible integer.
+   */
+  hashString(str) {
+    let hash = 2166136261;
+    for (let i = 0; i < str.length; i++) {
+      hash ^= str.charCodeAt(i);
+      hash = Math.imul(hash, 16777619);
+    }
+    return hash >>> 0;
+  },
+
+  /**
+   * Returns evocative movement-specific imagery tokens, falling back by
+   * equipment and biomechanical pattern for unrecognized movements.
+   */
+  getMovementNameTokens(mov) {
+    if (mov && mov.id && MOVEMENT_NAME_TOKENS[mov.id]) {
+      return MOVEMENT_NAME_TOKENS[mov.id];
+    }
+    const eqFallback = {
+      kettlebell: ['CAST IRON', 'IRON BELL'],
+      dumbbell: ['HEX HEAD', 'IRON PAIR'],
+      barbell: ['BARBELL', 'IRON BAR'],
+      pullup_bar: ['CHALK', 'HIGH BAR'],
+      gym_rings: ['STILL RINGS', 'RING SUPPORT'],
+      parallel_bars: ['PARALLEL BARS', 'IRON FRAME'],
+      plyo_box: ['PLYO BOX', 'TIMBER'],
+      wall_ball: ['WALL TARGET', 'MEDICINE BALL'],
+      jump_rope: ['WHIPCORD', 'SPEED ROPE'],
+      row_erg: ['FLYWHEEL', 'DAMPER TEN'],
+      bike_erg: ['AIR BIKE', 'HEADWIND'],
+      ski_erg: ['NORDIC PULL', 'SKI CORDS'],
+      running_area: ['TARMAC', 'PAVEMENT']
+    };
+    if (mov && mov.equipment && eqFallback[mov.equipment]) {
+      return eqFallback[mov.equipment];
+    }
+    const patFallback = {
+      PUSH: ['LOCKOUT', 'FLOOR PRESS'],
+      PULL: ['CLEAN PULL', 'BACK LINE'],
+      SQUAT: ['BELOW PARALLEL', 'DEEP SQUAT'],
+      HINGE_CORE: ['MIDLINE', 'IRON HINGE'],
+      CARDIO: ['REDLINE', 'LUNGS'],
+      FULL_BODY: ['FULL BODY', 'CHEST TO FLOOR']
+    };
+    return (mov && mov.pattern && patFallback[mov.pattern]) || ['CHALK', 'GRIT'];
+  },
+
+  getFormatSuffixBucket(format, durationCategory = 'medium', isDescendingCouplet = false) {
+    if (format === 'FOR_TIME') {
+      return isDescendingCouplet ? 'FOR_TIME_COUPLET' : 'FOR_TIME_ROUNDS';
+    }
+    if (format === 'EMOM') return 'EMOM';
+    if (format === 'INTERVALS') return 'INTERVALS';
+    if (durationCategory === 'short') return 'AMRAP_SHORT';
+    if (durationCategory === 'long') return 'AMRAP_LONG';
+    return 'AMRAP_MEDIUM';
+  },
+
+  buildNamingProfile(sortedMovements, format, durationCategory, isDescendingCouplet) {
+    const ids = new Set(sortedMovements.map(m => m.id));
+    const equipments = new Set(sortedMovements.map(m => m.equipment));
+    const patterns = new Set(sortedMovements.map(m => m.pattern));
+    const gripGear = new Set(['pullup_bar', 'gym_rings', 'kettlebell', 'dumbbell', 'barbell']);
+    const legIds = new Set(['box_jumps', 'box_step_ups', 'run', 'wall_balls', 'kb_thrusters', 'db_thrusters', 'bb_thrusters', 'bb_squat_snatch']);
+    const calisthenicsGear = new Set(['bodyweight', 'pullup_bar', 'gym_rings', 'parallel_bars']);
+
+    return {
+      ids,
+      equipments,
+      patterns,
+      format,
+      durationCategory,
+      isDescendingCouplet,
+      kbCount: sortedMovements.filter(m => m.equipment === 'kettlebell').length,
+      gripCount: sortedMovements.filter(m => gripGear.has(m.equipment)).length,
+      legCount: sortedMovements.filter(m => m.pattern === 'SQUAT' || legIds.has(m.id)).length,
+      isPureBodyweight: sortedMovements.every(m => calisthenicsGear.has(m.equipment))
+    };
+  },
+
+  /**
+   * Generates a deterministic, context-aware CrossFit/conditioning workout title
+   * tied to the workout's actual movements, equipment, and format.
+   */
+  generateName(context = {}) {
+    const rawMovements = Array.isArray(context.movements)
+      ? context.movements
+      : (Array.isArray(context.items) ? context.items.map(it => it?.movement || it) : []);
+
+    const seenIds = new Set();
+    const sortedMovements = rawMovements
+      .filter(m => {
+        if (!m || !m.id || seenIds.has(m.id)) return false;
+        seenIds.add(m.id);
+        return true;
+      })
+      .sort((a, b) => a.id.localeCompare(b.id));
+
+    if (sortedMovements.length === 0) {
+      return 'CHALK & LUNGS';
+    }
+
+    const format = context.format || 'AMRAP';
+    const durationCategory = context.durationCategory || 'medium';
+    const isDescendingCouplet = Boolean(context.isDescendingCouplet);
+
+    const sigKey = `${format}:${sortedMovements.map(m => m.id).join('-')}`;
+    const hash = this.hashString(sigKey);
+
+    const shareSignificantWord = (a, b) => {
+      const wordsA = new Set(a.split(/[\s&/-]+/).filter(w => w.length >= 3));
+      return b.split(/[\s&/-]+/).some(w => w.length >= 3 && wordsA.has(w));
+    };
+
+    const candidateSet = new Set();
+    const addCandidate = name => {
+      if (name && typeof name === 'string') {
+        candidateSet.add(name.trim());
+      }
+    };
+
+    const profile = this.buildNamingProfile(sortedMovements, format, durationCategory, isDescendingCouplet);
+    WOD_ARCHETYPE_RULES.forEach(rule => {
+      if (rule.match(profile)) {
+        rule.names.forEach(addCandidate);
+      }
+    });
+
+    // Movement-pair titles (<TokenA> & <TokenB>) from distinct movement token lists
+    const tokenLists = [];
+    const seenTokenKeys = new Set();
+    sortedMovements.forEach(mov => {
+      const tokens = this.getMovementNameTokens(mov);
+      const key = tokens.join('|');
+      if (!seenTokenKeys.has(key)) {
+        seenTokenKeys.add(key);
+        tokenLists.push(tokens);
+      }
+    });
+
+    for (let i = 0; i < tokenLists.length; i++) {
+      for (let j = i + 1; j < tokenLists.length; j++) {
+        for (const tokenA of tokenLists[i]) {
+          if (tokenA.includes('&')) continue;
+          for (const tokenB of tokenLists[j]) {
+            if (tokenB.includes('&') || tokenA === tokenB) continue;
+            if (shareSignificantWord(tokenA, tokenB)) continue;
+            const paired = `${tokenA} & ${tokenB}`;
+            if (paired.length <= 24) {
+              addCandidate(paired);
+            }
+          }
+        }
+      }
+    }
+
+    // Movement + format/stimulus titles
+    const bucket = this.getFormatSuffixBucket(format, durationCategory, isDescendingCouplet);
+    const suffixes = FORMAT_NAME_SUFFIXES[bucket] || FORMAT_NAME_SUFFIXES.AMRAP_MEDIUM;
+    const modifiers = FORMAT_HEADLINE_MODIFIERS[bucket] || FORMAT_HEADLINE_MODIFIERS.AMRAP_MEDIUM;
+
+    sortedMovements.forEach(mov => {
+      const tokens = this.getMovementNameTokens(mov);
+      for (const tok of tokens) {
+        if (tok.includes('&')) continue;
+        const tokWords = tok.split(/\s+/).length;
+        for (const mod of modifiers) {
+          if (shareSignificantWord(tok, mod)) continue;
+          const combo = `${tok} ${mod}`;
+          if (tokWords + 1 <= 3 && combo.length <= 24) {
+            addCandidate(combo);
+          }
+        }
+        for (const suf of suffixes) {
+          const sufWords = suf.split(/\s+/).length;
+          if (tokWords + sufWords > 3 || suf.includes('&') || shareSignificantWord(tok, suf)) continue;
+          const combo = `${tok} ${suf}`;
+          if (combo.length <= 24) {
+            addCandidate(combo);
+          }
+        }
+      }
+    });
+
+    if (candidateSet.size < 6) {
+      suffixes.forEach(addCandidate);
+    }
+
+    const candidates = Array.from(candidateSet);
+    const mixed = (hash ^ (hash >>> 16)) >>> 0;
+    return candidates[mixed % candidates.length];
   },
 
   /**
@@ -970,7 +1350,7 @@ const WorkoutGenerator = {
 
       return {
         isBenchmark: false,
-        title: this.generateName(),
+        title: this.generateName({ format: 'EMOM', movements: selected, durationCategory, totalMinutes, rounds }),
         badgeType: 'ALGORITHMIC',
         format: 'EMOM',
         minutes: totalMinutes,
@@ -1017,7 +1397,7 @@ const WorkoutGenerator = {
 
         return {
           isBenchmark: false,
-          title: this.generateName(),
+          title: this.generateName({ format: 'FOR_TIME', isDescendingCouplet: true, movements: selected, durationCategory, totalMinutes: capMinutes }),
           badgeType: 'ALGORITHMIC',
           format: 'FOR_TIME',
           minutes: capMinutes,
@@ -1049,7 +1429,7 @@ const WorkoutGenerator = {
 
         return {
           isBenchmark: false,
-          title: this.generateName(),
+          title: this.generateName({ format: 'FOR_TIME', isDescendingCouplet: false, movements: selected, durationCategory, totalMinutes: capMinutes, rounds }),
           badgeType: 'ALGORITHMIC',
           format: 'FOR_TIME',
           minutes: capMinutes,
@@ -1087,7 +1467,7 @@ const WorkoutGenerator = {
 
       return {
         isBenchmark: false,
-        title: this.generateName(),
+        title: this.generateName({ format: 'INTERVALS', movements: selected, durationCategory, totalMinutes }),
         badgeType: 'ALGORITHMIC',
         format: 'INTERVALS',
         minutes: totalMinutes,
@@ -1122,7 +1502,7 @@ const WorkoutGenerator = {
 
     return {
       isBenchmark: false,
-      title: this.generateName(),
+      title: this.generateName({ format: 'AMRAP', movements: selected, durationCategory, totalMinutes }),
       badgeType: 'ALGORITHMIC',
       format: 'AMRAP',
       minutes: totalMinutes,
@@ -1140,7 +1520,7 @@ const WorkoutGenerator = {
   createFallbackEmptyWod() {
     return {
       isBenchmark: false,
-      title: '"NO MOVEMENTS ENABLED"',
+      title: 'NO MOVEMENTS ENABLED',
       badgeType: 'CHECK FILTERS',
       format: 'AMRAP',
       minutes: 10,
@@ -1154,6 +1534,7 @@ const WorkoutGenerator = {
   }
 };
 
-globalThis.WOD_ADJECTIVES = WOD_ADJECTIVES;
-globalThis.WOD_NOUNS = WOD_NOUNS;
+globalThis.MOVEMENT_NAME_TOKENS = MOVEMENT_NAME_TOKENS;
+globalThis.FORMAT_NAME_SUFFIXES = FORMAT_NAME_SUFFIXES;
+globalThis.WOD_ARCHETYPE_RULES = WOD_ARCHETYPE_RULES;
 globalThis.WorkoutGenerator = WorkoutGenerator;

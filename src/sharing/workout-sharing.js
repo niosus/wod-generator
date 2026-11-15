@@ -152,7 +152,7 @@ const WorkoutSharing = {
 
         const isBenchmark = Boolean(data.ib);
         const restoredWod = {
-          title: data.t,
+          title: data.t || (globalThis.WorkoutGenerator ? globalThis.WorkoutGenerator.generateName({ format: data.f, items, durationCategory: data.dc, isDescendingCouplet: Boolean(data.ic) }) : 'CUSTOM WOD'),
           badgeType: (!isBenchmark && data.bt && data.bt !== 'CHECK FILTERS') ? 'ALGORITHMIC' : data.bt,
           format: data.f,
           minutes: data.m,
