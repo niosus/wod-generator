@@ -1,4 +1,4 @@
-# WODROLL v4
+# WODROLL
 
 <img src="./favicon.svg" align="right" width="84" height="84" hspace="16" alt="WODROLL Logo" />
 
