@@ -41,10 +41,10 @@ const SCALE_LADDERS = [
     id: 'burpee_ladder',
     name: 'Burpee & Ground-to-Overhead Progression',
     pattern: 'FULL_BODY',
-    description: 'Straight-arm sprawls scaling to chest-to-deck burpees, devil presses, and man makers.',
+    description: 'Straight-arm sprawls scaling to burpees, devil presses, and man makers.',
     steps: [
       { movementId: 'athletic_up_downs', level: 1, tier: 'easy', label: 'Athletic Up-Downs (Sprawls)' },
-      { movementId: 'burpees', level: 2, tier: 'normal', label: 'Standard Burpees (Chest-to-Deck)' },
+      { movementId: 'burpees', level: 2, tier: 'normal', label: 'Standard Burpees' },
       { movementId: 'devil_press', level: 3, tier: 'hard', label: 'Dual Dumbbell Devil Press' },
       { movementId: 'man_makers', level: 4, tier: 'hard', label: 'Dumbbell Man Makers' }
     ]
