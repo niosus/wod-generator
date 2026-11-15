@@ -214,11 +214,9 @@ const drawSideTorso = (ctx, t, isLight) => {
   const ny = t.headY - t.shoulderY;
   const nl = Math.hypot(nx, ny) || 1;
   const fd = t.facingDir !== undefined ? t.facingDir : 1;
-  // Negate horizontal eye projection when torso/neck is inverted (head below shoulder)
-  const eyeSign = ny > 0 ? -fd : fd;
   ctx.fillStyle = cInk;
   ctx.beginPath();
-  ctx.arc(t.headX + eyeSign * (-ny / nl) * 4.5, t.headY + eyeSign * (nx / nl) * 4.5, 1.8, 0, Math.PI * 2);
+  ctx.arc(t.headX + fd * (-ny / nl) * 4.5, t.headY + fd * (nx / nl) * 4.5, 1.8, 0, Math.PI * 2);
   ctx.fill();
 };
 

@@ -1,0 +1,58 @@
+name: Kinematics Audit & Badges
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  audit:
+    name: Biomechanical Kinematics Audit
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Run kinematics audit
+        id: audit
+        run: npm test
+
+      - name: Generate badge JSON metrics
+        if: always() && (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
+        run: node .github/scripts/generate-badges.mjs /tmp/badges-out
+
+      - name: Publish metrics to badges branch
+        if: always() && (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          BADGES_REPO="/tmp/badges-repo"
+          rm -rf "$BADGES_REPO"
+          if git ls-remote --exit-code --heads origin badges >/dev/null 2>&1; then
+            git clone --depth 1 --branch badges "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" "$BADGES_REPO"
+          else
+            git init -b badges "$BADGES_REPO"
+            git -C "$BADGES_REPO" remote add origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          fi
+          cp /tmp/badges-out/*.json "$BADGES_REPO/"
+          cd "$BADGES_REPO"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if ! git diff --cached --quiet; then
+            git commit -m "chore(ci): update README badge metrics"
+            git push origin badges
+          else
+            echo "Badge metrics unchanged; skipping push."
+          fi

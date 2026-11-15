@@ -317,14 +317,14 @@ function _computePose(poseType, timestamp) {
     const shoulderX = this.lerp(120, 114, p);
     const shoulderY = this.lerp(120, 143, p);
     const spineAngle = this.lerp(1.62, 1.66, p); // inverted hip -> shoulder nearly vertical facing away from right wall
-    frame.torso = this.torsoFromShoulder(shoulderX, shoulderY, spineAngle, -1, 0.04);
+    frame.torso = this.torsoFromShoulder(shoulderX, shoulderY, spineAngle, 1, 0.04);
     const { hipX, hipY } = frame.torso;
 
     const ankleX = 130;
     const ankleY = hipY - 62.8;
     const legBack = this.solveIK(hipX + 2, hipY, ankleX + 1, ankleY, L_THIGH, L_SHIN, -1);
     const legFront = this.solveIK(hipX, hipY, ankleX, ankleY, L_THIGH, L_SHIN, -1);
-    const arm = this.solveIK(shoulderX, shoulderY, handX, handY, L_UPPER_ARM, L_FOREARM, -1);
+    const arm = this.solveIK(shoulderX, shoulderY, handX, handY, L_UPPER_ARM, L_FOREARM, 1);
 
     addLimb('legB', 'leg', hipX + 2, hipY, legBack.jx, legBack.jy, legBack.ex, legBack.ey, '#64748b', '#475569', 5.4, 'foot', 1, 200);
     addLimb('legF', 'leg', hipX, hipY, legFront.jx, legFront.jy, legFront.ex, legFront.ey, '#bef264', '#94a3b8', 6, 'foot', 1, 200);
@@ -2007,11 +2007,41 @@ function _computePose(poseType, timestamp) {
   if (poseType === 'jumping_jacks') {
     frame.view = 'front';
     frame.floorY = 170;
-    const jumpPhase = theta * 2;
-    const spreadWave = 0.5 - 0.5 * Math.cos(jumpPhase);
-    const jumpHeight = Math.pow(Math.max(0, Math.sin(jumpPhase)), 0.8) * 6;
 
-    const shoulderY = 60 - jumpHeight;
+    // 1.2s per jumping jack (2 reps per 2.4s period):
+    // Two distinct airborne hops (closed->wide and wide->closed) separated by brief
+    // grounded landing/rebound phases so feet never slide across the floor.
+    const repT = (normT * 2) % 1;
+    let jumpHeight = 0;
+    let dip = 0;
+    let spreadWave = 0;
+    let legExtend = 0;
+
+    if (repT < 0.12) {
+      dip = 2.0 * (0.5 + 0.5 * Math.cos((repT / 0.12) * Math.PI));
+      spreadWave = 0;
+    } else if (repT < 0.42) {
+      const u = (repT - 0.12) / 0.30;
+      jumpHeight = 11.5 * 4 * u * (1 - u);
+      spreadWave = this.smoothstep(u);
+      legExtend = 2.0 * Math.sin(u * Math.PI);
+    } else if (repT < 0.58) {
+      const u = (repT - 0.42) / 0.16;
+      dip = 2.0 * (0.5 - 0.5 * Math.cos(u * Math.PI * 2));
+      spreadWave = 1;
+    } else if (repT < 0.88) {
+      const u = (repT - 0.58) / 0.30;
+      jumpHeight = 11.5 * 4 * u * (1 - u);
+      spreadWave = 1 - this.smoothstep(u);
+      legExtend = 2.0 * Math.sin(u * Math.PI);
+    } else {
+      dip = 2.0 * (0.5 + 0.5 * Math.cos(((1 - repT) / 0.12) * Math.PI));
+      spreadWave = 0;
+    }
+
+    const armWave = 0.5 - 0.5 * Math.cos(repT * Math.PI * 2);
+
+    const shoulderY = 59 - jumpHeight + dip;
     const hipY = shoulderY + L_TORSO;
     const leftShoulderX = 86, rightShoulderX = 114;
     const leftHipX = 91, rightHipX = 109;
@@ -2023,7 +2053,7 @@ function _computePose(poseType, timestamp) {
     };
 
     const footSpread = this.lerp(8, 28, spreadWave);
-    const footY = 166 - jumpHeight;
+    const footY = 166 - jumpHeight + legExtend;
     const footLX = 100 - footSpread;
     const footRX = 100 + footSpread;
 
@@ -2033,8 +2063,8 @@ function _computePose(poseType, timestamp) {
     addLimb('legR', 'leg', rightHipX, hipY, legR.jx, legR.jy, legR.ex, legR.ey, '#bef264', '#94a3b8', 5.5, 'foot_front');
 
     // Arms sweep wide laterally outward from sides to clapping overhead
-    const uaL = this.lerp(1.70, Math.PI + 1.45, spreadWave);
-    const faL = this.lerp(1.70, Math.PI + 1.45 + 0.40, spreadWave);
+    const uaL = this.lerp(1.74, Math.PI + 1.45, armWave);
+    const faL = this.lerp(1.74, Math.PI + 1.98, armWave);
     const uaR = Math.PI - uaL;
     const faR = Math.PI - faL;
     const armL = this.solveFK(leftShoulderX, shoulderY, uaL, faL, L_UPPER_ARM, L_FOREARM);
