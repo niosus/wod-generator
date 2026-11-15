@@ -25,10 +25,17 @@ const UI = {
     this.renderParameterControls();
     this.bindEvents();
 
+    const rawWodPayload = WorkoutSharing.getPayloadFromUrl();
     const sharedWod = await WorkoutSharing.loadWodFromUrl();
     if (sharedWod) {
       this.displayWod(sharedWod);
       this.showSharedNotice(sharedWod);
+      if (rawWodPayload && WorkoutSharing.isLegacyWodPayload(rawWodPayload) && window.history && window.history.replaceState) {
+        try {
+          const shortUrl = await WorkoutSharing.createShareUrl(sharedWod);
+          window.history.replaceState(null, '', shortUrl);
+        } catch (e) { }
+      }
     } else {
       this.generateAndDisplayWod();
       if (sharedCfg) {
@@ -157,7 +164,7 @@ const UI = {
         const url = new URL(window.location.href);
         url.searchParams.delete('wod');
         url.searchParams.delete('share');
-        if (url.hash.startsWith('#wod=') || url.hash.startsWith('#share=') || url.hash.startsWith('#z.') || url.hash.startsWith('#u.')) {
+        if (url.hash.startsWith('#wod=') || url.hash.startsWith('#share=') || url.hash.startsWith('#z.') || url.hash.startsWith('#u.') || url.hash.startsWith('#w.')) {
           url.hash = '';
         }
         window.history.replaceState(null, '', url.toString());
@@ -2173,37 +2180,60 @@ const UI = {
       });
     }
 
-    // Copy WOD Text
-    document.getElementById('copyWodBtn').addEventListener('click', async () => {
+    // Copy WOD Card Image (with plain-text fallback)
+    const copyWodBtn = document.getElementById('copyWodBtn');
+    copyWodBtn.addEventListener('click', async () => {
       const wod = AppState.currentWod;
       if (!wod) return;
-      let shareUrl = '';
-      try {
-        shareUrl = await WorkoutSharing.createShareUrl(wod);
-      } catch (e) { }
 
-      const clockLabel = WorkoutGenerator.getClockBadgeLabel(wod);
-      const textParts = [
-        `${wod.title} (${wod.badgeFormat}${clockLabel ? ' • ' + clockLabel : ''})`,
-        WorkoutGenerator.formatBannerPrescriptionHeader(wod.prescriptionHeader, wod.format),
-        ...wod.items.map(i => {
-          const subSuffix = ((i.isOptionalGear || i.isMissingGear) && i.alternative) ? ` [Or Sub: ${i.alternative.text}]` : '';
-          return `- ${i.copyText || i.prescriptionText}${subSuffix}`;
-        }),
-        `\nStimulus: ${wod.stimulus}`
-      ];
-      if (shareUrl) {
-        textParts.push(`\nWorkout Link: ${shareUrl}`);
+      const buildFallbackText = async () => {
+        let shareUrl = '';
+        try {
+          shareUrl = await WorkoutSharing.createShareUrl(wod);
+        } catch (e) { }
+        const clockLabel = WorkoutGenerator.getClockBadgeLabel(wod);
+        const textParts = [
+          `${wod.title} (${wod.badgeFormat}${clockLabel ? ' • ' + clockLabel : ''})`,
+          WorkoutGenerator.formatBannerPrescriptionHeader(wod.prescriptionHeader, wod.format),
+          ...wod.items.map(i => {
+            const subSuffix = ((i.isOptionalGear || i.isMissingGear) && i.alternative) ? ` [Or Sub: ${i.alternative.text}]` : '';
+            return `- ${i.copyText || i.prescriptionText}${subSuffix}`;
+          }),
+          `\nStimulus: ${wod.stimulus}`
+        ];
+        if (shareUrl) {
+          textParts.push(`\nWorkout Link: ${shareUrl}`);
+        }
+        return textParts.join('\n');
+      };
+
+      let result = { mode: 'text' };
+      try {
+        result = await WorkoutSharing.copyWodImageToClipboard(wod, buildFallbackText);
+      } catch (e) {
+        this.showToast('Could not copy workout to clipboard.', 'error');
+        return;
       }
-      const text = textParts.join('\n');
-
-      try {
-        await WorkoutSharing.copyToClipboard(text);
-      } catch (e) { }
 
       const label = document.getElementById('copyWodLabel');
-      label.textContent = 'Copied!';
-      setTimeout(() => { label.textContent = 'Copy'; }, 1800);
+      const iconEl = copyWodBtn.querySelector('svg, i');
+      if (label) label.textContent = 'Copied!';
+      if (iconEl) iconEl.setAttribute('data-lucide', 'check');
+      if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
+
+      this.showToast(
+        result.mode === 'image'
+          ? 'Workout card image copied to clipboard!'
+          : 'Workout text copied to clipboard!'
+      );
+
+      clearTimeout(this._copyWodTimeout);
+      this._copyWodTimeout = setTimeout(() => {
+        if (label) label.textContent = 'Copy';
+        const currentIcon = copyWodBtn.querySelector('svg, i');
+        if (currentIcon) currentIcon.setAttribute('data-lucide', 'copy');
+        if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons();
+      }, 1800);
     });
 
     // Movement Demo Modal Actions (Ladder Step Apply / Preview, Navigate to All Progressions, Close)

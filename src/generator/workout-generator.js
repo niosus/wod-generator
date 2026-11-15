@@ -1312,6 +1312,76 @@ const WorkoutGenerator = {
     };
   },
 
+  /**
+   * Builds deterministic display metadata (badges, header, stimulus, and logic)
+   * for algorithmic workouts so both generation and compact binary share decoding
+   * stay 100% consistent.
+   */
+  buildAlgorithmicWodMetadata({ format, isDescendingCouplet = false, minutes = 15, rounds = 0, intensity = 'standard', movements = [], schemeOverride = null }) {
+    const tier = this.normalizeIntensity(intensity);
+    const patternList = movements.map(s => globalThis.PATTERNS[s.pattern]?.label || s.pattern);
+
+    if (format === 'EMOM') {
+      return {
+        badgeFormat: `${minutes} MIN EMOM`,
+        difficultyLabel: `${movements.length}-Station Rotation (${rounds} Sets)`,
+        prescriptionHeader: `EMOM • ${rounds} Rounds:`,
+        stimulus: 'Target ~40–50 seconds of consistent work each minute, leaving 10–20 seconds to breathe and transition to the next station.',
+        logic: `Alternates ${patternList.join(' → ')} across alternating minutes so local muscle groups recover while systemic heart rate stays high.`,
+        standardRepScheme: null
+      };
+    }
+
+    if (format === 'FOR_TIME') {
+      if (isDescendingCouplet) {
+        const hasVeryHighSkill = movements.some(m => (m.intensity || 1.8) >= 5.0);
+        const schemeSampleMov = movements.every(m => this.isUnilateral(m))
+          ? { unit: 'reps', unilateral: 'split' }
+          : { unit: 'reps' };
+        const standardRepScheme = schemeOverride || this.getDescendingCoupletScheme(schemeSampleMov, tier, hasVeryHighSkill);
+        return {
+          badgeFormat: `${standardRepScheme} FOR TIME`,
+          difficultyLabel: 'Descending Couplet',
+          prescriptionHeader: `${standardRepScheme} Reps For Time:`,
+          stimulus: 'Classic anaerobic threshold couplet. Push the opening set aggressively and fight through the fatigue on set 2.',
+          logic: `Complementary ${patternList.join(' + ')} couplet eliminates muscular interference during high-speed cycling.`,
+          standardRepScheme
+        };
+      }
+
+      return {
+        badgeFormat: `${rounds} ROUNDS FOR TIME`,
+        difficultyLabel: `Balanced ${movements.length}-Movement Metcon`,
+        prescriptionHeader: `${rounds} Rounds For Time:`,
+        stimulus: 'Aim for consistent round splits within 10 seconds of each other. Smooth transitions beat early redlining.',
+        logic: `Synergistic ${patternList.join(' + ')} sequence engineered for continuous multi-round output.`,
+        standardRepScheme: null
+      };
+    }
+
+    if (format === 'INTERVALS') {
+      const split = this.getIntervalSplit(tier);
+      return {
+        badgeFormat: `${minutes} MIN TABATA`,
+        difficultyLabel: `${split.work}s Work / ${split.rest}s Rest`,
+        prescriptionHeader: `Tabata • ${split.work}s Work / ${split.rest}s Rest:`,
+        stimulus: `Score is your lowest rep count across any of the 8 intervals. Pace intervals 1–3 at 85% so you don't crash on interval 6.`,
+        logic: `High-turnover intervals targeting ${patternList.join(' & ')} energy systems.`,
+        standardRepScheme: null
+      };
+    }
+
+    // Default: AMRAP
+    return {
+      badgeFormat: `${minutes} MIN AMRAP`,
+      difficultyLabel: `Balanced ${movements.length}-Movement Triplet`,
+      prescriptionHeader: 'AMRAP • Max Rounds & Reps:',
+      stimulus: `Find a sustainable pace from round 1 and aim for unbroken sets with minimal transition rest across the ${minutes}-minute window.`,
+      logic: `Pairs ${patternList.join(' + ')} to avoid local muscular bottlenecks across the ${minutes}-minute window.`,
+      standardRepScheme: null
+    };
+  },
+
   generateAlgorithmicWod(pool) {
     const chosenFormat = globalThis.AppState.format === 'ANY'
       ? this.pickRandom(['AMRAP', 'EMOM', 'FOR_TIME'])
@@ -1348,6 +1418,14 @@ const WorkoutGenerator = {
         this.buildItemPrescription(mov, 'EMOM', idx, null, usedIds, context)
       );
 
+      const meta = this.buildAlgorithmicWodMetadata({
+        format: 'EMOM',
+        minutes: totalMinutes,
+        rounds,
+        intensity: initialIntensity,
+        movements: selected
+      });
+
       return {
         isBenchmark: false,
         title: this.generateName({ format: 'EMOM', movements: selected, durationCategory, totalMinutes, rounds }),
@@ -1357,12 +1435,12 @@ const WorkoutGenerator = {
         durationCategory,
         intensity: initialIntensity,
         rounds,
-        badgeFormat: `${totalMinutes} MIN EMOM`,
-        difficultyLabel: `${numStations}-Station Rotation (${rounds} Sets)`,
-        prescriptionHeader: `EMOM • ${rounds} Rounds:`,
+        badgeFormat: meta.badgeFormat,
+        difficultyLabel: meta.difficultyLabel,
+        prescriptionHeader: meta.prescriptionHeader,
         items,
-        stimulus: `Target ~40–50 seconds of consistent work each minute, leaving 10–20 seconds to breathe and transition to the next station.`,
-        logic: `Alternates ${selected.map(s => globalThis.PATTERNS[s.pattern]?.label || s.pattern).join(' → ')} across alternating minutes so local muscle groups recover while systemic heart rate stays high.`
+        stimulus: meta.stimulus,
+        logic: meta.logic
       };
     }
 
@@ -1376,10 +1454,6 @@ const WorkoutGenerator = {
       if (is21_15_9) {
         // High skill or heavy movement downshifts from 21-15-9 to 15-12-9
         const hasVeryHighSkill = selected.some(m => (m.intensity || 1.8) >= 5.0);
-        const schemeSampleMov = selected.every(m => this.isUnilateral(m))
-          ? { unit: 'reps', unilateral: 'split' }
-          : { unit: 'reps' };
-        const standardRepScheme = this.getDescendingCoupletScheme(schemeSampleMov, initialIntensity, hasVeryHighSkill);
 
         const context = {
           durationCategory,
@@ -1395,6 +1469,14 @@ const WorkoutGenerator = {
           return this.buildItemPrescription(mov, 'FOR_TIME', null, scheme, usedIds, context);
         });
 
+        const meta = this.buildAlgorithmicWodMetadata({
+          format: 'FOR_TIME',
+          isDescendingCouplet: true,
+          minutes: capMinutes,
+          intensity: initialIntensity,
+          movements: selected
+        });
+
         return {
           isBenchmark: false,
           title: this.generateName({ format: 'FOR_TIME', isDescendingCouplet: true, movements: selected, durationCategory, totalMinutes: capMinutes }),
@@ -1404,12 +1486,12 @@ const WorkoutGenerator = {
           durationCategory,
           intensity: initialIntensity,
           isDescendingCouplet: true,
-          badgeFormat: `${standardRepScheme} FOR TIME`,
-          difficultyLabel: `Descending Couplet`,
-          prescriptionHeader: `${standardRepScheme} Reps For Time:`,
+          badgeFormat: meta.badgeFormat,
+          difficultyLabel: meta.difficultyLabel,
+          prescriptionHeader: meta.prescriptionHeader,
           items,
-          stimulus: `Classic anaerobic threshold couplet. Push the opening set aggressively and fight through the fatigue on set 2.`,
-          logic: `Complementary ${selected.map(s => globalThis.PATTERNS[s.pattern]?.label || s.pattern).join(' + ')} couplet eliminates muscular interference during high-speed cycling.`
+          stimulus: meta.stimulus,
+          logic: meta.logic
         };
       } else {
         const rounds = dom.rounds;
@@ -1427,6 +1509,15 @@ const WorkoutGenerator = {
           this.buildItemPrescription(mov, 'FOR_TIME', null, null, usedIds, context)
         );
 
+        const meta = this.buildAlgorithmicWodMetadata({
+          format: 'FOR_TIME',
+          isDescendingCouplet: false,
+          minutes: capMinutes,
+          rounds,
+          intensity: initialIntensity,
+          movements: selected
+        });
+
         return {
           isBenchmark: false,
           title: this.generateName({ format: 'FOR_TIME', isDescendingCouplet: false, movements: selected, durationCategory, totalMinutes: capMinutes, rounds }),
@@ -1436,12 +1527,12 @@ const WorkoutGenerator = {
           durationCategory,
           intensity: initialIntensity,
           rounds,
-          badgeFormat: `${rounds} ROUNDS FOR TIME`,
-          difficultyLabel: `Balanced ${selected.length}-Movement Metcon`,
-          prescriptionHeader: `${rounds} Rounds For Time:`,
+          badgeFormat: meta.badgeFormat,
+          difficultyLabel: meta.difficultyLabel,
+          prescriptionHeader: meta.prescriptionHeader,
           items,
-          stimulus: `Aim for consistent round splits within 10 seconds of each other. Smooth transitions beat early redlining.`,
-          logic: `Synergistic ${selected.map(s => globalThis.PATTERNS[s.pattern]?.label || s.pattern).join(' + ')} sequence engineered for continuous multi-round output.`
+          stimulus: meta.stimulus,
+          logic: meta.logic
         };
       }
     }
@@ -1451,7 +1542,6 @@ const WorkoutGenerator = {
       const selected = this.selectBalancedMovements(pool, numMovements);
       const usedIds = new Set(selected.map(m => m.id));
       const totalMinutes = numMovements * 4;
-      const split = this.getIntervalSplit(initialIntensity);
 
       const context = {
         durationCategory,
@@ -1465,6 +1555,13 @@ const WorkoutGenerator = {
         this.buildItemPrescription(mov, 'INTERVALS', i, null, usedIds, context)
       );
 
+      const meta = this.buildAlgorithmicWodMetadata({
+        format: 'INTERVALS',
+        minutes: totalMinutes,
+        intensity: initialIntensity,
+        movements: selected
+      });
+
       return {
         isBenchmark: false,
         title: this.generateName({ format: 'INTERVALS', movements: selected, durationCategory, totalMinutes }),
@@ -1473,12 +1570,12 @@ const WorkoutGenerator = {
         minutes: totalMinutes,
         durationCategory,
         intensity: initialIntensity,
-        badgeFormat: `${totalMinutes} MIN TABATA`,
-        difficultyLabel: `${split.work}s Work / ${split.rest}s Rest`,
-        prescriptionHeader: `Tabata • ${split.work}s Work / ${split.rest}s Rest:`,
+        badgeFormat: meta.badgeFormat,
+        difficultyLabel: meta.difficultyLabel,
+        prescriptionHeader: meta.prescriptionHeader,
         items,
-        stimulus: `Score is your lowest rep count across any of the 8 intervals. Pace intervals 1–3 at 85% so you don't crash on interval 6.`,
-        logic: `High-turnover intervals targeting ${selected.map(s => globalThis.PATTERNS[s.pattern]?.label || s.pattern).join(' & ')} energy systems.`
+        stimulus: meta.stimulus,
+        logic: meta.logic
       };
     }
 
@@ -1500,6 +1597,13 @@ const WorkoutGenerator = {
       this.buildItemPrescription(mov, 'AMRAP', null, null, usedIds, context)
     );
 
+    const meta = this.buildAlgorithmicWodMetadata({
+      format: 'AMRAP',
+      minutes: totalMinutes,
+      intensity: initialIntensity,
+      movements: selected
+    });
+
     return {
       isBenchmark: false,
       title: this.generateName({ format: 'AMRAP', movements: selected, durationCategory, totalMinutes }),
@@ -1508,12 +1612,12 @@ const WorkoutGenerator = {
       minutes: totalMinutes,
       durationCategory,
       intensity: initialIntensity,
-      badgeFormat: `${totalMinutes} MIN AMRAP`,
-      difficultyLabel: `Balanced ${selected.length}-Movement Triplet`,
-      prescriptionHeader: `AMRAP • Max Rounds & Reps:`,
+      badgeFormat: meta.badgeFormat,
+      difficultyLabel: meta.difficultyLabel,
+      prescriptionHeader: meta.prescriptionHeader,
       items,
-      stimulus: `Find a sustainable pace from round 1 and aim for unbroken sets with minimal transition rest across the ${totalMinutes}-minute window.`,
-      logic: `Pairs ${selected.map(s => globalThis.PATTERNS[s.pattern]?.label || s.pattern).join(' + ')} to avoid local muscular bottlenecks across the ${totalMinutes}-minute window.`
+      stimulus: meta.stimulus,
+      logic: meta.logic
     };
   },
 
