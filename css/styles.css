@@ -231,3 +231,79 @@ body {
   animation: buttonBump 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
+/* Smooth Collapse / Expand for Contextual Intensity Controls */
+.intensity-panel-collapse {
+  display: grid;
+  grid-template-rows: 1fr;
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  transition:
+    grid-template-rows 0.36s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.26s ease,
+    transform 0.36s cubic-bezier(0.16, 1, 0.3, 1),
+    margin-top 0.36s cubic-bezier(0.16, 1, 0.3, 1),
+    margin-bottom 0.36s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.intensity-panel-collapse.is-collapsed {
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transform: translateY(-6px) scale(0.985);
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  pointer-events: none;
+}
+
+.intensity-panel-inner {
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Subtle Pulse for Rep & Prescription Updates */
+@keyframes repUpdatePulse {
+  0% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+
+  45% {
+    transform: scale(1.06);
+    filter: brightness(1.18);
+  }
+
+  100% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+}
+
+@keyframes textUpdatePulse {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  45% {
+    opacity: 0.78;
+    transform: scale(1.025);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.rep-pulse {
+  animation: repUpdatePulse 0.26s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.text-pulse {
+  transform-origin: left center;
+  animation: textUpdatePulse 0.26s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+span.text-pulse {
+  display: inline-block;
+}
+

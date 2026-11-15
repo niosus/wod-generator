@@ -2,6 +2,43 @@ const WOD_ADJECTIVES = ['IRON', 'VOLT', 'APEX', 'SAVAGE', 'KINETIC', 'DIESEL', '
 const WOD_NOUNS = ['PROTOCOL', 'ENGINE', 'CRUCIBLE', 'METCON', 'GRINDER', 'IGNITION', 'TURBINE', 'MATRIX', 'SHIFT', 'SURGE', 'CATALYST'];
 
 const WorkoutGenerator = {
+  INTENSITY_TIERS: ['moderate', 'standard', 'high'],
+
+  normalizeIntensity(level) {
+    return this.INTENSITY_TIERS.includes(level) ? level : 'standard';
+  },
+
+  /**
+   * Returns work/rest seconds per 30s Tabata interval for the given intensity tier,
+   * preserving the 4-minute (8x 30s) block duration across all tiers.
+   */
+  getIntervalSplit(intensityLevel = 'standard') {
+    const tier = this.normalizeIntensity(intensityLevel);
+    if (tier === 'moderate') return { work: 15, rest: 15 };
+    if (tier === 'high') return { work: 25, rest: 5 };
+    return { work: 20, rest: 10 };
+  },
+
+  /**
+   * Returns the stepped descending couplet rep or distance scheme for the given tier.
+   */
+  getDescendingCoupletScheme(mov, intensityLevel = 'standard', hasVeryHighSkill = false) {
+    const tier = this.normalizeIntensity(intensityLevel);
+    if (mov && mov.unit === 'm') {
+      if (tier === 'moderate') return '300m - 200m - 100m';
+      if (tier === 'high') return '500m - 400m - 300m';
+      return '400m - 300m - 200m';
+    }
+    if (hasVeryHighSkill) {
+      if (tier === 'moderate') return '12 - 9 - 6';
+      if (tier === 'high') return '21 - 15 - 9';
+      return '15 - 12 - 9';
+    }
+    if (tier === 'moderate') return '15 - 12 - 9';
+    if (tier === 'high') return '27 - 21 - 15';
+    return '21 - 15 - 9';
+  },
+
   pickRandom(arr) {
     return arr[Math.floor(Math.random() * arr.length)];
   },
@@ -32,7 +69,7 @@ const WorkoutGenerator = {
       const standardDist = [100, 200, 300, 400, 800];
       return standardDist.reduce((prev, curr) => Math.abs(curr - clamped) < Math.abs(prev - clamped) ? curr : prev);
     }
-    if (clamped <= 6) return clamped;
+    if (clamped <= 7) return clamped;
     if (clamped <= 16) {
       const standardMid = [6, 8, 10, 12, 14, 15, 16];
       return standardMid.reduce((prev, curr) => Math.abs(curr - clamped) < Math.abs(prev - clamped) ? curr : prev);
@@ -42,7 +79,7 @@ const WorkoutGenerator = {
       return standardLarge.reduce((prev, curr) => Math.abs(curr - clamped) < Math.abs(prev - clamped) ? curr : prev);
     }
     if (clamped <= 60) {
-      const standardHuge = [35, 40, 45, 50, 60];
+      const standardHuge = [30, 35, 40, 45, 50, 55, 60];
       return standardHuge.reduce((prev, curr) => Math.abs(curr - clamped) < Math.abs(prev - clamped) ? curr : prev);
     }
     return Math.round(clamped / 5) * 5;
@@ -58,7 +95,7 @@ const WorkoutGenerator = {
    */
   calculateDynamicReps(mov, formatKey, context = {}) {
     const duration = context.durationCategory || globalThis.AppState?.duration || 'medium';
-    const intensityLevel = context.intensity || globalThis.AppState?.intensity || 'standard';
+    const intensityLevel = this.normalizeIntensity(context.intensity);
     const intensity = mov.intensity || 1.8;
     const repSec = mov.repSec || 1.5;
     const unit = mov.unit || 'reps';
@@ -91,7 +128,14 @@ const WorkoutGenerator = {
         if (intensityLevel === 'high') return 250;
         return 200;
       }
-      return duration === 'long' ? 400 : 200;
+      if (duration === 'long') {
+        if (intensityLevel === 'moderate') return 300;
+        if (intensityLevel === 'high') return 500;
+        return 400;
+      }
+      if (intensityLevel === 'moderate') return 150;
+      if (intensityLevel === 'high') return 250;
+      return 200;
     }
     if (unit === 'cal') {
       if (formatKey === 'EMOM') {
@@ -128,53 +172,38 @@ const WorkoutGenerator = {
     // 1. EMOM Format: Target ~40-50 seconds of consistent work per minute (leaving 10-20s rest)
     if (formatKey === 'EMOM') {
       const baseEmom = (mov.reps && mov.reps.emom) ? mov.reps.emom : 12;
-      // Intensity factor: moderate ~0.80 (leaves ~20s rest), standard ~1.00 (leaves ~15s rest), high ~1.20 (leaves ~10s rest)
-      const intensityFactor = intensityLevel === 'moderate' ? 0.80 : (intensityLevel === 'high' ? 1.20 : 1.00);
+      // Intensity factor: moderate ~0.80, standard ~1.00, high ~1.25 (fitter athletes complete faster)
+      const intensityFactor = intensityLevel === 'moderate' ? 0.80 : (intensityLevel === 'high' ? 1.25 : 1.00);
       const durFactor = duration === 'short' ? 1.05 : (duration === 'long' ? 0.95 : 1.0);
 
       let rawReps = baseEmom * intensityFactor * durFactor * interferenceMod;
 
-      // Safety ceilings calibrated for 40-50s work window (leaving 10-20s rest)
+      // Safety ceilings calibrated by tier (fitter athletes clear higher rep targets within 60s)
       if (mov.id === 'pushups') rawReps = Math.min(rawReps, intensityLevel === 'high' ? 18 : (intensityLevel === 'standard' ? 15 : 12));
       else if (mov.id === 'burpees') rawReps = Math.min(rawReps, intensityLevel === 'high' ? 14 : (intensityLevel === 'standard' ? 12 : 10));
       else if (mov.id === 'pullups') rawReps = Math.min(rawReps, intensityLevel === 'high' ? 12 : (intensityLevel === 'standard' ? 10 : 8));
       else if (mov.id === 'hspu') rawReps = Math.min(rawReps, intensityLevel === 'high' ? 10 : (intensityLevel === 'standard' ? 8 : 6));
       else if (mov.id === 'ring_muscle_up' || mov.id === 'bar_muscle_up') rawReps = Math.min(rawReps, intensityLevel === 'high' ? 6 : (intensityLevel === 'standard' ? 4 : 3));
-      else if (mov.id === 'ring_dips') rawReps = Math.min(rawReps, intensityLevel === 'high' ? 13 : (intensityLevel === 'standard' ? 10 : 8));
+      else if (mov.id === 'ring_dips') rawReps = Math.min(rawReps, intensityLevel === 'high' ? 14 : (intensityLevel === 'standard' ? 10 : 8));
 
-      return this.snapToStandardReps(rawReps, unit, 3, 35);
+      return this.snapToStandardReps(rawReps, unit, 3, 50);
     }
 
     // Intensity scaling multiplier for FOR_TIME and AMRAP
     const intensityScale = intensityLevel === 'moderate' ? 0.8 : (intensityLevel === 'high' ? 1.25 : 1.0);
+    const durFactor = duration === 'short' ? 1.05 : (duration === 'long' ? 0.90 : 1.0);
 
-    // 2. FOR_TIME Format: Calibrated for fixed rounds (e.g. 4-6 rounds with time cap)
+    // 2. FOR_TIME Format: Scale around movement's calibrated forTime baseline
     if (formatKey === 'FOR_TIME') {
-      const rounds = context.rounds || 5;
-      const capMinutes = context.capMinutes || (duration === 'short' ? 11 : (duration === 'long' ? 28 : 16));
-      const targetRoundSec = (capMinutes * 60 * 0.8) / rounds;
-      const numStations = Math.max(1, context.numStations || roundMovements.length || 3);
-      const stationWorkSec = targetRoundSec / numStations;
-
-      let rawReps = (stationWorkSec / repSec) * interferenceMod * intensityScale;
-
-      if (intensity >= 5.0) rawReps = Math.min(rawReps, 7);
-      else if (intensity >= 3.5) rawReps = Math.min(rawReps, 12);
-      else if (intensity <= 1.2) rawReps = Math.max(rawReps, 18);
-
-      return this.snapToStandardReps(rawReps, unit, 4, 35);
+      const baseForTime = (mov.reps && mov.reps.forTime) ? mov.reps.forTime : 15;
+      const rawReps = baseForTime * intensityScale * durFactor * interferenceMod;
+      return this.snapToStandardReps(rawReps, unit, 3, 80);
     }
 
-    // 3. AMRAP Format (Default): Target balanced station volume allowing unbroken/2-set pacing
-    const durationMultiplier = duration === 'short' ? 1.15 : (duration === 'long' ? 0.85 : 1.0);
-    const basePointsPerStation = 28 * durationMultiplier * intensityScale;
-    let rawReps = (basePointsPerStation / intensity) * interferenceMod;
-
-    if (intensity >= 5.0) rawReps = Math.min(rawReps, 5);
-    else if (intensity >= 3.5) rawReps = Math.min(rawReps, 10);
-    else if (intensity <= 1.2) rawReps = Math.max(rawReps, 15);
-
-    return this.snapToStandardReps(rawReps, unit, 3, 30);
+    // 3. AMRAP Format (Default): Scale around movement's calibrated amrap baseline
+    const baseAmrap = (mov.reps && mov.reps.amrap) ? mov.reps.amrap : 12;
+    const rawReps = baseAmrap * intensityScale * durFactor * interferenceMod;
+    return this.snapToStandardReps(rawReps, unit, 3, 80);
   },
 
   /**
@@ -343,8 +372,9 @@ const WorkoutGenerator = {
       repsDisplay = `MIN ${stationIndex + 1}: ${repVal}${unitLabel && !hasTrailingUnit ? ' ' + unitLabel : ''}`;
       prescriptionText = `Minute ${stationIndex + 1}: ${repVal} ${unitLabel && !hasTrailingUnit ? unitLabel : ''} ${mov.name}${loadSuffix}`.replace(/\s+/g, ' ').trim();
     } else if (formatKey === 'INTERVALS' && stationIndex !== null) {
-      repsDisplay = `8x 20s:10s`;
-      prescriptionText = `Block ${stationIndex + 1} (4 Min): 8x (20s Max ${mov.name}${loadSuffix} / 10s Rest)`;
+      const split = this.getIntervalSplit(context.intensity);
+      repsDisplay = `8x ${split.work}s:${split.rest}s`;
+      prescriptionText = `Block ${stationIndex + 1} (4 Min): 8x (${split.work}s Max ${mov.name}${loadSuffix} / ${split.rest}s Rest)`;
     }
 
     // 1. Equipment Alternative (collision-free against usedMovementIds)
@@ -352,14 +382,23 @@ const WorkoutGenerator = {
     if (isOptionalGear || isMissingGear) {
       const altMov = globalThis.AppState.resolveUniqueAlternative(mov, usedMovementIds);
       if (altMov) {
-        const altRepVal = this.convertCustomScheme(mov, altMov, formatKey, customScheme, context);
-        const altUnit = altMov.unit === 'cal' ? 'Cal' : (altMov.unit === 'm' ? 'm' : (altMov.unit === 'sec' ? 's' : ''));
         const altLoad = altMov.load ? ` (${altMov.load})` : '';
-        altPrescription = {
-          movement: altMov,
-          repVal: altRepVal,
-          text: `${altRepVal} ${altUnit} ${altMov.name}${altLoad}`.replace(/\s+/g, ' ').trim()
-        };
+        if (formatKey === 'INTERVALS') {
+          const split = this.getIntervalSplit(context.intensity);
+          altPrescription = {
+            movement: altMov,
+            repVal: null,
+            text: `${altMov.name}${altLoad} (${split.work}s:${split.rest}s)`.replace(/\s+/g, ' ').trim()
+          };
+        } else {
+          const altRepVal = this.convertCustomScheme(mov, altMov, formatKey, customScheme, context);
+          const altUnit = altMov.unit === 'cal' ? 'Cal' : (altMov.unit === 'm' ? 'm' : (altMov.unit === 'sec' ? 's' : ''));
+          altPrescription = {
+            movement: altMov,
+            repVal: altRepVal,
+            text: `${altRepVal} ${altUnit} ${altMov.name}${altLoad}`.replace(/\s+/g, ' ').trim()
+          };
+        }
       }
     }
 
@@ -368,15 +407,25 @@ const WorkoutGenerator = {
     const scaleResolved = globalThis.AppState.resolveScaleDown(mov, usedMovementIds);
     if (scaleResolved) {
       const scMov = scaleResolved.movement;
-      const scRepVal = this.convertCustomScheme(mov, scMov, formatKey, customScheme, context);
-      const scUnit = scMov.unit === 'cal' ? 'Cal' : (scMov.unit === 'm' ? 'm' : (scMov.unit === 'sec' ? 's' : ''));
       const scLoad = scMov.load ? ` (${scMov.load})` : '';
-      scaleDownPrescription = {
-        movement: scMov,
-        repVal: scRepVal,
-        note: scaleResolved.note,
-        text: `${scRepVal} ${scUnit} ${scMov.name}${scLoad}`.replace(/\s+/g, ' ').trim()
-      };
+      if (formatKey === 'INTERVALS') {
+        const split = this.getIntervalSplit(context.intensity);
+        scaleDownPrescription = {
+          movement: scMov,
+          repVal: null,
+          note: scaleResolved.note,
+          text: `${scMov.name}${scLoad} (${split.work}s:${split.rest}s)`.replace(/\s+/g, ' ').trim()
+        };
+      } else {
+        const scRepVal = this.convertCustomScheme(mov, scMov, formatKey, customScheme, context);
+        const scUnit = scMov.unit === 'cal' ? 'Cal' : (scMov.unit === 'm' ? 'm' : (scMov.unit === 'sec' ? 's' : ''));
+        scaleDownPrescription = {
+          movement: scMov,
+          repVal: scRepVal,
+          note: scaleResolved.note,
+          text: `${scRepVal} ${scUnit} ${scMov.name}${scLoad}`.replace(/\s+/g, ' ').trim()
+        };
+      }
     }
 
     // Register assigned options to usedMovementIds so subsequent stations do not duplicate them
@@ -397,6 +446,19 @@ const WorkoutGenerator = {
     };
   },
 
+  buildWodContext(wod, intensityOverride = null) {
+    const roundMovements = (wod.items || []).map(it => it.movement);
+    return {
+      durationCategory: wod.durationCategory || globalThis.AppState?.duration || 'medium',
+      intensity: this.normalizeIntensity(intensityOverride || wod.intensity),
+      totalMinutes: wod.minutes,
+      capMinutes: wod.minutes,
+      numStations: roundMovements.length,
+      roundMovements,
+      rounds: wod.rounds
+    };
+  },
+
   /**
    * Recomputes all alternatives and scale-downs across a WOD's items so that
    * no substitute or scale-down ever duplicates an exercise already in the WOD.
@@ -404,14 +466,7 @@ const WorkoutGenerator = {
   refreshWodCollisionFreeMetadata(wod) {
     if (!wod || !Array.isArray(wod.items)) return wod;
     const usedIds = new Set(wod.items.map(it => it.movement.id));
-    const roundMovements = wod.items.map(it => it.movement);
-    const context = {
-      durationCategory: globalThis.AppState?.duration || 'medium',
-      intensity: globalThis.AppState?.intensity || 'standard',
-      totalMinutes: wod.minutes,
-      numStations: wod.items.length,
-      roundMovements
-    };
+    const context = this.buildWodContext(wod);
 
     wod.items = wod.items.map((item, idx) => {
       const built = this.buildItemPrescription(
@@ -428,6 +483,51 @@ const WorkoutGenerator = {
       }
       return built;
     });
+    return wod;
+  },
+
+  /**
+   * Rescales an already-generated non-benchmark WOD to a new intensity tier
+   * without changing its movements, title, or time cap.
+   */
+  rescaleWodIntensity(wod, newIntensity) {
+    if (!wod || wod.isBenchmark || !Array.isArray(wod.items)) return wod;
+    const tier = this.normalizeIntensity(newIntensity);
+    wod.intensity = tier;
+
+    const roundMovements = wod.items.map(it => it.movement);
+    const usedIds = new Set(roundMovements.map(m => m.id));
+    const context = this.buildWodContext(wod, tier);
+
+    const isCouplet = Boolean(
+      wod.isDescendingCouplet ||
+      (wod.format === 'FOR_TIME' && typeof wod.badgeFormat === 'string' && wod.badgeFormat.includes('-'))
+    );
+    if (isCouplet) {
+      wod.isDescendingCouplet = true;
+      const hasVeryHighSkill = roundMovements.some(m => (m.intensity || 1.8) >= 5.0);
+      const scheme = this.getDescendingCoupletScheme({ unit: 'reps' }, tier, hasVeryHighSkill);
+      wod.badgeFormat = `${scheme} FOR TIME`;
+      wod.prescriptionHeader = `${scheme} Reps For Time (${wod.minutes} Min Cap):`;
+    } else if (wod.format === 'INTERVALS') {
+      const split = this.getIntervalSplit(tier);
+      wod.difficultyLabel = `${split.work}s Work / ${split.rest}s Rest`;
+      wod.prescriptionHeader = `Tabata Intervals (${split.work} Seconds Max Effort / ${split.rest} Seconds Rest):`;
+    }
+
+    const hasVeryHighSkill = isCouplet && roundMovements.some(m => (m.intensity || 1.8) >= 5.0);
+
+    wod.items = wod.items.map((item, idx) => {
+      const formatKey = item.formatKey || wod.format;
+      const stationIndex = item.stationIndex !== undefined
+        ? item.stationIndex
+        : ((formatKey === 'EMOM' || formatKey === 'INTERVALS') ? idx : null);
+      const customScheme = isCouplet
+        ? this.getDescendingCoupletScheme(item.movement, tier, hasVeryHighSkill)
+        : null;
+      return this.buildItemPrescription(item.movement, formatKey, stationIndex, customScheme, usedIds, context);
+    });
+
     return wod;
   },
 
@@ -614,6 +714,7 @@ const WorkoutGenerator = {
       badgeType: bm.category.toUpperCase(),
       format: bm.format,
       minutes: bm.minutes,
+      intensity: 'standard',
       badgeFormat: `${bm.minutes} MIN ${bm.format.replace('_', ' ')}`,
       difficultyLabel: `Classical Benchmark`,
       prescriptionHeader: bm.prescriptionHeader,
@@ -628,12 +729,15 @@ const WorkoutGenerator = {
       ? this.pickRandom(['AMRAP', 'EMOM', 'FOR_TIME'])
       : globalThis.AppState.format;
 
+    const durationCategory = globalThis.AppState.duration || 'medium';
+    const initialIntensity = 'standard';
+
     const durationMap = {
       short: { amrap: [8, 10, 12], emom: [9, 10, 12], forTimeCap: 11, rounds: 4 },
       medium: { amrap: [14, 15, 16, 18], emom: [15, 16, 18, 20], forTimeCap: 16, rounds: 5 },
       long: { amrap: [24, 25, 30], emom: [24, 28, 30], forTimeCap: 28, rounds: 6 }
     };
-    const dom = durationMap[globalThis.AppState.duration] || durationMap.medium;
+    const dom = durationMap[durationCategory] || durationMap.medium;
 
     if (chosenFormat === 'EMOM') {
       const numStations = pool.length >= 3 ? this.pickRandom([2, 3, 4]) : Math.min(2, pool.length);
@@ -644,8 +748,8 @@ const WorkoutGenerator = {
       const rounds = totalMinutes / numStations;
 
       const context = {
-        durationCategory: globalThis.AppState.duration,
-        intensity: globalThis.AppState.intensity,
+        durationCategory,
+        intensity: initialIntensity,
         totalMinutes,
         numStations,
         roundMovements: selected,
@@ -662,6 +766,9 @@ const WorkoutGenerator = {
         badgeType: 'ALGORITHMIC EMOM',
         format: 'EMOM',
         minutes: totalMinutes,
+        durationCategory,
+        intensity: initialIntensity,
+        rounds,
         badgeFormat: `${totalMinutes} MIN EMOM`,
         difficultyLabel: `${numStations}-Station Rotation (${rounds} Sets)`,
         prescriptionHeader: `Every Minute on the Minute for ${totalMinutes} Minutes (${rounds} Rounds):`,
@@ -672,7 +779,7 @@ const WorkoutGenerator = {
     }
 
     if (chosenFormat === 'FOR_TIME') {
-      const is21_15_9 = globalThis.AppState.duration === 'short' && Math.random() < 0.45 && pool.length >= 2;
+      const is21_15_9 = durationCategory === 'short' && Math.random() < 0.45 && pool.length >= 2;
       const numMovements = is21_15_9 ? 2 : (pool.length >= 3 ? 3 : Math.min(2, pool.length));
       const selected = this.selectBalancedMovements(pool, numMovements);
       const usedIds = new Set(selected.map(m => m.id));
@@ -681,17 +788,19 @@ const WorkoutGenerator = {
       if (is21_15_9) {
         // High skill or heavy movement downshifts from 21-15-9 to 15-12-9
         const hasVeryHighSkill = selected.some(m => (m.intensity || 1.8) >= 5.0);
-        const standardRepScheme = hasVeryHighSkill ? '15 - 12 - 9' : '21 - 15 - 9';
+        const standardRepScheme = this.getDescendingCoupletScheme({ unit: 'reps' }, initialIntensity, hasVeryHighSkill);
 
         const context = {
-          durationCategory: globalThis.AppState.duration,
+          durationCategory,
+          intensity: initialIntensity,
           totalMinutes: capMinutes,
+          capMinutes,
           numStations: selected.length,
           roundMovements: selected
         };
 
         const items = selected.map(mov => {
-          const scheme = mov.unit === 'm' ? '400m - 300m - 200m' : standardRepScheme;
+          const scheme = this.getDescendingCoupletScheme(mov, initialIntensity, hasVeryHighSkill);
           return this.buildItemPrescription(mov, 'FOR_TIME', null, scheme, usedIds, context);
         });
 
@@ -701,6 +810,9 @@ const WorkoutGenerator = {
           badgeType: 'ALGORITHMIC SPRINT',
           format: 'FOR_TIME',
           minutes: capMinutes,
+          durationCategory,
+          intensity: initialIntensity,
+          isDescendingCouplet: true,
           badgeFormat: `${standardRepScheme} FOR TIME`,
           difficultyLabel: `Descending Couplet`,
           prescriptionHeader: `${standardRepScheme} Reps For Time (${capMinutes} Min Cap):`,
@@ -711,8 +823,8 @@ const WorkoutGenerator = {
       } else {
         const rounds = dom.rounds;
         const context = {
-          durationCategory: globalThis.AppState.duration,
-          intensity: globalThis.AppState.intensity,
+          durationCategory,
+          intensity: initialIntensity,
           totalMinutes: capMinutes,
           capMinutes,
           numStations: selected.length,
@@ -730,6 +842,9 @@ const WorkoutGenerator = {
           badgeType: 'ALGORITHMIC METCON',
           format: 'FOR_TIME',
           minutes: capMinutes,
+          durationCategory,
+          intensity: initialIntensity,
+          rounds,
           badgeFormat: `${rounds} ROUNDS FOR TIME`,
           difficultyLabel: `Balanced ${selected.length}-Movement Metcon`,
           prescriptionHeader: `${rounds} Rounds For Time (${capMinutes} Min Time Cap):`,
@@ -741,13 +856,15 @@ const WorkoutGenerator = {
     }
 
     if (chosenFormat === 'INTERVALS') {
-      const numMovements = Math.min(pool.length, globalThis.AppState.duration === 'short' ? 2 : 3);
+      const numMovements = Math.min(pool.length, durationCategory === 'short' ? 2 : 3);
       const selected = this.selectBalancedMovements(pool, numMovements);
       const usedIds = new Set(selected.map(m => m.id));
       const totalMinutes = numMovements * 4;
+      const split = this.getIntervalSplit(initialIntensity);
 
       const context = {
-        durationCategory: globalThis.AppState.duration,
+        durationCategory,
+        intensity: initialIntensity,
         totalMinutes,
         numStations: selected.length,
         roundMovements: selected
@@ -763,9 +880,11 @@ const WorkoutGenerator = {
         badgeType: 'TABATA HIIT',
         format: 'INTERVALS',
         minutes: totalMinutes,
+        durationCategory,
+        intensity: initialIntensity,
         badgeFormat: `${totalMinutes} MIN TABATA`,
-        difficultyLabel: `20s Work / 10s Rest`,
-        prescriptionHeader: `Tabata Intervals (20 Seconds Max Effort / 10 Seconds Rest):`,
+        difficultyLabel: `${split.work}s Work / ${split.rest}s Rest`,
+        prescriptionHeader: `Tabata Intervals (${split.work} Seconds Max Effort / ${split.rest} Seconds Rest):`,
         items,
         stimulus: `Score is your lowest rep count across any of the 8 intervals. Pace intervals 1–3 at 85% so you don't crash on interval 6.`,
         logic: `High-turnover intervals targeting ${selected.map(s => globalThis.PATTERNS[s.pattern]?.label || s.pattern).join(' & ')} energy systems.`
@@ -779,8 +898,8 @@ const WorkoutGenerator = {
     const usedIds = new Set(selected.map(m => m.id));
 
     const context = {
-      durationCategory: globalThis.AppState.duration,
-      intensity: globalThis.AppState.intensity,
+      durationCategory,
+      intensity: initialIntensity,
       totalMinutes,
       numStations: selected.length,
       roundMovements: selected
@@ -796,6 +915,8 @@ const WorkoutGenerator = {
       badgeType: 'ALGORITHMIC AMRAP',
       format: 'AMRAP',
       minutes: totalMinutes,
+      durationCategory,
+      intensity: initialIntensity,
       badgeFormat: `${totalMinutes} MIN AMRAP`,
       difficultyLabel: `Balanced ${selected.length}-Movement Triplet`,
       prescriptionHeader: `AMRAP in ${totalMinutes} Minutes:`,

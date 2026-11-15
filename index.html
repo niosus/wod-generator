@@ -170,6 +170,36 @@
             </span>
           </div>
 
+          <!-- Post-Generation Workout Intensity Choice (Compact 3-Way Pill, Hidden When Not Needed) -->
+          <div id="wodIntensityPanel" class="intensity-panel-collapse my-3">
+            <div class="intensity-panel-inner">
+              <div
+                class="flex flex-wrap items-center justify-between gap-2 bg-slate-900/75 border border-slate-800/90 rounded-xl px-3.5 py-2">
+                <div class="flex flex-wrap items-center gap-2 min-w-0">
+                  <i data-lucide="gauge" class="w-3.5 h-3.5 text-volt shrink-0"></i>
+                  <span class="text-[11px] font-bold uppercase tracking-wider text-slate-300">Intensity</span>
+                </div>
+
+                <div id="wodIntensityChoiceGrid"
+                  class="inline-grid grid-cols-3 gap-0.5 bg-slate-950/90 p-0.5 rounded-lg border border-slate-800/80 shrink-0"
+                  role="radiogroup" aria-label="Workout intensity tier">
+                  <button type="button" data-wod-intensity="moderate" role="radio" aria-checked="false"
+                    class="wod-intensity-choice-btn py-1 px-2.5 rounded-md text-[11px] font-mono font-bold transition">
+                    Moderate
+                  </button>
+                  <button type="button" data-wod-intensity="standard" role="radio" aria-checked="true"
+                    class="wod-intensity-choice-btn py-1 px-2.5 rounded-md text-[11px] font-mono font-bold transition">
+                    Standard
+                  </button>
+                  <button type="button" data-wod-intensity="high" role="radio" aria-checked="false"
+                    class="wod-intensity-choice-btn py-1 px-2.5 rounded-md text-[11px] font-mono font-bold transition">
+                    High
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <!-- Movements Prescription List (With Real-Time 2D IK Canvas Previews & Optional Gear Sub Bar) -->
           <div id="wodMovementsList" class="space-y-3 my-4">
             <!-- Populated dynamically by JS -->
@@ -373,29 +403,6 @@
                 class="duration-btn py-2 px-2.5 rounded-xl border text-xs font-semibold transition flex flex-col items-center">
                 <span>Engine / Hyrox</span>
                 <span class="text-[10px] font-mono opacity-75">24 – 40 Min</span>
-              </button>
-            </div>
-          </div>
-
-          <!-- Target Intensity -->
-          <div>
-            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Target
-              Intensity</label>
-            <div class="grid grid-cols-3 gap-2" id="intensitySelectorGrid">
-              <button data-intensity="moderate"
-                class="intensity-btn py-2 px-2.5 rounded-xl border text-xs font-semibold transition flex flex-col items-center">
-                <span>Moderate</span>
-                <span class="text-[10px] font-mono opacity-75">Aerobic / Paced</span>
-              </button>
-              <button data-intensity="standard"
-                class="intensity-btn py-2 px-2.5 rounded-xl border text-xs font-semibold transition flex flex-col items-center">
-                <span>Standard</span>
-                <span class="text-[10px] font-mono opacity-75">Gym Rx Benchmark</span>
-              </button>
-              <button data-intensity="high"
-                class="intensity-btn py-2 px-2.5 rounded-xl border text-xs font-semibold transition flex flex-col items-center">
-                <span>High</span>
-                <span class="text-[10px] font-mono opacity-75">Comp / Max Volume</span>
               </button>
             </div>
           </div>

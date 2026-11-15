@@ -66,6 +66,10 @@ const WorkoutSharing = {
           st: wod.stimulus,
           lg: wod.logic,
           ib: wod.isBenchmark ? 1 : 0,
+          in: wod.intensity || 'standard',
+          dc: wod.durationCategory || undefined,
+          rn: wod.rounds || undefined,
+          ic: wod.isDescendingCouplet ? 1 : 0,
           it: (wod.items || []).map(i => ({
             id: i.movement.id,
             fk: i.formatKey,
@@ -124,7 +128,24 @@ const WorkoutSharing = {
           stimulus: data.st,
           logic: data.lg,
           isBenchmark: Boolean(data.ib),
+          intensity: data.in || 'standard',
+          durationCategory: data.dc,
+          rounds: data.rn,
+          isDescendingCouplet: Boolean(
+            data.ic ||
+            (!data.ib && data.f === 'FOR_TIME' && typeof data.bf === 'string' && data.bf.includes('-'))
+          ),
           items
+        };
+
+        const context = {
+          durationCategory: restoredWod.durationCategory || globalThis.AppState?.duration || 'medium',
+          intensity: restoredWod.intensity,
+          totalMinutes: restoredWod.minutes,
+          capMinutes: restoredWod.minutes,
+          numStations: items.length,
+          roundMovements: items.map(it => it.movement),
+          rounds: restoredWod.rounds
         };
 
         // Attach alternatives or scale-downs if missing
@@ -133,7 +154,7 @@ const WorkoutSharing = {
             const alt = globalThis.AppState.resolveUniqueAlternative(item.movement, new Set(items.map(it => it.movement.id)));
             if (alt) {
               const repVal = globalThis.WorkoutGenerator?.convertCustomScheme
-                ? globalThis.WorkoutGenerator.convertCustomScheme(item.movement, alt, item.formatKey, item.customScheme)
+                ? globalThis.WorkoutGenerator.convertCustomScheme(item.movement, alt, item.formatKey, item.customScheme, context)
                 : item.repsDisplay;
               const unit = alt.unit === 'cal' ? 'Cal' : (alt.unit === 'm' ? 'm' : (alt.unit === 'sec' ? 's' : ''));
               item.alternative = { movement: alt, repVal, text: `${repVal} ${unit} ${alt.name}`.replace(/\s+/g, ' ').trim() };
@@ -143,7 +164,7 @@ const WorkoutSharing = {
             const sc = globalThis.AppState.resolveScaleDown(item.movement, new Set(items.map(it => it.movement.id)));
             if (sc) {
               const repVal = globalThis.WorkoutGenerator?.convertCustomScheme
-                ? globalThis.WorkoutGenerator.convertCustomScheme(item.movement, sc.movement, item.formatKey, item.customScheme)
+                ? globalThis.WorkoutGenerator.convertCustomScheme(item.movement, sc.movement, item.formatKey, item.customScheme, context)
                 : item.repsDisplay;
               const unit = sc.movement.unit === 'cal' ? 'Cal' : (sc.movement.unit === 'm' ? 'm' : (sc.movement.unit === 'sec' ? 's' : ''));
               item.scaleDown = { movement: sc.movement, repVal, note: sc.note, text: `${repVal} ${unit} ${sc.movement.name}`.replace(/\s+/g, ' ').trim() };

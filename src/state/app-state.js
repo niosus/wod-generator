@@ -24,7 +24,6 @@ const STORAGE_KEY = 'wodforge_local_prefs_v3';
       mode: 'smart',
       format: 'ANY',
       duration: 'medium',
-      intensity: 'standard', // 'moderate' | 'standard' | 'high'
       currentWod: null,
       recentWorkoutSignatures: [],
 
@@ -66,7 +65,6 @@ const STORAGE_KEY = 'wodforge_local_prefs_v3';
           if (parsed.mode) this.mode = parsed.mode;
           if (parsed.format) this.format = parsed.format;
           if (parsed.duration) this.duration = parsed.duration;
-          if (parsed.intensity) this.intensity = parsed.intensity;
           if (Array.isArray(parsed.recentWorkoutSignatures)) {
             this.recentWorkoutSignatures = parsed.recentWorkoutSignatures;
           }
@@ -84,7 +82,6 @@ const STORAGE_KEY = 'wodforge_local_prefs_v3';
             mode: this.mode,
             format: this.format,
             duration: this.duration,
-            intensity: this.intensity,
             recentWorkoutSignatures: this.recentWorkoutSignatures
           };
           localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));

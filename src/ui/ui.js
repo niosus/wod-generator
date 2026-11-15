@@ -453,14 +453,106 @@ const UI = {
             : 'bg-slate-900/80 border-slate-800 text-slate-400 hover:text-slate-200'
             }`;
         });
+      },
 
-        document.querySelectorAll('.intensity-btn').forEach(btn => {
-          const active = btn.dataset.intensity === AppState.intensity;
-          btn.className = `intensity-btn py-2 px-2.5 rounded-xl border text-xs font-semibold transition flex flex-col items-center ${active
-            ? 'bg-amber-400/20 border-amber-400 text-amber-300 shadow-sm'
-            : 'bg-slate-900/80 border-slate-800 text-slate-400 hover:text-slate-200'
-            }`;
+      animateTextUpdate(el, nextText, animClass = 'rep-pulse') {
+        if (!el || el.textContent === nextText) return;
+        el.textContent = nextText;
+        el.classList.remove('rep-pulse', 'text-pulse');
+        void el.offsetWidth;
+        el.classList.add(animClass);
+        el.addEventListener('animationend', () => {
+          el.classList.remove(animClass);
+        }, { once: true });
+      },
+
+      renderWodIntensityControl(wod) {
+        const panel = document.getElementById('wodIntensityPanel');
+        const choiceBtns = document.querySelectorAll('.wod-intensity-choice-btn');
+        if (!panel) return;
+
+        const activeClasses = {
+          moderate: 'bg-cyan-400 text-slate-950 shadow-sm',
+          standard: 'bg-volt text-slate-950 shadow-sm',
+          high: 'bg-amber-400 text-slate-950 shadow-sm'
+        };
+
+        const baseBtnClass = 'wod-intensity-choice-btn py-1 px-2.5 rounded-md text-[11px] font-mono font-bold transition duration-200';
+        const isEmpty = !wod || !Array.isArray(wod.items) || wod.items.length === 0;
+        const shouldHide = Boolean(!wod || wod.isBenchmark || isEmpty);
+
+        const applyVisibility = () => {
+          panel.classList.toggle('is-collapsed', shouldHide);
+          panel.setAttribute('aria-hidden', shouldHide ? 'true' : 'false');
+        };
+
+        if (!this._hasRenderedIntensityOnce) {
+          this._hasRenderedIntensityOnce = true;
+          panel.style.transition = 'none';
+          applyVisibility();
+          void panel.offsetHeight;
+          panel.style.transition = '';
+        } else {
+          applyVisibility();
+        }
+
+        if (shouldHide) {
+          choiceBtns.forEach(btn => {
+            btn.disabled = true;
+            btn.tabIndex = -1;
+          });
+          return;
+        }
+
+        const activeTier = WorkoutGenerator.normalizeIntensity(wod.intensity);
+        const activeBtnClass = activeClasses[activeTier] || activeClasses.standard;
+
+        choiceBtns.forEach(btn => {
+          btn.disabled = false;
+          btn.tabIndex = 0;
+          const isActive = btn.dataset.wodIntensity === activeTier;
+          btn.setAttribute('aria-checked', isActive ? 'true' : 'false');
+          btn.className = `${baseBtnClass} cursor-pointer ${
+            isActive
+              ? activeBtnClass
+              : 'text-slate-400 hover:text-slate-200'
+          }`;
         });
+      },
+
+      applyWodIntensity(tier) {
+        const wod = AppState.currentWod;
+        if (!wod || wod.isBenchmark || !Array.isArray(wod.items) || wod.items.length === 0) return;
+
+        const normalized = WorkoutGenerator.normalizeIntensity(tier);
+        if (wod.intensity === normalized) {
+          this.renderWodIntensityControl(wod);
+          return;
+        }
+
+        WorkoutGenerator.rescaleWodIntensity(wod, normalized);
+
+        this.animateTextUpdate(document.getElementById('wodBadgeFormat'), wod.badgeFormat, 'rep-pulse');
+        this.animateTextUpdate(document.getElementById('wodBadgeDifficulty'), wod.difficultyLabel, 'rep-pulse');
+        this.animateTextUpdate(document.getElementById('wodPrescriptionHeader'), wod.prescriptionHeader, 'text-pulse');
+
+        const listEl = document.getElementById('wodMovementsList');
+        if (listEl) {
+          wod.items.forEach((item, idx) => {
+            const rowEl = listEl.querySelector(`[data-wod-row-index="${idx}"]`);
+            if (!rowEl) return;
+            this.animateTextUpdate(rowEl.querySelector('[data-wod-reps-badge]'), item.repsDisplay, 'rep-pulse');
+            this.animateTextUpdate(rowEl.querySelector('[data-wod-prescription-text]'), item.prescriptionText, 'text-pulse');
+            if (item.scaleDown) {
+              this.animateTextUpdate(rowEl.querySelector('[data-wod-scale-text]'), item.scaleDown.text, 'text-pulse');
+            }
+            if (item.alternative) {
+              this.animateTextUpdate(rowEl.querySelector('[data-wod-alt-text]'), item.alternative.text, 'text-pulse');
+            }
+          });
+        }
+
+        this.renderWodIntensityControl(wod);
       },
 
       generateAndDisplayWod() {
@@ -499,6 +591,7 @@ const UI = {
         document.getElementById('wodTimeCapBadge').textContent = `${wod.minutes}:00 Clock`;
         document.getElementById('wodStimulusText').textContent = wod.stimulus;
         document.getElementById('wodLogicText').textContent = wod.logic;
+        this.renderWodIntensityControl(wod);
 
         const listEl = document.getElementById('wodMovementsList');
         if (wod.items.length === 0) {
@@ -558,7 +651,7 @@ const UI = {
 
                 <div class="min-w-0 flex-1">
                   <div class="flex flex-wrap items-center gap-1.5 mb-1">
-                    <span class="font-mono text-xs font-extrabold px-2 py-0.5 rounded bg-volt text-slate-950 whitespace-nowrap">
+                    <span data-wod-reps-badge class="font-mono text-xs font-extrabold px-2 py-0.5 rounded bg-volt text-slate-950 whitespace-nowrap">
                       ${item.repsDisplay}
                     </span>
                     <span class="text-[10px] font-mono px-2 py-0.5 rounded border ${pat.color} whitespace-nowrap">
@@ -581,7 +674,7 @@ const UI = {
               : '')
           }
                   </div>
-                  <div class="text-sm sm:text-base font-extrabold text-white group-hover:text-volt transition truncate">
+                  <div data-wod-prescription-text class="text-sm sm:text-base font-extrabold text-white group-hover:text-volt transition truncate">
                     ${item.prescriptionText}
                   </div>
                   <div class="text-[11px] text-slate-400 truncate mt-0.5">
@@ -605,7 +698,7 @@ const UI = {
                   <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-cyan-500/20 bg-cyan-500/5 -mx-3 px-3 py-1.5">
                     <div class="flex items-center gap-2 text-xs text-cyan-200/90">
                       <i data-lucide="trending-down" class="w-3.5 h-3.5 text-cyan-400 shrink-0"></i>
-                      <span><strong>Scale Down:</strong> ${item.scaleDown.text}</span>
+                      <span><strong>Scale Down:</strong> <span data-wod-scale-text>${item.scaleDown.text}</span></span>
                     </div>
                     <button
                       data-scale-item-index="${index}"
@@ -624,7 +717,7 @@ const UI = {
                   <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-amber-500/20 bg-amber-500/5 -mx-3 -mb-3 px-3 py-2 rounded-b-xl">
                     <div class="flex items-center gap-2 text-xs text-amber-200/90">
                       <i data-lucide="repeat" class="w-3.5 h-3.5 text-amber-400 shrink-0"></i>
-                      <span><strong>No ${eqInfo ? eqInfo.name : 'Gear'}? Sub:</strong> ${item.alternative.text}</span>
+                      <span><strong>No ${eqInfo ? eqInfo.name : 'Gear'}? Sub:</strong> <span data-wod-alt-text>${item.alternative.text}</span></span>
                     </div>
                     <button
                       data-swap-item-index="${index}"
@@ -1394,15 +1487,12 @@ const UI = {
           this.markWodOutdated(true);
         });
 
-        const intensityGrid = document.getElementById('intensitySelectorGrid');
-        if (intensityGrid) {
-          intensityGrid.addEventListener('click', e => {
-            const btn = e.target.closest('.intensity-btn');
-            if (!btn) return;
-            AppState.intensity = btn.dataset.intensity;
-            AppState.saveToStorage();
-            this.renderParameterControls();
-            this.markWodOutdated(true);
+        const wodIntensityChoiceGrid = document.getElementById('wodIntensityChoiceGrid');
+        if (wodIntensityChoiceGrid) {
+          wodIntensityChoiceGrid.addEventListener('click', e => {
+            const choiceBtn = e.target.closest('.wod-intensity-choice-btn');
+            if (!choiceBtn || choiceBtn.disabled) return;
+            this.applyWodIntensity(choiceBtn.dataset.wodIntensity);
           });
         }
 
@@ -1749,7 +1839,6 @@ const UI = {
           AppState.mode = 'smart';
           AppState.format = 'ANY';
           AppState.duration = 'medium';
-          AppState.intensity = 'standard';
           this.renderEquipmentGrid();
           this.renderMovementMatrix();
           this.renderParameterControls();
