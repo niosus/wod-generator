@@ -173,10 +173,10 @@ const UI = {
   },
 
   showToast(message, type = 'success') {
-    let toastEl = document.getElementById('wodForgeToast');
+    let toastEl = document.getElementById('wodRollToast');
     if (!toastEl) {
       toastEl = document.createElement('div');
-      toastEl.id = 'wodForgeToast';
+      toastEl.id = 'wodRollToast';
       toastEl.className = 'fixed bottom-5 right-5 z-[70] transition-all duration-300 opacity-0 translate-y-3 pointer-events-none max-w-sm';
       document.body.appendChild(toastEl);
     }
@@ -234,7 +234,7 @@ const UI = {
         try {
           const clockLabel = WorkoutGenerator.getClockBadgeLabel(wod);
           await navigator.share({
-            title: `WODFORGE: ${wod.title}`,
+            title: `WODROLL: ${wod.title}`,
             text: `${wod.title} (${wod.badgeFormat}${clockLabel ? ' • ' + clockLabel : ''}) - ${wod.prescriptionHeader}`,
             url: shareUrl
           });

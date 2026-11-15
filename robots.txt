@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://niosus.github.io/wod-generator/sitemap.xml

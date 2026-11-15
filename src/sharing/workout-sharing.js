@@ -921,7 +921,7 @@ const WorkoutSharing = {
       return await this.encodeWod(wod);
     }
 
-    const url = new URL(input, 'https://wodforge.local');
+    const url = new URL(input, 'https://wodroll.local');
     const hash = (url.hash || '').replace(/^#/, '');
     let payload = url.searchParams.get('wod') || url.searchParams.get('share');
     const usedBareHash = !payload && (hash.startsWith('z.') || hash.startsWith('u.') || hash.startsWith('w.'));
@@ -1190,12 +1190,12 @@ const WorkoutSharing = {
       });
     }
 
-    // Top-right WODFORGE mark
+    // Top-right WODROLL mark
     ctx.save();
     ctx.font = `800 15px ${monoFamily}`;
     ctx.textAlign = 'right';
     ctx.textBaseline = 'middle';
-    const brandText = 'WODFORGE';
+    const brandText = 'WODROLL';
     const brandW = ctx.measureText(brandText).width;
     ctx.fillStyle = theme.textMuted;
     ctx.fillText(brandText, contentX + contentW, badgeY + 16);
@@ -1467,7 +1467,7 @@ const WorkoutSharing = {
     ctx.font = `700 14px ${monoFamily}`;
     ctx.fillStyle = theme.textMuted;
     ctx.textAlign = 'left';
-    ctx.fillText('WODFORGE • HIIT & CROSSFIT GENERATOR', contentX, bottomY);
+    ctx.fillText('WODROLL • HIIT & CROSSFIT GENERATOR', contentX, bottomY);
 
     if (shareUrl) {
       const displayUrl = String(shareUrl).replace(/^https?:\/\//i, '');

@@ -1,4 +1,5 @@
-const STORAGE_KEY = 'wodforge_local_prefs_v3';
+const STORAGE_KEY = 'wodroll_local_prefs_v3';
+const LEGACY_STORAGE_KEY = 'wodforge_local_prefs_v3';
 
     const AppState = {
       // 13-Item 3-State Equipment Map: 'available' | 'optional' | 'off'
@@ -41,7 +42,15 @@ const STORAGE_KEY = 'wodforge_local_prefs_v3';
       loadFromStorage() {
         this.initDefaultExclusions();
         try {
-          const raw = localStorage.getItem(STORAGE_KEY);
+          let raw = localStorage.getItem(STORAGE_KEY);
+          if (!raw) {
+            raw = localStorage.getItem(LEGACY_STORAGE_KEY);
+            if (raw) {
+              try {
+                localStorage.setItem(STORAGE_KEY, raw);
+              } catch (e) { }
+            }
+          }
           if (!raw) return;
           const parsed = JSON.parse(raw);
           if (parsed.equipmentStates && typeof parsed.equipmentStates === 'object') {

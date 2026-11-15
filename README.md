@@ -1,6 +1,6 @@
-# WODFORGE v4
+# WODROLL v4
 
-<img src="./favicon.svg" align="right" width="84" height="84" hspace="16" alt="WODFORGE Logo" />
+<img src="./favicon.svg" align="right" width="84" height="84" hspace="16" alt="WODROLL Logo" />
 
 **Precision Biomechanical HIIT WOD Generator**
 
@@ -16,7 +16,7 @@ Generate competition-grade CrossFit, Hyrox, and HIIT workouts tailored to your g
 
 ---
 
-## ✨ What WODFORGE Does
+## ✨ What WODROLL Does
 
 <table>
   <tr>
@@ -73,7 +73,7 @@ Generate competition-grade CrossFit, Hyrox, and HIIT workouts tailored to your g
 
 ## 🏗️ Architecture & Modular Structure
 
-WODFORGE requires **no build step or bundler**. The browser app loads zero-build `<script>` modules directly into `globalThis` from `index.html` (paired with Tailwind CSS CDN and Lucide icons), while `package.json` (`"type": "module"`), `index.js` barrels, and `validate_kinematics.js` use native Node ESM for the kinematics test suite.
+WODROLL requires **no build step or bundler**. The browser app loads zero-build `<script>` modules directly into `globalThis` from `index.html` (paired with Tailwind CSS CDN and Lucide icons), while `package.json` (`"type": "module"`), `index.js` barrels, and `validate_kinematics.js` use native Node ESM for the kinematics test suite.
 
 ```text
 wod-generator/
@@ -145,7 +145,7 @@ node validate_kinematics.js
 
 ## 🌐 Live Application
 
-Experience WODFORGE live in your browser:
+Experience WODROLL live in your browser:
 👉 **[https://niosus.github.io/wod-generator/](https://niosus.github.io/wod-generator/)**
 
 ---

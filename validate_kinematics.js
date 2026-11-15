@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * WODFORGE Biomechanical Kinematics Validator (`validate_kinematics.js`)
+ * WODROLL Biomechanical Kinematics Validator (`validate_kinematics.js`)
  *
  * Imports `MOVEMENTS_DB` and `BiomechanicalStickAnimator` directly from modular source
  * and verifies across a 120-frame cycle (3800ms) for every movement:
@@ -61,7 +61,7 @@ if (jsonMode) {
     process.exit(1);
   }
 
-  console.log(`WODFORGE Kinematics Audit:`);
+  console.log(`WODROLL Kinematics Audit:`);
   console.log(`- Movements in MOVEMENTS_DB : ${MOVEMENTS_DB.length}`);
   console.log(`- Unique poseTypes tested   : ${report.total}`);
   console.log(`- Frames sampled per pose   : 120 (total ${report.total * 120} frames)`);

@@ -323,6 +323,24 @@ const MOVEMENTS_DB = [
     scaling: 'Scale down to Banded Chin-Ups, Doorway Towel Rows, Table Rows, or Ring Inverted Rows if you have no bar.'
   },
   {
+    id: 'chest_to_bar',
+    name: 'Chest-to-Bar Pull-Ups',
+    equipment: 'pullup_bar',
+    pattern: 'PULL',
+    difficulty: 'hard',
+    intensity: 3.0,
+    repSec: 2.2,
+    muscleFocus: ['upper_pull', 'biceps'],
+    poseType: 'chest_to_bar_front',
+    unit: 'reps',
+    reps: { emom: 8, amrap: 8, forTime: 10 },
+    scaleDownId: 'pullups',
+    scaleNote: 'Standard Pull-Ups or Ring Rows',
+    fallbackCandidates: ['pullups', 'chin_ups', 'db_renegade_row', 'ring_rows', 'bar_inverted_rows', 'table_rows', 'doorway_towel_rows', 'superman_pulls'],
+    cues: 'Pull explosively from full dead hang, driving elbows down and back until upper chest physically makes contact with the pull-up bar.',
+    scaling: 'Scale to Standard Strict/Kipping Pull-Ups, Banded Pull-Ups, or Ring Inverted Rows.'
+  },
+  {
     id: 'bar_hang',
     name: 'Bar Hang (Dead / Active Hang)',
     equipment: 'pullup_bar',
@@ -353,7 +371,7 @@ const MOVEMENTS_DB = [
     unit: 'reps',
     reps: { emom: 5, amrap: 5, forTime: 7 },
     scaleDownId: 'pullups',
-    scaleNote: 'Strict / Kipping Pull-Ups',
+    scaleNote: 'Pull-Ups',
     fallbackCandidates: ['ring_muscle_up', 'pullups', 'chin_ups', 'db_renegade_row', 'ring_rows', 'bar_inverted_rows', 'table_rows', 'doorway_towel_rows', 'superman_pulls'],
     cues: 'Initiate a powerful kip swing, press straight arms down into the bar to elevate hips, transition shoulders forward over the bar, and press to locked-out top support.',
     scaling: 'Scale down to Pull-Ups or Inverted Rows.'
@@ -1189,6 +1207,24 @@ const MOVEMENTS_DB = [
     scaling: 'Sub V-Ups or AbMat Sit-Ups.'
   },
   {
+    id: 'knees_to_elbows',
+    name: 'Knees-to-Elbows',
+    equipment: 'pullup_bar',
+    pattern: 'HINGE_CORE',
+    difficulty: 'normal',
+    intensity: 2.3,
+    repSec: 1.9,
+    muscleFocus: ['core', 'upper_pull'],
+    poseType: 'knees_to_elbows_side',
+    unit: 'reps',
+    reps: { emom: 10, amrap: 10, forTime: 13 },
+    scaleDownId: 'hanging_knee_raises',
+    scaleNote: 'Hanging Knee Raises',
+    fallbackCandidates: ['hanging_knee_raises', 'toes_to_bar', 'v_ups', 'tuck_ups', 'situps'],
+    cues: 'Press down on the bar with straight arms, scoop pelvis upward and compress midline cleanly until both knees make contact with your elbows.',
+    scaling: 'Scale down to Hanging Knee Raises or Floor V-Ups.'
+  },
+  {
     id: 'toes_to_bar',
     name: 'Toes-to-Bar (T2B)',
     equipment: 'pullup_bar',
@@ -1447,7 +1483,7 @@ const MOVEMENTS_DB = [
     scaleDownId: 'devil_press',
     scaleNote: 'Dual Dumbbell Devil Press',
     fallbackCandidates: ['devil_press', 'db_thrusters', 'burpees', 'athletic_up_downs'],
-    cues: 'Hands on dumbbells: sprawl to plank, complete a chest-to-deck push-up, renegade row each dumbbell to ribs, jump feet to hands into a squat clean, and finish with a full thruster press overhead.',
+    cues: 'Hands on dumbbells: sprawl to plank, complete a push-up, renegade row each dumbbell to ribs, jump feet to hands into a squat clean, and finish with a full thruster press overhead.',
     scaling: 'Scale down to Dual Dumbbell Devil Press, DB Thrusters, or Burpees.'
   },
   {

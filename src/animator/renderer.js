@@ -513,10 +513,8 @@ const drawJumpRope = (ctx, pr, behind, isLight) => {
   const ctrlFor = (phase) => ((89.5 + Math.cos(phase) * 79.5) - 0.25 * handY) / 0.75;
   ctx.save();
   if (behind || ropeInFront) {
-    ctx.strokeStyle = behind
-      ? resolveThemeColor('rgba(56, 189, 248, 0.40)', isLight)
-      : resolveThemeColor(isDoubleUnder ? '#38bdf8' : '#bef264', isLight);
-    ctx.lineWidth = behind ? 2.2 : 3.2;
+    ctx.strokeStyle = resolveThemeColor(isDoubleUnder ? '#38bdf8' : '#bef264', isLight);
+    ctx.lineWidth = 3.2;
     const ctrlY = ctrlFor(ropePhase);
     ctx.beginPath();
     ctx.moveTo(leftHandX, handY);
@@ -917,6 +915,12 @@ function renderFrame(ctx, frame) {
   drawFloor(ctx, frame.floorY, isLight);
   for (const pr of frame.props) drawBackgroundProp(ctx, pr, frame, isLight);
 
+  const hasFade = frame.alpha != null && frame.alpha < 1;
+  if (hasFade) {
+    ctx.save();
+    ctx.globalAlpha *= Math.max(0, Math.min(1, frame.alpha));
+  }
+
   if (frame.view === 'front') {
     drawFrontTorso(ctx, frame.frontTorso, isLight, false);
     for (const pr of frame.props) drawMidgroundProp(ctx, pr, frame, isLight);
@@ -934,6 +938,9 @@ function renderFrame(ctx, frame) {
   }
 
   for (const pr of frame.props) drawForegroundProp(ctx, pr, frame, isLight);
+  if (hasFade) {
+    ctx.restore();
+  }
   if (frame.scale && frame.scale !== 1) {
     ctx.restore();
   }

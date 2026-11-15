@@ -4,14 +4,64 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>WODFORGE — Precision HIIT WOD Generator</title>
+  <title>WODROLL — Precision HIIT &amp; CrossFit WOD Generator</title>
+  <meta name="description"
+    content="Free, zero-signup CrossFit, Hyrox, and HIIT WOD generator tailored to your exact equipment, skill level, and timeframe — featuring 85 2D animated movements, 46 classic benchmarks, and instant URL &amp; PNG card sharing." />
+  <link rel="canonical" href="https://niosus.github.io/wod-generator/" />
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <meta name="theme-color" content="#f8fafc" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#09090b" media="(prefers-color-scheme: dark)" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="WODROLL" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+  <!-- Open Graph / Social Preview -->
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="WODROLL" />
+  <meta property="og:title" content="WODROLL — Precision HIIT &amp; CrossFit WOD Generator" />
+  <meta property="og:description"
+    content="Generate CrossFit, Hyrox, and HIIT workouts tailored to your equipment, skill level, and timeframe. Includes 85 2D animated movements, 46 benchmark WODs, scaling ladders, and PNG/URL sharing." />
+  <meta property="og:url" content="https://niosus.github.io/wod-generator/" />
+  <meta property="og:image" content="https://niosus.github.io/wod-generator/og-image.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="WODROLL — Precision HIIT &amp; CrossFit WOD Generator with 2D movement animations" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="WODROLL — Precision HIIT &amp; CrossFit WOD Generator" />
+  <meta name="twitter:description"
+    content="Free, zero-signup CrossFit, Hyrox, and HIIT WOD generator with 85 2D animated movements, 46 benchmark WODs, and 14-item gear scaling." />
+  <meta name="twitter:image" content="https://niosus.github.io/wod-generator/og-image.png" />
+  <meta name="twitter:image:alt" content="WODROLL — Precision HIIT &amp; CrossFit WOD Generator with 2D movement animations" />
+
+  <!-- Structured Data -->
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "WODROLL",
+      "url": "https://niosus.github.io/wod-generator/",
+      "image": "https://niosus.github.io/wod-generator/og-image.png",
+      "description": "Free, zero-signup CrossFit, Hyrox, and HIIT WOD generator tailored to your equipment, skill level, and timeframe with 85 2D animated movements and 46 benchmark workouts.",
+      "applicationCategory": "HealthApplication",
+      "operatingSystem": "Any",
+      "isAccessibleForFree": true,
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      }
+    }
+  </script>
   <!-- Prevent Theme FOUC before Tailwind/CSS loads -->
   <script>
     (function () {
       try {
         var theme = 'system';
-        var raw = localStorage.getItem('wodforge_local_prefs_v3');
+        var raw = localStorage.getItem('wodroll_local_prefs_v3') || localStorage.getItem('wodforge_local_prefs_v3');
         if (raw) {
           var parsed = JSON.parse(raw);
           if (parsed && (parsed.theme === 'light' || parsed.theme === 'dark' || parsed.theme === 'system')) {
@@ -50,13 +100,13 @@
   <header class="sticky top-0 z-30 backdrop-blur-xl bg-white/85 dark:bg-zinc-950/85 border-b border-zinc-200/80 dark:border-zinc-800/80 transition-colors">
     <div class="max-w-3xl mx-auto px-4 sm:px-6 py-2.5 flex items-center justify-between gap-2">
       <!-- Brand Identity -->
-      <a href="#" class="flex items-center gap-2 shrink-0 group" title="WODFORGE">
+      <a href="#" class="flex items-center gap-2 shrink-0 group" title="WODROLL">
         <div
           class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-zinc-950 dark:bg-volt flex items-center justify-center text-white dark:text-zinc-950 font-black group-hover:scale-105 transition-transform shrink-0">
           <i data-lucide="zap" class="w-4 h-4 stroke-[2.5]"></i>
         </div>
         <span class="font-black tracking-tight text-base sm:text-lg text-zinc-950 dark:text-white">
-          WOD<span class="text-volt-600 dark:text-volt">FORGE</span>
+          WOD<span class="text-volt-600 dark:text-volt">ROLL</span>
         </span>
       </a>
 
@@ -343,6 +393,41 @@
       </div>
     </section>
   </main>
+
+  <!-- MINIMAL FOOTER & INDEXABLE OVERVIEW -->
+  <footer class="max-w-3xl w-full mx-auto px-3.5 sm:px-6 pb-5 pt-1 text-[11px] text-zinc-500 dark:text-zinc-400">
+    <details class="group rounded-xl border border-zinc-200/70 dark:border-zinc-800/70 bg-white/60 dark:bg-zinc-900/50 px-3.5 py-2 transition-colors">
+      <summary class="flex flex-wrap items-center justify-between gap-2 cursor-pointer list-none select-none hover:text-zinc-900 dark:hover:text-zinc-200 transition">
+        <div class="flex items-center gap-2">
+          <span class="font-semibold text-zinc-700 dark:text-zinc-300">WODROLL</span>
+          <span>•</span>
+          <span>Free CrossFit, Hyrox &amp; HIIT WOD Generator (No Signup)</span>
+        </div>
+        <div class="flex items-center gap-3">
+          <a href="https://github.com/niosus/wod-generator" target="_blank" rel="noopener noreferrer"
+            onclick="event.stopPropagation()"
+            class="hover:text-zinc-950 dark:hover:text-white underline decoration-zinc-300 dark:decoration-zinc-700 underline-offset-2 transition">
+            GitHub
+          </a>
+          <span class="inline-flex items-center gap-1 text-zinc-500 dark:text-zinc-400">
+            <span>About</span>
+            <i data-lucide="chevron-down" class="w-3.5 h-3.5 transition-transform duration-200 group-open:rotate-180"></i>
+          </span>
+        </div>
+      </summary>
+
+      <div class="mt-2.5 pt-2.5 border-t border-zinc-200/70 dark:border-zinc-800/70 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs leading-relaxed text-zinc-600 dark:text-zinc-400">
+        <p>
+          <strong class="text-zinc-800 dark:text-zinc-200">Tailored to Your Gear:</strong>
+          Generate instant bodyweight, home-gym, minimal-equipment, or full-gym workouts across AMRAP, EMOM, For Time (21-15-9 / 15-12-9), and Tabata formats for 10, 15, or 25+ minute sessions.
+        </p>
+        <p>
+          <strong class="text-zinc-800 dark:text-zinc-200">85 Animated Movements &amp; 46 Classics:</strong>
+          Includes multi-view 2D biomechanical stick-figure form demos, 8 collision-free scaling ladders, and classic Girl, Hero, Hyrox, and Death By benchmark WODs with URL and PNG card sharing.
+        </p>
+      </div>
+    </details>
+  </footer>
 
   <!-- ADVANCED MODE MODAL: EQUIPMENT, FORMAT & MOVEMENT POOL -->
   <div id="advancedModal"

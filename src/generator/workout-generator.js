@@ -2,6 +2,7 @@ const MOVEMENT_NAME_TOKENS = {
   run: ['TARMAC', 'PAVEMENT', 'BLACKTOP', 'STRIDE', 'TRACK'],
   pullups: ['CHALK', 'HIGH BAR', 'DEAD HANG', 'STRICT BAR', 'LATS'],
   chin_ups: ['CHALK', 'CHIN BAR', 'DEAD HANG', 'HIGH BAR', 'LATS'],
+  chest_to_bar: ['CHALK', 'CHEST TO BAR', 'HIGH PULL', 'DEAD HANG', 'LATS'],
   bar_hang: ['DEAD HANG', 'IRON GRIP', 'STATIC BAR', 'HANG TIME'],
   bar_muscle_up: ['HIGH BAR', 'TURNOVER', 'LOCKOUT', 'ABOVE THE BAR'],
   ring_muscle_up: ['FALSE GRIP', 'HIGH RINGS', 'TURNOVER', 'RING LOCKOUT'],
@@ -70,6 +71,7 @@ const MOVEMENT_NAME_TOKENS = {
   bike_erg_cal: ['AIR BIKE', 'HEADWIND', 'FAN WHEEL', 'PEDAL STROKE'],
   ski_erg_cal: ['NORDIC PULL', 'SKI CORDS', 'DOUBLE POLE', 'TOP SHELF'],
   toes_to_bar: ['HANGING CORE', 'HIGH BAR', 'KIP & TUCK', 'MIDLINE'],
+  knees_to_elbows: ['HANGING CORE', 'HIGH BAR', 'KIP & TUCK', 'MIDLINE'],
   hanging_knee_raises: ['HANGING CORE', 'HIGH BAR', 'KIP & TUCK', 'MIDLINE'],
   l_sit: ['HOLLOW HOLD', 'STATIC CORE', 'ISOMETRIC', 'IRON MIDLINE'],
   plank: ['HOLLOW HOLD', 'STATIC CORE', 'ISOMETRIC', 'IRON MIDLINE'],
@@ -653,6 +655,7 @@ const WorkoutGenerator = {
       if (mov.id === 'pushups') rawReps = Math.min(rawReps, intensityLevel === 'high' ? 18 : (intensityLevel === 'standard' ? 15 : 12));
       else if (mov.id === 'burpees') rawReps = Math.min(rawReps, intensityLevel === 'high' ? 14 : (intensityLevel === 'standard' ? 12 : 10));
       else if (mov.id === 'pullups') rawReps = Math.min(rawReps, intensityLevel === 'high' ? 12 : (intensityLevel === 'standard' ? 10 : 8));
+      else if (mov.id === 'chest_to_bar') rawReps = Math.min(rawReps, intensityLevel === 'high' ? 10 : (intensityLevel === 'standard' ? 8 : 6));
       else if (mov.id === 'hspu') rawReps = Math.min(rawReps, intensityLevel === 'high' ? 10 : (intensityLevel === 'standard' ? 8 : 6));
       else if (mov.id === 'ring_muscle_up' || mov.id === 'bar_muscle_up') rawReps = Math.min(rawReps, intensityLevel === 'high' ? 6 : (intensityLevel === 'standard' ? 4 : 3));
       else if (mov.id === 'ring_dips' || mov.id === 'parallel_bar_dips') rawReps = Math.min(rawReps, intensityLevel === 'high' ? 14 : (intensityLevel === 'standard' ? 10 : 8));

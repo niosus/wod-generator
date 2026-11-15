@@ -1,12 +1,13 @@
 /**
  * Pure 2D Skeletal Kinematics Pose Computation
- * Computes pure skeleton frames for all WODFORGE movements
+ * Computes pure skeleton frames for all WODROLL movements
  */
-function _computePose(poseType, timestamp) {
+function _computePose(poseType, timestamp, options = null) {
   const periodMs = 2400;
   const normT = ((timestamp % periodMs) + periodMs) % periodMs / periodMs;
   const theta = normT * Math.PI * 2;
   const p = 0.5 - 0.5 * Math.cos(theta); // 0 -> 1 -> 0 smooth cosine wave
+  const wantLeft = Boolean(options && options.side === 'left');
 
   const frame = {
     poseType,
@@ -31,16 +32,19 @@ function _computePose(poseType, timestamp) {
   //      an authentic kip & hip-to-bar pull, and transitions shoulders forward
   //      over the bar/rings with elbows bending strictly backward (never crossing!).
   // ===========================================================================
-  if (poseType === 'pullup_front' || poseType === 'chin_up_front' || poseType === 'bar_hang') {
+  if (poseType === 'pullup_front' || poseType === 'chest_to_bar_front' || poseType === 'chin_up_front' || poseType === 'bar_hang') {
     frame.view = 'front';
     frame.floorY = 192;
-    const barY = 16;
+    const isChestToBar = poseType === 'chest_to_bar_front';
     const isChinUp = poseType === 'chin_up_front';
     const isBarHang = poseType === 'bar_hang';
+    const barY = isChestToBar ? 38 : 16;
     frame.props.push({ type: 'rig_uprights', barY, floorY: 192 });
 
-    // Vertical range: pull/chin pulls up to bar; bar_hang holds completely stationary dead hang
-    const shoulderY = isBarHang ? 62 : this.lerp(62, 20, p);
+    // Vertical range: pull/chin clears chin; chest-to-bar pulls sternum clearly to bar (shoulders high above bar)
+    const shoulderY = isBarHang
+      ? 62
+      : (isChestToBar ? this.lerp(80, 24, p) : this.lerp(62, 20, p));
     const hipY = shoulderY + L_TORSO;
     const leftHipX = 91, rightHipX = 109;
 
@@ -75,6 +79,45 @@ function _computePose(poseType, timestamp) {
 
       addLimb('armL', 'arm', leftShoulderX, shoulderY, leftElbowX, elbowY, leftHandX, handY, '#38bdf8', '#38bdf8', 5, 'hand', 1, null, 0, elbowZ, 0);
       addLimb('armR', 'arm', rightShoulderX, shoulderY, rightElbowX, elbowY, rightHandX, handY, '#38bdf8', '#38bdf8', 5, 'hand', 1, null, 0, elbowZ, 0);
+    } else if (isChestToBar) {
+      // Chest-to-Bar Pull-Up: shoulders pull well above barY=38 so mid-chest meets the bar
+      // while keeping elbows driving downward and slightly behind torso (3D Z) without flipping up.
+      const leftShoulderX = this.lerp(85, 87, p);
+      const rightShoulderX = this.lerp(115, 113, p);
+      frame.frontTorso = {
+        leftShoulderX, rightShoulderX, shoulderY,
+        leftHipX, rightHipX, hipY,
+        headX: 100, headY: shoulderY - 14
+      };
+
+      const leftHandX = 76, rightHandX = 124, handY = barY;
+      const inPlaneScale = this.lerp(1.0, 0.28, this.smoothstep(this.clamp((barY + 6 - shoulderY) / 22, 0, 1)));
+      const solveC2BArm = (sx, sy, hx, hy, isLeft) => {
+        let dx = hx - sx;
+        let dy = hy - sy;
+        let dist = Math.hypot(dx, dy);
+        const minDist = Math.abs(L_UPPER_ARM - L_FOREARM) + 2.0;
+        const maxDist = (L_UPPER_ARM + L_FOREARM) - 0.8;
+        if (dist > maxDist) { dx = (dx / dist) * maxDist; dy = (dy / dist) * maxDist; dist = maxDist; }
+        else if (dist < minDist) { dx = (dx / dist) * minDist; dy = (dy / dist) * minDist; dist = minDist; }
+        const ux = dx / dist, uy = dy / dist;
+        const a = (L_UPPER_ARM * L_UPPER_ARM - L_FOREARM * L_FOREARM + dist * dist) / (2 * dist);
+        const h = Math.sqrt(Math.max(0, L_UPPER_ARM * L_UPPER_ARM - a * a));
+        const mx = sx + a * ux, my = sy + a * uy;
+        const px = isLeft ? uy : -uy;
+        const py = isLeft ? -ux : ux;
+        return {
+          jx: mx + px * h * inPlaneScale,
+          jy: my + py * h * inPlaneScale,
+          jz: -h * Math.sqrt(Math.max(0, 1 - inPlaneScale * inPlaneScale)),
+          ex: sx + dx,
+          ey: sy + dy
+        };
+      };
+      const armL = solveC2BArm(leftShoulderX, shoulderY, leftHandX, handY, true);
+      const armR = solveC2BArm(rightShoulderX, shoulderY, rightHandX, handY, false);
+      addLimb('armL', 'arm', leftShoulderX, shoulderY, armL.jx, armL.jy, armL.ex, armL.ey, '#38bdf8', '#38bdf8', 5, 'hand', 1, null, 0, armL.jz, 0);
+      addLimb('armR', 'arm', rightShoulderX, shoulderY, armR.jx, armR.jy, armR.ex, armR.ey, '#38bdf8', '#38bdf8', 5, 'hand', 1, null, 0, armR.jz, 0);
     } else {
       // Strict Pull-up:
       // - Active hang at bottom (scapular elevation/upward rotation: leftShoulderX=85, rightShoulderX=115)
@@ -160,7 +203,7 @@ function _computePose(poseType, timestamp) {
   // ===========================================================================
   // 1B. SIDE-VIEW HANGING KNEE RAISES & TOES-TO-BAR (T2B)
   // ===========================================================================
-  if (poseType === 'knee_raise_side' || poseType === 'toes_to_bar_side') {
+  if (poseType === 'knee_raise_side' || poseType === 'knees_to_elbows_side' || poseType === 'toes_to_bar_side') {
     frame.floorY = 188;
     const barX = 96, barY = 20;
     frame.props.push({ type: 'side_rig', postX: 44, barX, barY, floorY: 188 });
@@ -194,6 +237,34 @@ function _computePose(poseType, timestamp) {
 
       if (p > 0.88) {
         frame.props.push({ type: 'strike_ring', x: barX + 1, y: barY + 1, r: 10 });
+      }
+    } else if (poseType === 'knees_to_elbows_side') {
+      // Hanging Knees-to-Elbows:
+      // Arms press straight back against the bar while hips scoop upward and forward, flexing
+      // tightly at the hips & knees until knees cleanly touch the elbows without knee hyperextension.
+      const armAngle = this.lerp(1.60, 2.35, p);
+      const armFK = this.solveFK(barX, barY, armAngle, armAngle + 0.04, L_FOREARM, L_UPPER_ARM);
+      const shoulderX = armFK.ex;
+      const shoulderY = armFK.ey;
+
+      const torsoDownAngle = this.lerp(1.54, 0.05, p);
+      const spineAngle = torsoDownAngle + Math.PI;
+      frame.torso = this.torsoFromShoulder(shoulderX, shoulderY, spineAngle, 1, -0.10);
+      const { hipX, hipY } = frame.torso;
+
+      const arm = this.solveIK(shoulderX, shoulderY, barX, barY, L_UPPER_ARM, L_FOREARM, 1);
+
+      const thighAngle = this.lerp(1.56, -2.52, p);
+      const shinAngle = this.lerp(1.62, 0.28, p);
+      const legFront = this.solveFK(hipX, hipY, thighAngle, shinAngle, L_THIGH, L_SHIN);
+      const legBack = this.solveFK(hipX - 2, hipY, thighAngle, shinAngle, L_THIGH, L_SHIN);
+
+      addLimb('legB', 'leg', hipX - 2, hipY, legBack.jx, legBack.jy, legBack.ex, legBack.ey, '#64748b', '#475569', 5.2, 'foot', 1, 200);
+      addLimb('arm', 'arm', shoulderX, shoulderY, arm.jx, arm.jy, arm.ex, arm.ey, '#38bdf8', '#38bdf8', 5.2, 'hand');
+      addLimb('legF', 'leg', hipX, hipY, legFront.jx, legFront.jy, legFront.ex, legFront.ey, '#bef264', '#94a3b8', 6, 'foot', 1, 200);
+
+      if (p > 0.88) {
+        frame.props.push({ type: 'strike_ring', x: arm.jx, y: arm.jy, r: 9 });
       }
     } else {
       // Hanging Knee Raise: active hang from bar, knees tuck smoothly above hip crease with exact 32+32=64px segments
@@ -451,25 +522,34 @@ function _computePose(poseType, timestamp) {
   if (poseType === 'superman_pull_side') {
     frame.floorY = 168;
     const hipX = 84, hipY = 160;
-    // Thoracic extension lifts chest off floor from -0.12 rad to -0.42 rad
-    const spineAngle = this.lerp(-0.12, -0.42, p);
-    frame.torso = this.torsoFromHip(hipX, hipY, spineAngle, 1, -0.12);
+    // Prone superman arch: chest & head hover 3-5" above mat, lifting slightly higher on the pull
+    const spineAngle = this.lerp(-0.16, -0.32, p);
+    frame.torso = this.torsoFromHip(hipX, hipY, spineAngle, 1, -0.10);
     const { shoulderX, shoulderY } = frame.torso;
 
-    // Posterior hip/thigh extension lifts knees & feet UP off the mat behind the athlete (angles > Math.PI have sin < 0 = UP!)
-    const thighAngle = this.lerp(3.16, 3.38, p);
-    const shinAngle = this.lerp(3.18, 3.48, p);
+    // Posterior glute/hamstring engagement lifts legs off the mat behind the athlete
+    const thighAngle = this.lerp(3.18, 3.30, p);
+    const shinAngle = this.lerp(3.20, 3.36, p);
     const legBack = this.solveFK(hipX - 2, hipY, thighAngle, shinAngle, L_THIGH, L_SHIN);
     const legFront = this.solveFK(hipX, hipY, thighAngle, shinAngle, L_THIGH, L_SHIN);
 
-    // Arms sweep above the mat from overhead reach (-0.15 rad) to lat pull-down contraction at ribs (-2.55 rad)
-    const upperArmAngle = this.lerp(-0.15, -2.55, p);
-    const forearmAngle = this.lerp(-0.10, -0.35, p);
-    const arm = this.solveFK(shoulderX, shoulderY, upperArmAngle, forearmAngle, L_UPPER_ARM, L_FOREARM);
+    // True 3D-projected lat pull-down: elbows flare laterally (+Z) and drive back toward ribs/hips
+    // while forearms stay horizontal beside the ribcage (never swinging vertically up over the head)
+    const upperYaw = this.lerp(0, 2.42, p);
+    const upperPitch = this.lerp(-0.18, -0.24, p);
+    const jx = shoulderX + L_UPPER_ARM * Math.cos(upperPitch) * Math.cos(upperYaw);
+    const jy = shoulderY + L_UPPER_ARM * Math.sin(upperPitch);
+    const jz = L_UPPER_ARM * Math.cos(upperPitch) * Math.sin(upperYaw);
+
+    const foreYaw = this.lerp(0, -0.68, p);
+    const forePitch = this.lerp(-0.15, 0.34, p);
+    const ex = jx + L_FOREARM * Math.cos(forePitch) * Math.cos(foreYaw);
+    const ey = jy + L_FOREARM * Math.sin(forePitch);
+    const ez = jz + L_FOREARM * Math.cos(forePitch) * Math.sin(foreYaw);
 
     addLimb('legB', 'leg', hipX - 2, hipY, legBack.jx, legBack.jy, legBack.ex, legBack.ey, '#64748b', '#475569', 5.4, 'foot', 1, 200);
     addLimb('legF', 'leg', hipX, hipY, legFront.jx, legFront.jy, legFront.ex, legFront.ey, '#bef264', '#94a3b8', 6, 'foot', 1, 200);
-    addLimb('arm', 'arm', shoulderX, shoulderY, arm.jx, arm.jy, arm.ex, arm.ey, '#38bdf8', '#38bdf8', 5.4, 'hand');
+    addLimb('arm', 'arm', shoulderX, shoulderY, jx, jy, ex, ey, '#38bdf8', '#38bdf8', 5.4, 'hand', 1, null, 0, jz, ez);
     return frame;
   }
 
@@ -487,22 +567,33 @@ function _computePose(poseType, timestamp) {
     const ankleX = 96, ankleY = 166;
 
     if (poseType === 'pistol_squat') {
-      const pistolPeriod = 3600;
+      const pistolPeriod = 3800;
       const fullNorm = ((timestamp % pistolPeriod) + pistolPeriod) % pistolPeriod / pistolPeriod;
       const isSecondLeg = fullNorm >= 0.5;
-      const repNorm = (fullNorm % 0.5) * 2;
-      const repP = 0.5 - 0.5 * Math.cos(repNorm * Math.PI * 2);
+      const u = (fullNorm % 0.5) * 2;
+      // Lift non-working leg forward -> deep pistol squat down & up -> return foot smoothly to floor
+      const liftWave = u < 0.16
+        ? 0.65 * this.smoothstep(u / 0.16)
+        : (u < 0.84
+          ? 0.65 + 0.35 * Math.sin(((u - 0.16) / 0.68) * Math.PI)
+          : 0.65 * (1 - this.smoothstep((u - 0.84) / 0.16)));
+      const squatWave = (u >= 0.12 && u <= 0.88)
+        ? 0.5 - 0.5 * Math.cos(((u - 0.12) / 0.76) * Math.PI * 2)
+        : 0;
 
-      const hipX = this.lerp(94, 70, repP);
-      const hipY = this.lerp(104, 140, repP);
-      const spineAngle = this.lerp(-1.53, -1.16, repP); // natural forward lean for 1-leg balance
+      const hipX = this.lerp(94, 70, squatWave);
+      const hipY = this.lerp(104, 140, squatWave);
+      const spineAngle = this.lerp(-1.53, -1.16, squatWave); // natural forward lean for 1-leg balance
       frame.torso = this.torsoFromHip(hipX, hipY, spineAngle, 1, 0.14);
       const { shoulderX, shoulderY } = frame.torso;
 
       const workingLeg = this.solveIK(hipX, hipY, ankleX, ankleY, L_THIGH, L_SHIN, -1);
-      // Non-working leg lifts & extends straight out horizontally in front using exact 32+32=64px segments
-      const freeThighAngle = this.lerp(1.48, -0.14, repP);
-      const freeShinAngle = this.lerp(1.52, -0.06, repP);
+      // Match standing leg geometry cleanly at u=0/1 so alternating legs plant together seamlessly
+      const standLeg = this.solveIK(94, 104, ankleX, ankleY, L_THIGH, L_SHIN, -1);
+      const standThigh = Math.atan2(standLeg.jy - 104, standLeg.jx - 94);
+      const standShin = Math.atan2(standLeg.ey - standLeg.jy, standLeg.ex - standLeg.jx);
+      const freeThighAngle = this.lerp(standThigh, -0.14, liftWave);
+      const freeShinAngle = this.lerp(standShin, -0.06, liftWave);
       const freeLeg = this.solveFK(hipX, hipY, freeThighAngle, freeShinAngle, L_THIGH, L_SHIN);
 
       frame.props.push({ type: 'hud_badge', text: isSecondLeg ? 'LEFT LEG' : 'RIGHT LEG', second: isSecondLeg });
@@ -515,8 +606,8 @@ function _computePose(poseType, timestamp) {
         addLimb('legF', 'leg', hipX, hipY, freeLeg.jx, freeLeg.jy, freeLeg.ex, freeLeg.ey, '#bef264', '#94a3b8', 6, 'foot', 1, 200);
       }
 
-      const handX = this.lerp(shoulderX + 8, shoulderX + 45, repP);
-      const handY = this.lerp(shoulderY + 44, shoulderY + 6, repP);
+      const handX = this.lerp(shoulderX + 8, shoulderX + 45, Math.max(squatWave, liftWave * 0.35));
+      const handY = this.lerp(shoulderY + 44, shoulderY + 6, Math.max(squatWave, liftWave * 0.35));
       const arm = this.solveIK(shoulderX, shoulderY, handX, handY, L_UPPER_ARM, L_FOREARM, 1);
       addLimb('arm', 'arm', shoulderX, shoulderY, arm.jx, arm.jy, arm.ex, arm.ey, '#38bdf8', '#38bdf8', 5.2, 'hand');
     } else {
@@ -605,17 +696,13 @@ function _computePose(poseType, timestamp) {
         { hx: 85, hy: 120, spine: -1.44, bx: 97, by: 27 },
         // 5: Stand Tall with Load Locked Out Overhead
         { hx: 95, hy: 104, spine: -1.55, bx: 97, by: 11 },
-        // 6: Lower controlled back to Front Rack
-        { hx: 93, hy: 108, spine: -1.52, bx: 104, by: 60 }
+        // 6: Lower controlled back to tall Front Rack
+        { hx: 95, hy: 104, spine: -1.55, bx: 104, by: 56 }
       ];
       const isKBPushJerk = poseType === 'kb_push_jerk';
-      let sampleNorm = normT;
-      let isSecondArm = false;
+      const sampleNorm = normT;
+      const isSecondArm = isKBPushJerk ? wantLeft : false;
       if (isKBPushJerk) {
-        const kbCycleMs = 3800;
-        const fullNorm = ((timestamp % kbCycleMs) + kbCycleMs) % kbCycleMs / kbCycleMs;
-        isSecondArm = fullNorm >= 0.5;
-        sampleNorm = (fullNorm % 0.5) * 2;
         frame.props.push({ type: 'hud_badge', text: isSecondArm ? 'LEFT ARM' : 'RIGHT ARM', second: isSecondArm });
       }
       const st = this.sampleKeyframes(jerkKF, sampleNorm);
@@ -656,17 +743,40 @@ function _computePose(poseType, timestamp) {
 
     let activeP = p;
     let isSecondKBArm = false;
+    let repLegDrive = null;
+    let repArmPunch = null;
     if (isKettlebell) {
-      const kbCycleMs = 3800;
-      const fullNorm = ((timestamp % kbCycleMs) + kbCycleMs) % kbCycleMs / kbCycleMs;
-      isSecondKBArm = fullNorm >= 0.5;
-      const repNorm = (fullNorm % 0.5) * 2;
-      activeP = 0.5 - 0.5 * Math.cos(repNorm * Math.PI * 2);
+      isSecondKBArm = wantLeft;
       frame.props.push({ type: 'hud_badge', text: isSecondKBArm ? 'LEFT ARM' : 'RIGHT ARM', second: isSecondKBArm });
+      if (isStrict) {
+        activeP = p;
+      } else if (poseType === 'kb_push_press') {
+        const pp = this.sampleKeyframes([
+          { ld: 1.0, ap: 0.0 },
+          { ld: 0.0, ap: 0.0 },
+          { ld: 1.0, ap: 0.60 },
+          { ld: 1.0, ap: 1.0 },
+          { ld: 1.0, ap: 0.55 },
+          { ld: 1.0, ap: 0.0 }
+        ], normT);
+        repLegDrive = pp.ld;
+        repArmPunch = pp.ap;
+      } else {
+        const th = this.sampleKeyframes([
+          { ld: 1.0, ap: 0.0 },
+          { ld: 0.0, ap: 0.0 },
+          { ld: 0.92, ap: 0.35 },
+          { ld: 1.0, ap: 1.0 },
+          { ld: 1.0, ap: 0.60 },
+          { ld: 1.0, ap: 0.0 }
+        ], normT);
+        repLegDrive = th.ld;
+        repArmPunch = th.ap;
+      }
     }
 
-    const legDrive = isStrict ? 1 : this.smoothstep(this.clamp(activeP / 0.78, 0, 1));
-    const armPunch = isStrict ? this.smoothstep(activeP) : this.smoothstep(this.clamp((activeP - 0.22) / 0.78, 0, 1));
+    const legDrive = repLegDrive !== null ? repLegDrive : (isStrict ? 1 : this.smoothstep(this.clamp(activeP / 0.78, 0, 1)));
+    const armPunch = repArmPunch !== null ? repArmPunch : (isStrict ? this.smoothstep(activeP) : this.smoothstep(this.clamp((activeP - 0.22) / 0.78, 0, 1)));
 
     const hipX = isStrict ? 95 : this.lerp(isFullSquat ? 70 : 89, 95, legDrive);
     const hipY = isStrict ? 104 : this.lerp(isFullSquat ? 139 : 115, 104, legDrive);
@@ -751,11 +861,8 @@ function _computePose(poseType, timestamp) {
       poseType === 'bb_bulgarian_split_squat';
 
     if (isBulgarian) {
-      const bssCycleMs = 3800;
-      const fullNorm = ((timestamp % bssCycleMs) + bssCycleMs) % bssCycleMs / bssCycleMs;
-      const isSecondLeg = fullNorm >= 0.5;
-      const repNorm = (fullNorm % 0.5) * 2;
-      const repP = 0.5 - 0.5 * Math.cos(repNorm * Math.PI * 2);
+      const isSecondLeg = wantLeft;
+      const repP = p;
 
       const boxY = 144;
       frame.props.push({ type: 'plyo_box', x: 26, y: boxY, w: 30, h: 26 });
@@ -1079,8 +1186,8 @@ function _computePose(poseType, timestamp) {
 
     if (poseType === 'side_plank') {
       frame.view = 'front';
-      const isSecondSide = normT >= 0.5;
-      frame.props.push({ type: 'hud_badge', text: isSecondSide ? 'RIGHT SIDE' : 'LEFT SIDE', second: isSecondSide });
+      const isSecondSide = !wantLeft;
+      frame.props.push({ type: 'hud_badge', text: wantLeft ? 'LEFT SIDE' : 'RIGHT SIDE', second: wantLeft });
 
       const elbowX = 55, elbowY = 164;
       const handX = elbowX + L_FOREARM, handY = elbowY;
@@ -1175,11 +1282,8 @@ function _computePose(poseType, timestamp) {
     const ankleX = 92, ankleY = 166;
 
     if (poseType === 'rfe_rdl' || poseType === 'kb_rfe_rdl' || poseType === 'db_rfe_rdl' || poseType === 'bb_rfe_rdl') {
-      const rfeCycleMs = 3800;
-      const fullNorm = ((timestamp % rfeCycleMs) + rfeCycleMs) % rfeCycleMs / rfeCycleMs;
-      const isSecondLeg = fullNorm >= 0.5;
-      const repNorm = (fullNorm % 0.5) * 2;
-      const repP = 0.5 - 0.5 * Math.cos(repNorm * Math.PI * 2);
+      const isSecondLeg = wantLeft;
+      const repP = p;
 
       frame.props.push({ type: 'plyo_box', x: 26, y: 146, w: 30, h: 24 });
       frame.props.push({ type: 'hud_badge', text: isSecondLeg ? 'LEFT LEG' : 'RIGHT LEG', second: isSecondLeg });
@@ -1267,15 +1371,15 @@ function _computePose(poseType, timestamp) {
       if (poseType === 'db_bent_row') {
         frame.props.push({ type: 'hud_badge', text: p >= 0.5 ? 'RIGHT ARM' : 'LEFT ARM', second: p < 0.5 });
         const farPull = 0.5 + 0.5 * Math.cos(theta);
-        const farHandX = this.lerp(shoulderX + 2, hipX + 10, farPull);
-        const farHandY = this.lerp(shoulderY + 45, hipY + 2, farPull);
-        const farArm = this.solveIK(shoulderX, shoulderY, farHandX, farHandY, L_UPPER_ARM, L_FOREARM, 1);
+        const farHandX = this.lerp(shoulderX + 2, 88, farPull);
+        const farHandY = this.lerp(shoulderY + 45, 104, farPull);
+        const farArm = this.solveIK(shoulderX - 2, shoulderY, farHandX, farHandY, L_UPPER_ARM, L_FOREARM, 1);
 
-        const nearHandX = this.lerp(shoulderX + 4, hipX + 12, p);
-        const nearHandY = this.lerp(shoulderY + 46, hipY + 4, p);
+        const nearHandX = this.lerp(shoulderX + 4, 90, p);
+        const nearHandY = this.lerp(shoulderY + 46, 105, p);
         const nearArm = this.solveIK(shoulderX, shoulderY, nearHandX, nearHandY, L_UPPER_ARM, L_FOREARM, 1);
 
-        addLimb('armB', 'arm', shoulderX, shoulderY, farArm.jx, farArm.jy, farArm.ex, farArm.ey, '#64748b', '#475569', 5, 'hand');
+        addLimb('armB', 'arm', shoulderX - 2, shoulderY, farArm.jx, farArm.jy, farArm.ex, farArm.ey, '#64748b', '#475569', 5, 'hand');
         frame.props.push({ type: 'dumbbell_far', x: farArm.ex, y: farArm.ey });
         addLimb('legB', 'leg', hipX - 3, hipY, legBack.jx, legBack.jy, legBack.ex, legBack.ey, '#64748b', '#475569', 5.4, 'foot', 1);
         addLimb('legF', 'leg', hipX, hipY, legFront.jx, legFront.jy, legFront.ex, legFront.ey, '#bef264', '#94a3b8', 6, 'foot', 1);
@@ -1286,23 +1390,20 @@ function _computePose(poseType, timestamp) {
         addLimb('legF', 'leg', hipX, hipY, legFront.jx, legFront.jy, legFront.ex, legFront.ey, '#bef264', '#94a3b8', 6, 'foot', 1);
 
         if (poseType === 'kb_bent_row') {
-          const kbCycleMs = 3800;
-          const fullNorm = ((timestamp % kbCycleMs) + kbCycleMs) % kbCycleMs / kbCycleMs;
-          const isSecondRowArm = fullNorm >= 0.5;
-          const repNorm = (fullNorm % 0.5) * 2;
-          const repP = 0.5 - 0.5 * Math.cos(repNorm * Math.PI * 2);
+          const isSecondRowArm = wantLeft;
+          const repP = p;
           frame.props.push({ type: 'hud_badge', text: isSecondRowArm ? 'LEFT ARM' : 'RIGHT ARM', second: isSecondRowArm });
 
-          const handX = this.lerp(shoulderX + 3, hipX + 12, repP);
-          const handY = this.lerp(shoulderY + 46, hipY + 4, repP);
+          const handX = this.lerp(shoulderX + 3, 90, repP);
+          const handY = this.lerp(shoulderY + 46, 105, repP);
           const rowArm = this.solveIK(shoulderX, shoulderY, handX, handY, L_UPPER_ARM, L_FOREARM, 1);
-          const braceArm = this.solveFK(shoulderX - 2, shoulderY, 1.38, 1.32, L_UPPER_ARM, L_FOREARM);
+          const braceArm = this.solveFK(shoulderX - 2, shoulderY, 1.50, 1.50, L_UPPER_ARM, L_FOREARM);
           addLimb(isSecondRowArm ? 'armF' : 'armB', 'arm', shoulderX - 2, shoulderY, braceArm.jx, braceArm.jy, braceArm.ex, braceArm.ey, '#64748b', '#475569', isSecondRowArm ? 5.5 : 5, 'hand');
           addLimb(isSecondRowArm ? 'armB' : 'armF', 'arm', shoulderX, shoulderY, rowArm.jx, rowArm.jy, rowArm.ex, rowArm.ey, '#38bdf8', '#38bdf8', isSecondRowArm ? 5 : 5.5, 'hand');
           frame.props.push({ type: 'kettlebell', x: rowArm.ex, y: rowArm.ey + 7.5, r: 7.5, midground: isSecondRowArm });
         } else {
-          const handX = this.lerp(shoulderX + 3, hipX + 12, p);
-          const handY = this.lerp(shoulderY + 46, hipY + 4, p);
+          const handX = this.lerp(shoulderX + 3, 94, p);
+          const handY = this.lerp(shoulderY + 46, 103, p);
           const rowArm = this.solveIK(shoulderX, shoulderY, handX, handY, L_UPPER_ARM, L_FOREARM, 1);
           addLimb('arm', 'arm', shoulderX, shoulderY, rowArm.jx, rowArm.jy, rowArm.ex, rowArm.ey, '#38bdf8', '#38bdf8', 5.5, 'hand');
           frame.props.push({ type: 'barbell_end', x: rowArm.ex, y: rowArm.ey, r: 9 });
@@ -1311,63 +1412,139 @@ function _computePose(poseType, timestamp) {
     } else if (poseType === 'hang_power_clean' || poseType === 'db_hang_power_clean' || poseType === 'kb_hang_power_clean' || poseType === 'clean_snatch') {
       const isBarbellHangClean = poseType === 'hang_power_clean';
       const isHangClean = poseType !== 'clean_snatch';
-      // Keep ua and fa on the same anatomical branch throughout (no 2*PI wrap-around spin!):
-      // - Barbell Hang Power Clean: straight arms at knee (ua=1.54, fa=1.58) -> triple extension & high pull
-      //   along torso (ua=0.92, fa=2.38) -> rapid elbow whip forward into Quarter-Squat Front-Squat Rack catch
-      //   matching bb_front_squat (ua=0.08, fa=3.433 === -2.85 + 2*PI) -> stand tall in Front-Squat Rack.
-      // - DB/KB Hang Power Clean: elbow whip under load into neutral dumbbell/kettlebell front rack (ua=0.35, fa=-1.62).
-      // - Squat Snatch: setup from shin (ua=1.52, fa=1.55) -> explosive triple extension & Snatch High Pull
-      //   with elbows high above the bar (ua=-0.35, fa=0.95) -> rapid turnover into deep Overhead Squat catch.
-      const olyKF = isBarbellHangClean
-        ? [
-          // 0: Hang setup at top of knee (hips hinged back, straight arms holding barbell at knee height)
-          { hx: 72, hy: 116, spine: -0.72, ua: 1.54, fa: 1.58, rack: 0 },
-          // 1: Violent triple extension & high pull along torso (elbows drive up/out, bar stays close)
-          { hx: 95, hy: 102, spine: -1.55, ua: 0.92, fa: 2.38, rack: 0.2 },
-          // 2: Whip elbows forward under bar into Quarter-Squat Front-Squat Rack Catch (same hand/elbow as bb_front_squat)
-          { hx: 82, hy: 122, spine: -1.38, ua: 0.08, fa: 3.433, rack: 1 },
-          // 3: Stand Tall in Front-Squat Rack
-          { hx: 94, hy: 104, spine: -1.54, ua: 0.08, fa: 3.433, rack: 1 },
-          // 4: Controlled return along torso toward hang
-          { hx: 84, hy: 110, spine: -1.12, ua: 0.98, fa: 2.32, rack: 0.15 }
-        ]
-        : isHangClean
-          ? [
-            // 0: Hang setup at top of knee (hips hinged back, straight arms holding load at knee height)
-            { hx: 72, hy: 116, spine: -0.72, ua: 1.54, fa: 1.58 },
-            // 1: Violent triple extension & shrug / upright pull along thighs
-            { hx: 95, hy: 102, spine: -1.55, ua: 1.75, fa: 0.85 },
-            // 2: Whip elbows forward under load into Quarter-Squat Front Rack Catch!
-            { hx: 82, hy: 122, spine: -1.38, ua: 0.35, fa: -1.62 },
-            // 3: Stand Tall with High Front-Rack Elbows
-            { hx: 94, hy: 104, spine: -1.54, ua: 0.42, fa: -1.55 },
-            // 4: Return load controlled to hang position
-            { hx: 84, hy: 110, spine: -1.12, ua: 1.18, fa: 0.82 }
-          ]
-          : [
-            // 0: Snatch setup from mid-shin (deep hip hinge, straight arms down to bar)
-            { hx: 68, hy: 122, spine: -0.62, ua: 1.52, fa: 1.55 },
-            // 1: Explosive triple extension + Snatch High Pull (hips tall, elbows pull high above bar!)
-            { hx: 95, hy: 102, spine: -1.56, ua: -0.35, fa: 0.95 },
-            // 2: Rapid turnover & drop under into deep Overhead Squat Catch (arms locked overhead!)
-            { hx: 70, hy: 139, spine: -1.24, ua: -1.50, fa: -1.50 },
-            // 3: Stabilize bottom of Overhead Squat briefly
-            { hx: 72, hy: 136, spine: -1.26, ua: -1.50, fa: -1.50 },
-            // 4: Stand tall from Overhead Squat to full Snatch Lockout
-            { hx: 94, hy: 104, spine: -1.55, ua: -1.55, fa: -1.55 },
-            // 5: Controlled return toward hang
-            { hx: 82, hy: 112, spine: -1.08, ua: 0.55, fa: 0.85 }
-          ];
-      let sampleOlyNorm = normT;
-      let isSecondCleanArm = false;
+      const sampleOlyNorm = normT;
+      const isSecondCleanArm = poseType === 'kb_hang_power_clean' ? wantLeft : false;
       if (poseType === 'kb_hang_power_clean') {
-        const kbCycleMs = 3800;
-        const fullNorm = ((timestamp % kbCycleMs) + kbCycleMs) % kbCycleMs / kbCycleMs;
-        isSecondCleanArm = fullNorm >= 0.5;
-        sampleOlyNorm = (fullNorm % 0.5) * 2;
         frame.props.push({ type: 'hud_badge', text: isSecondCleanArm ? 'LEFT ARM' : 'RIGHT ARM', second: isSecondCleanArm });
       }
-      const st = this.sampleKeyframes(olyKF, sampleOlyNorm);
+
+      let hx, hy, spine, ua, fa, rack = 0;
+      if (isBarbellHangClean) {
+        // Barbell Hang Power Clean: keeps forearm in front of torso (ua >= fa) so elbows whip
+        // forward under the bar rather than hyperextending backward, with one smooth descent.
+        if (sampleOlyNorm < 0.18) {
+          const su = this.smoothstep(sampleOlyNorm / 0.18);
+          hx = this.lerp(72, 95, su);
+          hy = this.lerp(116, 102, su);
+          spine = this.lerp(-0.72, -1.55, su);
+          ua = this.lerp(1.54, 2.10, su);
+          fa = this.lerp(1.58, 0.28, su);
+          rack = 0;
+        } else if (sampleOlyNorm < 0.34) {
+          const su = this.smoothstep((sampleOlyNorm - 0.18) / 0.16);
+          hx = this.lerp(95, 82, su);
+          hy = this.lerp(102, 122, su);
+          spine = this.lerp(-1.55, -1.38, su);
+          ua = this.lerp(2.10, 0.08, su);
+          fa = this.lerp(0.28, -2.85, su);
+          rack = su;
+        } else if (sampleOlyNorm < 0.56) {
+          const su = this.smoothstep((sampleOlyNorm - 0.34) / 0.22);
+          hx = this.lerp(82, 94, su);
+          hy = this.lerp(122, 104, su);
+          spine = this.lerp(-1.38, -1.54, su);
+          ua = 0.08;
+          fa = -2.85;
+          rack = 1;
+        } else if (sampleOlyNorm < 0.64) {
+          hx = 94;
+          hy = 104;
+          spine = -1.54;
+          ua = 0.08;
+          fa = -2.85;
+          rack = 1;
+        } else {
+          // Continuous uninterrupted lowering back to hang
+          const u = (sampleOlyNorm - 0.64) / 0.36;
+          const su = this.smoothstep(u);
+          hx = this.lerp(94, 72, su);
+          hy = this.lerp(104, 116, su);
+          spine = this.lerp(-1.54, -0.72, su);
+          ua = this.lerp(0.08, 1.54, Math.pow(su, 0.70));
+          fa = this.lerp(-2.85, 1.58, Math.pow(su, 1.25));
+          rack = this.lerp(1, 0, this.smoothstep(u / 0.45));
+        }
+      } else if (isHangClean) {
+        // DB / KB Hang Power Clean with one smooth, continuous lowering phase
+        if (sampleOlyNorm < 0.18) {
+          const su = this.smoothstep(sampleOlyNorm / 0.18);
+          hx = this.lerp(72, 95, su);
+          hy = this.lerp(116, 102, su);
+          spine = this.lerp(-0.72, -1.55, su);
+          ua = this.lerp(1.54, 1.85, su);
+          fa = this.lerp(1.58, 0.72, su);
+        } else if (sampleOlyNorm < 0.34) {
+          const su = this.smoothstep((sampleOlyNorm - 0.18) / 0.16);
+          hx = this.lerp(95, 82, su);
+          hy = this.lerp(102, 122, su);
+          spine = this.lerp(-1.55, -1.38, su);
+          ua = this.lerp(1.85, 0.35, su);
+          fa = this.lerp(0.72, -1.62, su);
+        } else if (sampleOlyNorm < 0.56) {
+          const su = this.smoothstep((sampleOlyNorm - 0.34) / 0.22);
+          hx = this.lerp(82, 94, su);
+          hy = this.lerp(122, 104, su);
+          spine = this.lerp(-1.38, -1.54, su);
+          ua = this.lerp(0.35, 0.42, su);
+          fa = this.lerp(-1.62, -1.55, su);
+        } else if (sampleOlyNorm < 0.64) {
+          hx = 94;
+          hy = 104;
+          spine = -1.54;
+          ua = 0.42;
+          fa = -1.55;
+        } else {
+          // Continuous uninterrupted lowering back to hang
+          const su = this.smoothstep((sampleOlyNorm - 0.64) / 0.36);
+          hx = this.lerp(94, 72, su);
+          hy = this.lerp(104, 116, su);
+          spine = this.lerp(-1.54, -0.72, su);
+          ua = this.lerp(0.42, 1.54, Math.pow(su, 0.75));
+          fa = this.lerp(-1.55, 1.58, Math.pow(su, 1.20));
+        }
+      } else {
+        // Barbell Squat Snatch: anatomical pull/turnover + smooth uninterrupted lowering close to torso
+        if (sampleOlyNorm < 0.18) {
+          const su = this.smoothstep(sampleOlyNorm / 0.18);
+          hx = this.lerp(68, 95, su);
+          hy = this.lerp(122, 102, su);
+          spine = this.lerp(-0.62, -1.56, su);
+          ua = this.lerp(1.52, 2.05, su);
+          fa = this.lerp(1.55, 0.15, su);
+        } else if (sampleOlyNorm < 0.34) {
+          const su = this.smoothstep((sampleOlyNorm - 0.18) / 0.16);
+          hx = this.lerp(95, 70, su);
+          hy = this.lerp(102, 139, su);
+          spine = this.lerp(-1.56, -1.24, su);
+          ua = this.lerp(2.05, -1.50, Math.pow(su, 1.25));
+          fa = this.lerp(0.15, -1.50, Math.pow(su, 0.80));
+        } else if (sampleOlyNorm < 0.42) {
+          const su = this.smoothstep((sampleOlyNorm - 0.34) / 0.08);
+          hx = this.lerp(70, 72, su);
+          hy = this.lerp(139, 136, su);
+          spine = this.lerp(-1.24, -1.26, su);
+          ua = -1.50;
+          fa = -1.50;
+        } else if (sampleOlyNorm < 0.62) {
+          const su = this.smoothstep((sampleOlyNorm - 0.42) / 0.20);
+          hx = this.lerp(72, 94, su);
+          hy = this.lerp(136, 104, su);
+          spine = this.lerp(-1.26, -1.55, su);
+          ua = this.lerp(-1.50, -1.55, su);
+          fa = this.lerp(-1.50, -1.55, su);
+        } else {
+          // Smooth, uninterrupted bar descent close to chest/hips down to mid-shin
+          const su = this.smoothstep((sampleOlyNorm - 0.62) / 0.38);
+          const hingeT = Math.pow(su, 1.30);
+          hx = this.lerp(94, 68, hingeT);
+          hy = this.lerp(104, 122, hingeT);
+          spine = this.lerp(-1.55, -0.62, hingeT);
+          ua = this.lerp(-1.55, 1.52, Math.pow(su, 0.55));
+          fa = this.lerp(-1.55, 1.55, Math.pow(su, 1.50)) - 1.15 * Math.sin(su * Math.PI);
+        }
+      }
+
+      const st = { hx, hy, spine, ua, fa, rack };
       frame.torso = this.torsoFromHip(st.hx, st.hy, st.spine, 1, 0.10);
       const { shoulderX, shoulderY } = frame.torso;
 
@@ -1409,52 +1586,95 @@ function _computePose(poseType, timestamp) {
         frame.props.push({ type: 'barbell_end', x: arm.ex, y: arm.ey, r: 9 });
       }
     } else if (poseType === 'kb_snatch' || poseType === 'db_snatch') {
-      // Alternating single-arm Snatch (Kettlebell or Dumbbell)
-      // 5-stage cycle: Hike back between knees -> violent hip snap & vertical zip high pull ->
-      // rapid punch-through to vertical overhead lockout -> lockout hold -> drop through rack
-      const snatchPeriod = 3400;
+      // Alternating single-arm Snatch (Kettlebell or Dumbbell): switches smoothly at bottom handoff
+      // Uses continuous overlapping curves (like clean_snatch) for fluid acceleration without mid-air stops.
+      const snatchPeriod = 3600;
       const fullNorm = ((timestamp % snatchPeriod) + snatchPeriod) % snatchPeriod / snatchPeriod;
       const isSecondArm = fullNorm >= 0.5;
       const repNorm = (fullNorm % 0.5) * 2;
+      const isDB = poseType === 'db_snatch';
       frame.props.push({ type: 'hud_badge', text: isSecondArm ? 'LEFT ARM' : 'RIGHT ARM', second: isSecondArm });
 
-      const snatchKF = [
-        // 0: Setup & back-hike between knees (both arms aligned at bottom of hike)
-        { hx: 70, hy: 118, spine: -0.58, ua: 2.10, fa: 2.15, fua: 2.10, ffa: 2.15, bellOff: 0 },
-        // 1: Violent triple extension + vertical zip high-pull (elbow pulls HIGH above bell close to body!)
-        { hx: 95, hy: 102, spine: -1.55, ua: -0.45, fa: 1.05, fua: 2.15, ffa: 2.35, bellOff: 0.15 },
-        // 2: Fast punch-through into vertical overhead lockout
-        { hx: 90, hy: 108, spine: -1.52, ua: -1.55, fa: -1.55, fua: 1.85, ffa: 2.05, bellOff: 0.35 },
-        // 3: Hold tall vertical overhead lockout (bell settled on back of forearm)
-        { hx: 94, hy: 104, spine: -1.55, ua: -1.55, fa: -1.55, fua: 1.75, ffa: 1.95, bellOff: 0.35 },
-        // 4: Drop load close to torso through rack back toward hike
-        { hx: 84, hy: 112, spine: -1.18, ua: 1.25, fa: 0.35, fua: 1.95, ffa: 2.10, bellOff: 0.10 }
-      ];
-      const st = this.sampleKeyframes(snatchKF, repNorm);
-      frame.torso = this.torsoFromHip(st.hx, st.hy, st.spine, 1, 0.08);
+      const startHX = isDB ? 65 : 68;
+      const startHY = isDB ? 128 : 119;
+      const startSpine = isDB ? -0.45 : -0.56;
+      const startArm = isDB ? 1.61 : 2.09;
+
+      let hx, hy, spine, ua, fa, fua, ffa, bellAngle, bellDist = 8.4;
+
+      if (repNorm < 0.58) {
+        // Continuous Ascent: Drive upright -> smooth quarter-squat / soft catch -> tall lockout
+        const driveT = this.smoothstep(this.clamp(repNorm / 0.28, 0, 1));
+        const catchLo = isDB ? 0.22 : 0.24;
+        const catchHi = isDB ? 0.56 : 0.54;
+        const catchWave = (repNorm >= catchLo && repNorm <= catchHi)
+          ? 0.5 - 0.5 * Math.cos(((repNorm - catchLo) / (catchHi - catchLo)) * Math.PI * 2)
+          : 0;
+        const armUp = this.smoothstep(this.clamp((repNorm - 0.06) / 0.40, 0, 1));
+        const freeSwing = Math.sin(this.clamp(repNorm / 0.58, 0, 1) * Math.PI);
+
+        hx = this.lerp(startHX, 95, driveT) - (isDB ? 11 : 6) * catchWave;
+        hy = this.lerp(startHY, 102, driveT) + (isDB ? 17 : 8) * catchWave;
+        spine = this.lerp(startSpine, -1.55, driveT) + (isDB ? 0.13 : 0.06) * catchWave;
+
+        ua = this.lerp(startArm, -1.55, Math.pow(armUp, 0.70));
+        fa = this.lerp(startArm, -1.55, Math.pow(armUp, 1.36));
+
+        const freeReturn = this.smoothstep(this.clamp((repNorm - 0.10) / 0.46, 0, 1));
+        fua = this.lerp(startArm, 1.78, freeReturn) + 0.50 * freeSwing;
+        ffa = this.lerp(startArm, 1.90, freeReturn) + 0.50 * freeSwing;
+
+        const bellFlip = this.smoothstep(this.clamp((repNorm - 0.22) / 0.24, 0, 1));
+        bellAngle = this.lerp(2.09, 2.48, bellFlip) - 1.55 * Math.sin(bellFlip * Math.PI);
+      } else if (repNorm < 0.66) {
+        // Brief steady overhead lockout
+        hx = 95;
+        hy = 102;
+        spine = -1.55;
+        ua = -1.55;
+        fa = -1.55;
+        fua = 1.78;
+        ffa = 1.90;
+        bellAngle = 2.48;
+      } else {
+        // Smooth uninterrupted lowering close to torso back into bottom handoff
+        const down = this.smoothstep((repNorm - 0.66) / 0.34);
+        const hingeT = Math.pow(down, 1.18);
+        hx = this.lerp(95, startHX, hingeT);
+        hy = this.lerp(102, startHY, hingeT);
+        spine = this.lerp(-1.55, startSpine, hingeT);
+
+        ua = this.lerp(-1.55, startArm, Math.pow(down, 0.68));
+        fa = this.lerp(-1.55, startArm, Math.pow(down, 1.32)) - 0.90 * Math.sin(down * Math.PI);
+
+        fua = this.lerp(1.78, startArm, hingeT);
+        ffa = this.lerp(1.90, startArm, hingeT);
+        bellAngle = this.lerp(2.48, 2.09, down) - 1.10 * Math.sin(down * Math.PI);
+      }
+
+      frame.torso = this.torsoFromHip(hx, hy, spine, 1, 0.08);
       const { shoulderX, shoulderY } = frame.torso;
 
-      const legBack = this.solveIK(st.hx - 3, st.hy, ankleX - 3, ankleY, L_THIGH, L_SHIN, -1);
-      const legFront = this.solveIK(st.hx, st.hy, ankleX, ankleY, L_THIGH, L_SHIN, -1);
-      addLimb('legB', 'leg', st.hx - 3, st.hy, legBack.jx, legBack.jy, legBack.ex, legBack.ey, '#64748b', '#475569', 5.4, 'foot', 1);
-      addLimb('legF', 'leg', st.hx, st.hy, legFront.jx, legFront.jy, legFront.ex, legFront.ey, '#bef264', '#94a3b8', 6, 'foot', 1);
+      const legBack = this.solveIK(hx - 3, hy, ankleX - 3, ankleY, L_THIGH, L_SHIN, -1);
+      const legFront = this.solveIK(hx, hy, ankleX, ankleY, L_THIGH, L_SHIN, -1);
+      addLimb('legB', 'leg', hx - 3, hy, legBack.jx, legBack.jy, legBack.ex, legBack.ey, '#64748b', '#475569', 5.4, 'foot', 1);
+      addLimb('legF', 'leg', hx, hy, legFront.jx, legFront.jy, legFront.ex, legFront.ey, '#bef264', '#94a3b8', 6, 'foot', 1);
 
-      const isDB = poseType === 'db_snatch';
       if (!isSecondArm) {
-        const workArm = this.solveFK(shoulderX, shoulderY, st.ua, st.fa, L_UPPER_ARM, L_FOREARM);
-        const freeArm = this.solveFK(shoulderX - 2, shoulderY, st.fua, st.ffa, L_UPPER_ARM, L_FOREARM);
+        const workArm = this.solveFK(shoulderX, shoulderY, ua, fa, L_UPPER_ARM, L_FOREARM);
+        const freeArm = this.solveFK(shoulderX - 2, shoulderY, fua, ffa, L_UPPER_ARM, L_FOREARM);
         addLimb('armB', 'arm', shoulderX - 2, shoulderY, freeArm.jx, freeArm.jy, freeArm.ex, freeArm.ey, '#64748b', '#475569', 5, 'hand');
         addLimb('armF', 'arm', shoulderX, shoulderY, workArm.jx, workArm.jy, workArm.ex, workArm.ey, '#38bdf8', '#38bdf8', 5.5, 'hand');
         frame.props.push(isDB
           ? { type: 'dumbbell_near', x: workArm.ex, y: workArm.ey }
-          : { type: 'kettlebell', x: workArm.ex + Math.cos(st.ua + st.bellOff) * 8.5, y: workArm.ey + Math.sin(st.ua + st.bellOff) * 8.5, r: 7.5 });
+          : { type: 'kettlebell', x: workArm.ex + Math.cos(bellAngle) * bellDist, y: workArm.ey + Math.sin(bellAngle) * bellDist, r: 7.5 });
       } else {
-        const workArm = this.solveFK(shoulderX - 2, shoulderY, st.ua, st.fa, L_UPPER_ARM, L_FOREARM);
-        const freeArm = this.solveFK(shoulderX, shoulderY, st.fua, st.ffa, L_UPPER_ARM, L_FOREARM);
+        const workArm = this.solveFK(shoulderX - 2, shoulderY, ua, fa, L_UPPER_ARM, L_FOREARM);
+        const freeArm = this.solveFK(shoulderX, shoulderY, fua, ffa, L_UPPER_ARM, L_FOREARM);
         addLimb('armB', 'arm', shoulderX - 2, shoulderY, workArm.jx, workArm.jy, workArm.ex, workArm.ey, '#64748b', '#475569', 5.5, 'hand');
         frame.props.push(isDB
           ? { type: 'dumbbell_far', x: workArm.ex, y: workArm.ey }
-          : { type: 'kettlebell', x: workArm.ex + Math.cos(st.ua + st.bellOff) * 8.5, y: workArm.ey + Math.sin(st.ua + st.bellOff) * 8.5, r: 7.5 });
+          : { type: 'kettlebell', x: workArm.ex + Math.cos(bellAngle) * bellDist, y: workArm.ey + Math.sin(bellAngle) * bellDist, r: 7.5 });
         addLimb('armF', 'arm', shoulderX, shoulderY, freeArm.jx, freeArm.jy, freeArm.ex, freeArm.ey, '#38bdf8', '#38bdf8', 5, 'hand');
       }
     } else {
@@ -1604,39 +1824,136 @@ function _computePose(poseType, timestamp) {
     frame.floorY = 170;
 
     if (poseType === 'man_maker') {
-      const mmPeriod = 6400;
+      const mmPeriod = 4600;
       const mmNorm = ((timestamp % mmPeriod) + mmPeriod) % mmPeriod / mmPeriod;
-      const mmKFs = [
-        // 0: Stand tall holding DBs at hips (exact burpee KF 0)
-        { hx: 96, hy: 104, spine: -1.55, ax: 98, ay: 166, bwx: 104, bwy: 98, fwx: 106, fwy: 98 },
-        // 1: Deep Squat-Hinge & Plant DBs on Floor (exact burpee KF 1)
-        { hx: 86, hy: 136, spine: -0.38, ax: 96, ay: 166, bwx: 136, bwy: 164, fwx: 136, fwy: 164 },
-        // 2: Sprawl Feet Back into High Plank (exact burpee KF 2)
-        { hx: 92, hy: 138, spine: -0.42, ax: 35, ay: 164, bwx: 136, bwy: 164, fwx: 136, fwy: 164 },
-        // 3: Chest to Deck Push-Up (exact burpee KF 3)
-        { hx: 91, hy: 154, spine: -0.20, ax: 31, ay: 164, bwx: 136, bwy: 164, fwx: 136, fwy: 164 },
-        // 4: Press up to High Plank (exact burpee KF 4)
-        { hx: 92, hy: 138, spine: -0.42, ax: 35, ay: 164, bwx: 136, bwy: 164, fwx: 136, fwy: 164 },
-        // 5: Renegade Row 1 (Near arm rows DB to ribs, far arm holds plank)
-        { hx: 92, hy: 138, spine: -0.42, ax: 35, ay: 164, bwx: 136, bwy: 164, fwx: 98, fwy: 126 },
-        // 6: Lower Near DB to floor in plank
-        { hx: 92, hy: 138, spine: -0.42, ax: 35, ay: 164, bwx: 136, bwy: 164, fwx: 136, fwy: 164 },
-        // 7: Renegade Row 2 (Far arm rows DB to ribs, near arm holds plank)
-        { hx: 92, hy: 138, spine: -0.42, ax: 35, ay: 164, bwx: 98, bwy: 126, fwx: 136, fwy: 164 },
-        // 8: Lower Far DB to floor in plank
-        { hx: 92, hy: 138, spine: -0.42, ax: 35, ay: 164, bwx: 136, bwy: 164, fwx: 136, fwy: 164 },
-        // 9: Elastic Hip Pike & Snap: feet hop forward (exact burpee KF 5)
-        { hx: 86, hy: 124, spine: -0.46, ax: 70, ay: 154, bwx: 136, bwy: 164, fwx: 136, fwy: 164 },
-        // 10: Feet Land Flat in Deep Squat outside DBs (exact burpee KF 6)
-        { hx: 84, hy: 136, spine: -0.40, ax: 96, ay: 166, bwx: 136, bwy: 164, fwx: 136, fwy: 164 },
-        // 11: DB Squat Clean Catch at shoulders (front rack)
-        { hx: 72, hy: 139, spine: -1.24, ax: 96, ay: 166, bwx: 104, bwy: 74, fwx: 106, fwy: 74 },
-        // 12: Explosive Thruster Drive to Overhead Lockout (exact devil press KF 7)
-        { hx: 96, hy: 104, spine: -1.55, ax: 98, ay: 166, bwx: 104, bwy: 12, fwx: 106, fwy: 12 },
-        // 13: Absorb / Swing DBs Forward-Down (exact burpee KF 8)
-        { hx: 96, hy: 106, spine: -1.48, ax: 98, ay: 166, bwx: 122, bwy: 78, fwx: 124, fwy: 78 }
-      ];
-      const st = this.sampleKeyframes(mmKFs, mmNorm);
+      let hx, hy, spine, ax, ay, bwx, bwy, fwx, fwy;
+
+      if (mmNorm < 0.09) {
+        // Phase 1: Squat-Hinge & Plant DBs Firmly on Floor
+        const su = this.smoothstep(mmNorm / 0.09);
+        hx = this.lerp(96, 86, su);
+        hy = this.lerp(104, 136, su);
+        spine = this.lerp(-1.55, -0.38, su);
+        ax = 96;
+        ay = 166;
+        bwx = this.lerp(104, 136, su);
+        bwy = this.lerp(98, 164, su);
+        fwx = this.lerp(106, 136, su);
+        fwy = this.lerp(98, 164, su);
+      } else if (mmNorm < 0.18) {
+        // Phase 2: Explosive Sprawl Feet Back into Rigid High Plank (DBs planted)
+        const u = (mmNorm - 0.09) / 0.09;
+        const su = this.smoothstep(u);
+        hx = this.lerp(86, 92, su);
+        hy = this.lerp(136, 138, su) - 2 * Math.sin(u * Math.PI);
+        spine = this.lerp(-0.38, -0.42, su);
+        ax = this.lerp(96, 35, su);
+        ay = this.lerp(166, 164, su) - 5 * Math.sin(u * Math.PI);
+        bwx = 136; bwy = 164;
+        fwx = 136; fwy = 164;
+      } else if (mmNorm < 0.25) {
+        // Phase 3a: Lower Chest to Deck Push-Up
+        const su = this.smoothstep((mmNorm - 0.18) / 0.07);
+        hx = this.lerp(92, 91, su);
+        hy = this.lerp(138, 154, su);
+        spine = this.lerp(-0.42, -0.20, su);
+        ax = this.lerp(35, 31, su);
+        ay = 164;
+        bwx = 136; bwy = 164;
+        fwx = 136; fwy = 164;
+      } else if (mmNorm < 0.31) {
+        // Phase 3b: Crisp Press Up to High Plank
+        const su = this.smoothstep((mmNorm - 0.25) / 0.06);
+        hx = this.lerp(91, 92, su);
+        hy = this.lerp(154, 138, su);
+        spine = this.lerp(-0.20, -0.42, su);
+        ax = this.lerp(31, 35, su);
+        ay = 164;
+        bwx = 136; bwy = 164;
+        fwx = 136; fwy = 164;
+      } else if (mmNorm < 0.44) {
+        // Phase 4: Renegade Row 1 (Near arm rows DB tight to ribs, far arm holds plank)
+        const u = (mmNorm - 0.31) / 0.13;
+        const pull = u < 0.52 ? this.smoothstep(u / 0.52) : 1 - this.smoothstep((u - 0.52) / 0.48);
+        hx = 92; hy = 138; spine = -0.42;
+        ax = 35; ay = 164;
+        bwx = 136; bwy = 164;
+        fwx = this.lerp(136, 102, pull);
+        fwy = this.lerp(164, 124, pull);
+      } else if (mmNorm < 0.57) {
+        // Phase 5: Renegade Row 2 (Far arm rows DB tight to ribs, near arm holds plank)
+        const u = (mmNorm - 0.44) / 0.13;
+        const pull = u < 0.52 ? this.smoothstep(u / 0.52) : 1 - this.smoothstep((u - 0.52) / 0.48);
+        hx = 92; hy = 138; spine = -0.42;
+        ax = 35; ay = 164;
+        bwx = this.lerp(136, 102, pull);
+        bwy = this.lerp(164, 124, pull);
+        fwx = 136; fwy = 164;
+      } else if (mmNorm < 0.67) {
+        // Phase 6: Core Hip Pike & Snap Feet Forward into Deep Squat (DBs stay planted on floor!)
+        const u = (mmNorm - 0.57) / 0.10;
+        const su = this.smoothstep(u);
+        hx = this.lerp(92, 84, su) + 2 * Math.sin(u * Math.PI);
+        hy = this.lerp(138, 136, su) - 7 * Math.sin(u * Math.PI);
+        spine = this.lerp(-0.42, -0.38, su) + 0.12 * Math.sin(u * Math.PI);
+        ax = this.lerp(35, 96, su);
+        ay = this.lerp(164, 166, su) - 13 * Math.sin(u * Math.PI);
+        bwx = 136; bwy = 164;
+        fwx = 136; fwy = 164;
+      } else if (mmNorm < 0.77) {
+        // Phase 7: Explosive DB Squat Clean (hip pull -> rapid drop & rack at shoulders)
+        const u = (mmNorm - 0.67) / 0.10;
+        if (u < 0.45) {
+          const su = this.smoothstep(u / 0.45);
+          hx = this.lerp(84, 87, su);
+          hy = this.lerp(136, 122, su);
+          spine = this.lerp(-0.38, -0.95, su);
+          bwx = this.lerp(136, 118, su);
+          bwy = this.lerp(164, 112, su);
+          fwx = this.lerp(136, 120, su);
+          fwy = this.lerp(164, 112, su);
+        } else {
+          const su = this.smoothstep((u - 0.45) / 0.55);
+          hx = this.lerp(87, 72, su);
+          hy = this.lerp(122, 139, su);
+          spine = this.lerp(-0.95, -1.24, su);
+          bwx = this.lerp(118, 104, su);
+          bwy = this.lerp(112, 74, su);
+          fwx = this.lerp(120, 106, su);
+          fwy = this.lerp(112, 74, su);
+        }
+        ax = 96; ay = 166;
+      } else if (mmNorm < 0.88) {
+        // Phase 8: Explosive Thruster Drive to Overhead Lockout
+        const su = this.smoothstep((mmNorm - 0.77) / 0.11);
+        const pressT = Math.pow(su, 1.35);
+        hx = this.lerp(72, 96, su);
+        hy = this.lerp(139, 104, su);
+        spine = this.lerp(-1.24, -1.55, su);
+        ax = 96; ay = 166;
+        bwx = 104;
+        bwy = this.lerp(74, 12, pressT);
+        fwx = 106;
+        fwy = this.lerp(74, 12, pressT);
+      } else if (mmNorm < 0.91) {
+        // Brief overhead lockout hold
+        hx = 96; hy = 104; spine = -1.55;
+        ax = 96; ay = 166;
+        bwx = 104; bwy = 12;
+        fwx = 106; fwy = 12;
+      } else {
+        // Phase 9: Smooth Uninterrupted Eccentric Return Overhead -> Hips
+        const su = this.smoothstep((mmNorm - 0.91) / 0.09);
+        const arcOut = 18 * Math.sin(su * Math.PI);
+        hx = 96; hy = 104; spine = -1.55;
+        ax = 96; ay = 166;
+        bwx = 104 + arcOut;
+        bwy = this.lerp(12, 98, su);
+        fwx = 106 + arcOut;
+        fwy = this.lerp(12, 98, su);
+      }
+
+      const st = { hx, hy, spine, ax, ay, bwx, bwy, fwx, fwy };
       frame.torso = this.torsoFromHip(st.hx, st.hy, st.spine, 1, 0);
       const { shoulderX, shoulderY } = frame.torso;
 
@@ -1658,44 +1975,177 @@ function _computePose(poseType, timestamp) {
     const bNorm = ((timestamp % burpeePeriod) + burpeePeriod) % burpeePeriod / burpeePeriod;
     const isDevilPress = poseType === 'devil_press';
 
-    const KF = (poseType === 'burpee_6stage' || isDevilPress)
-      ? [
-        // 0: Stand Tall (or overhead DB lockout finish)
-        { hx: 96, hy: 104, spine: -1.55, ax: 98, ay: 166, wx: 104, wy: 98 },
-        // 1: Deep Squat-Hinge & Plant Hands Flat on Floor/DBs (shoulderY=119 so 49px arms physically reach wy=164!)
-        { hx: 86, hy: 136, spine: -0.38, ax: 96, ay: 166, wx: 136, wy: 164 },
-        // 2: Sprawl Feet Back into True Rigid High Plank (dist(hip,ankle)=62.6px < 64px so toes rest on floor!)
-        { hx: 92, hy: 138, spine: -0.42, ax: 35, ay: 164, wx: 136, wy: 164 },
-        // 3: Chest & Thighs Touch Deck
-        { hx: 91, hy: 156, spine: -0.18, ax: 31, ay: 164, wx: 136, wy: 164 },
-        // 4: LEVER / PEEL CHEST UP
-        { hx: 91, hy: 152, spine: -0.76, ax: 31, ay: 164, wx: 136, wy: 164 },
-        // 5: ELASTIC HIP PIKE & SNAP (feet hop forward toward hands)
-        { hx: 86, hy: 122, spine: -0.48, ax: 72, ay: 152, wx: 136, wy: 162 },
-        // 6: Feet Land Flat Under Hips (Swing DBs / arms forward through power zone)
-        { hx: 84, hy: 122, spine: -0.75, ax: 100, ay: 166, wx: 134, wy: isDevilPress ? 92 : 84 },
-        // 7: Vertical Jump & Overhead Clap (or DB Snatch to Overhead Lockout!)
-        { hx: 98, hy: isDevilPress ? 104 : 82, spine: -1.55, ax: 98, ay: isDevilPress ? 166 : 142, wx: 106, wy: isDevilPress ? 10 : 2 },
-        // 8: Absorb Landing & Swing Arms Forward Down
-        { hx: 96, hy: 106, spine: -1.48, ax: 98, ay: 166, wx: 122, wy: 78 }
-      ]
-      : [
-        // ATHLETIC UP-DOWN:
-        // 0: Stand Tall
-        { hx: 96, hy: 104, spine: -1.55, ax: 98, ay: 166, wx: 104, wy: 98 },
-        // 1: Deep Squat-Hinge & Plant Hands Flat on Floor at (136, 164) (shoulder=(128.7, 119.0), dist=45.6px < 49px!)
-        { hx: 86, hy: 136, spine: -0.38, ax: 96, ay: 166, wx: 136, wy: 164 },
-        // 2: Kick Feet Back into Rigid Straight-Arm High Plank (ankle=(35, 164) -> hip=(92, 138) -> shoulder=(134, 119.3))
-        { hx: 92, hy: 138, spine: -0.42, ax: 35, ay: 164, wx: 136, wy: 164 },
-        // 3: Hold Crisp High Plank Lockout (no push-up, zero hip sag)
-        { hx: 92, hy: 138, spine: -0.42, ax: 35, ay: 164, wx: 136, wy: 164 },
-        // 4: Elastic Hip-Pike Hop — Snap Feet Forward Under Hips while Hands Push Off Floor
-        { hx: 86, hy: 128, spine: -0.45, ax: 94, ay: 164, wx: 136, wy: 162 },
-        // 5: Stand Tall & Finish Rep
-        { hx: 94, hy: 110, spine: -1.46, ax: 98, ay: 166, wx: 112, wy: 96 }
-      ];
+    let st;
+    if (poseType === 'burpee_6stage') {
+      let hx, hy, spine, ax, ay, wx, wy;
+      let polarArm = null; // { angle, len } relative to shoulder when swinging vertically
 
-    const st = this.sampleKeyframes(KF, bNorm);
+      if (bNorm < 0.13) {
+        // Phase 1: Deep Squat-Hinge & Plant Hands Flat on Floor
+        const su = this.smoothstep(bNorm / 0.13);
+        hx = this.lerp(96, 84, su);
+        hy = this.lerp(104, 136, su);
+        spine = this.lerp(-1.55, -0.38, su);
+        ax = 96;
+        ay = 166;
+        wx = this.lerp(104, 136, su);
+        wy = this.lerp(98, 164, su);
+      } else if (bNorm < 0.25) {
+        // Phase 2: Sprawl Feet Back into Rigid High Plank (hands stay planted)
+        const u = (bNorm - 0.13) / 0.12;
+        const su = this.smoothstep(u);
+        hx = this.lerp(84, 92, su);
+        hy = this.lerp(136, 138, su) - 2 * Math.sin(u * Math.PI);
+        spine = this.lerp(-0.38, -0.42, su);
+        ax = this.lerp(96, 35, su);
+        ay = this.lerp(166, 164, su) - 5 * Math.sin(u * Math.PI);
+        wx = 136;
+        wy = 164;
+      } else if (bNorm < 0.37) {
+        // Phase 3: Lower Chest & Thighs to Deck
+        const su = this.smoothstep((bNorm - 0.25) / 0.12);
+        hx = this.lerp(92, 91, su);
+        hy = this.lerp(138, 154, su);
+        spine = this.lerp(-0.42, -0.20, su);
+        ax = this.lerp(35, 31, su);
+        ay = 164;
+        wx = 136;
+        wy = 164;
+      } else if (bNorm < 0.48) {
+        // Phase 4: Press / Peel Chest Up
+        const su = this.smoothstep((bNorm - 0.37) / 0.11);
+        hx = 91;
+        hy = this.lerp(154, 148, su);
+        spine = this.lerp(-0.20, -0.68, su);
+        ax = this.lerp(31, 33, su);
+        ay = 164;
+        wx = 136;
+        wy = 164;
+      } else if (bNorm < 0.62) {
+        // Phase 5: Hip Pike & Snap Feet Forward Flat into Athletic Squat
+        const u = (bNorm - 0.48) / 0.14;
+        const su = this.smoothstep(u);
+        hx = this.lerp(91, 84, su);
+        hy = this.lerp(148, 132, su) - 12 * Math.sin(u * Math.PI);
+        spine = this.lerp(-0.68, -0.82, su) + 0.18 * Math.sin(u * Math.PI);
+        ax = this.lerp(33, 96, su);
+        ay = this.lerp(164, 166, su) - 14 * Math.sin(u * Math.PI);
+        wx = this.lerp(136, 120, su);
+        wy = this.lerp(164, 140.1, su);
+      } else if (bNorm < 0.73) {
+        // Phase 6: Explosive Triple-Extension Push-Off ON THE FLOOR before leaving ground
+        const u = (bNorm - 0.62) / 0.11;
+        const e = u * u;
+        const su = this.smoothstep(u);
+        hx = this.lerp(84, 96, e);
+        hy = this.lerp(132, 102, e);
+        spine = this.lerp(-0.82, -1.52, e);
+        ax = 96;
+        ay = this.lerp(166, 164, e * e);
+        polarArm = {
+          angle: this.lerp(1.46, -1.15, su),
+          len: this.lerp(42.0, 40.0, su)
+        };
+      } else if (bNorm < 0.88) {
+        // Phase 7: Ballistic Parabolic Jump Flight & Overhead Clap (legs extended)
+        const u = (bNorm - 0.73) / 0.15;
+        const parabola = 4 * u * (1 - u);
+        const jumpH = 20;
+        hx = 96;
+        hy = 102 - jumpH * parabola;
+        spine = -1.52 - 0.03 * parabola;
+        ax = 96;
+        ay = 164 - jumpH * parabola;
+        if (u < 0.5) {
+          const su = this.smoothstep(u / 0.5);
+          polarArm = {
+            angle: this.lerp(-1.15, -1.355, su),
+            len: this.lerp(40.0, 32.8, su)
+          };
+        } else {
+          const su = this.smoothstep((u - 0.5) / 0.5);
+          polarArm = {
+            angle: this.lerp(-1.355, -0.60, su),
+            len: this.lerp(32.8, 39.0, su)
+          };
+        }
+      } else if (bNorm < 0.93) {
+        // Phase 8a: Soft Landing Absorption (knees flex to absorb downward momentum)
+        const u = (bNorm - 0.88) / 0.05;
+        const absCurve = 1 - (1 - u) * (1 - u);
+        const su = this.smoothstep(u);
+        hx = this.lerp(96, 92, absCurve);
+        hy = this.lerp(102, 114, absCurve);
+        spine = this.lerp(-1.52, -1.34, absCurve);
+        ax = 96;
+        ay = this.lerp(164, 166, absCurve);
+        polarArm = {
+          angle: this.lerp(-0.60, 0.45, su),
+          len: this.lerp(39.0, 41.0, su)
+        };
+      } else {
+        // Phase 8b: Smooth Rebound to Stand Tall
+        const su = this.smoothstep((bNorm - 0.93) / 0.07);
+        hx = this.lerp(92, 96, su);
+        hy = this.lerp(114, 104, su);
+        spine = this.lerp(-1.34, -1.55, su);
+        ax = 96;
+        ay = 166;
+        polarArm = {
+          angle: this.lerp(0.45, 1.3976, su),
+          len: this.lerp(41.0, 40.61, su)
+        };
+      }
+
+      if (polarArm) {
+        const sx = hx + Math.cos(spine) * L_TORSO;
+        const sy = hy + Math.sin(spine) * L_TORSO;
+        wx = sx + Math.cos(polarArm.angle) * polarArm.len;
+        wy = sy + Math.sin(polarArm.angle) * polarArm.len;
+      }
+      st = { hx, hy, spine, ax, ay, wx, wy };
+    } else {
+      const KF = isDevilPress
+        ? [
+          // 0: Stand Tall / overhead DB lockout finish
+          { hx: 96, hy: 104, spine: -1.55, ax: 98, ay: 166, wx: 104, wy: 98 },
+          // 1: Deep Squat-Hinge & Plant Hands Flat on DBs
+          { hx: 86, hy: 136, spine: -0.38, ax: 96, ay: 166, wx: 136, wy: 164 },
+          // 2: Sprawl Feet Back into True Rigid High Plank
+          { hx: 92, hy: 138, spine: -0.42, ax: 35, ay: 164, wx: 136, wy: 164 },
+          // 3: Chest & Thighs Touch Deck
+          { hx: 91, hy: 154, spine: -0.20, ax: 31, ay: 164, wx: 136, wy: 164 },
+          // 4: Press up to High Plank (DBs planted on floor)
+          { hx: 92, hy: 138, spine: -0.42, ax: 35, ay: 164, wx: 136, wy: 164 },
+          // 5: Core Hip Pike & Snap: feet hop forward while DBs stay planted on floor!
+          { hx: 88, hy: 130, spine: -0.28, ax: 68, ay: 152, wx: 136, wy: 164 },
+          // 6: Feet Land Flat Outside DBs in Deep Squat (DBs still planted on floor!)
+          { hx: 84, hy: 136, spine: -0.38, ax: 96, ay: 166, wx: 136, wy: 164 },
+          // 7: Hip Drive & Swing DBs Forward Through Power Zone
+          { hx: 90, hy: 114, spine: -1.15, ax: 98, ay: 166, wx: 134, wy: 84 },
+          // 8: DB Snatch to Overhead Lockout
+          { hx: 96, hy: 104, spine: -1.55, ax: 98, ay: 166, wx: 106, wy: 10 },
+          // 9: Lower DBs Smoothly Forward-Down
+          { hx: 96, hy: 106, spine: -1.48, ax: 98, ay: 166, wx: 122, wy: 78 }
+        ]
+        : [
+          // ATHLETIC UP-DOWN:
+          // 0: Stand Tall
+          { hx: 96, hy: 104, spine: -1.55, ax: 98, ay: 166, wx: 104, wy: 98 },
+          // 1: Deep Squat-Hinge & Plant Hands Flat on Floor at (136, 164)
+          { hx: 86, hy: 136, spine: -0.38, ax: 96, ay: 166, wx: 136, wy: 164 },
+          // 2: Kick Feet Back into Rigid Straight-Arm High Plank
+          { hx: 92, hy: 138, spine: -0.42, ax: 35, ay: 164, wx: 136, wy: 164 },
+          // 3: Hold Crisp High Plank Lockout (no push-up, zero hip sag)
+          { hx: 92, hy: 138, spine: -0.42, ax: 35, ay: 164, wx: 136, wy: 164 },
+          // 4: Elastic Hip-Pike Hop — Snap Feet Forward Under Hips while Hands Push Off Floor
+          { hx: 86, hy: 128, spine: -0.45, ax: 94, ay: 164, wx: 136, wy: 162 },
+          // 5: Stand Tall & Finish Rep
+          { hx: 94, hy: 110, spine: -1.46, ax: 98, ay: 166, wx: 112, wy: 96 }
+        ];
+      st = this.sampleKeyframes(KF, bNorm);
+    }
+
     frame.torso = this.torsoFromHip(st.hx, st.hy, st.spine, 1, 0);
     const { shoulderX, shoulderY } = frame.torso;
 
@@ -1953,15 +2403,36 @@ function _computePose(poseType, timestamp) {
     frame.view = 'front';
     frame.floorY = 170;
     const isDoubleUnder = poseType === 'double_unders';
-    const jumpPhase = theta * 2;
-    const ropePhase = isDoubleUnder ? theta * 4 : theta * 2;
+    const ropeRepMs = isDoubleUnder ? 640 : 500;
+    const repT = ((timestamp % ropeRepMs) + ropeRepMs) % ropeRepMs / ropeRepMs;
+    const ropePhase = isDoubleUnder
+      ? (repT - 0.50) * Math.PI * 4 + Math.PI - 0.55 * Math.sin((repT - 0.50) * Math.PI * 2)
+      : (repT - 0.50) * Math.PI * 2;
 
-    const jumpWave = Math.pow(Math.max(0, 0.5 + 0.5 * Math.cos(jumpPhase)), 0.75);
     const maxJumpPx = isDoubleUnder ? 24 : 15;
-    const jumpHeight = jumpWave * maxJumpPx;
+    const dip = isDoubleUnder ? 10 : 6;
+    const baseHipY = 102.5; // 63.5px above footY=166 -> full leg extension at takeoff
+    let hipY;
+    let footY = 166;
 
-    const shoulderY = 58 - jumpHeight;
-    const hipY = shoulderY + L_TORSO;
+    if (repT < 0.20) {
+      // Phase 1: Grounded Push-Off — straighten legs to full extension while feet stay on floor
+      const u = repT / 0.20;
+      hipY = this.lerp(baseHipY + dip, baseHipY, u * u);
+    } else if (repT < 0.80) {
+      // Phase 2: Ballistic Parabolic Flight — launch after full extension
+      const u = (repT - 0.20) / 0.60;
+      const jumpHeight = maxJumpPx * 4 * u * (1 - u);
+      hipY = baseHipY - jumpHeight;
+      footY = 166 - jumpHeight;
+    } else {
+      // Phase 3: Landing Absorption — feet plant and knees flex to absorb impact
+      const u = (repT - 0.80) / 0.20;
+      const absCurve = 1 - (1 - u) * (1 - u);
+      hipY = this.lerp(baseHipY, baseHipY + dip, absCurve);
+    }
+
+    const shoulderY = hipY - L_TORSO;
     const leftShoulderX = 86, rightShoulderX = 114;
     const leftHipX = 91, rightHipX = 109;
 
@@ -1984,7 +2455,6 @@ function _computePose(poseType, timestamp) {
     addLimb('armL', 'arm', leftShoulderX, shoulderY, armL.jx, armL.jy, armL.ex, armL.ey, '#38bdf8', '#38bdf8', 5, 'hand');
     addLimb('armR', 'arm', rightShoulderX, shoulderY, armR.jx, armR.jy, armR.ex, armR.ey, '#38bdf8', '#38bdf8', 5, 'hand');
 
-    const footY = 166 - jumpHeight;
     const legL = this.solveFrontLeg(leftHipX, hipY, leftHipX, footY, true);
     const legR = this.solveFrontLeg(rightHipX, hipY, rightHipX, footY, false);
     addLimb('legL', 'leg', leftHipX, hipY, legL.jx, legL.jy, legL.ex, legL.ey, '#bef264', '#94a3b8', 5.5, 'foot_front');
@@ -2134,8 +2604,8 @@ function _computePose(poseType, timestamp) {
 //  2. No body part penetrates the floor (or the plyo box)
 //  3. Frame-to-frame continuity (no IK branch flips / joint teleports)
 
-function computePose(poseType, timestamp) {
+function computePose(poseType, timestamp, options = null) {
   const context = (this && typeof this.lerp === 'function') ? this : KinematicMath;
-  return _computePose.call(context, poseType, timestamp);
+  return _computePose.call(context, poseType, timestamp, options);
 }
 globalThis.computePose = computePose;

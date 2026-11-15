@@ -13,7 +13,7 @@ const SCALE_LADDERS = [
     description: 'Foundational knee push-ups scaling to standard deck push-ups, dips, and inverted HSPU.',
     steps: [
       { movementId: 'knee_pushups', level: 1, tier: 'easy', label: 'Knee Push-Ups' },
-      { movementId: 'pushups', level: 2, tier: 'normal', label: 'Push-Ups (Rx Baseline)' },
+      { movementId: 'pushups', level: 2, tier: 'normal', label: 'Push-Ups' },
       { movementId: 'parallel_bar_dips', level: 3, tier: 'normal', label: 'Parallel Bar Dips' },
       { movementId: 'pike_pushups', level: 3, tier: 'normal', label: 'Pike Push-Ups' },
       { movementId: 'ring_dips', level: 4, tier: 'normal', label: 'Ring Dips' },
@@ -31,10 +31,11 @@ const SCALE_LADDERS = [
       { movementId: 'table_rows', level: 1, tier: 'easy', label: 'Table Inverted Rows' },
       { movementId: 'bar_inverted_rows', level: 2, tier: 'normal', label: 'Bar Inverted Rows' },
       { movementId: 'ring_rows', level: 2, tier: 'normal', label: 'Ring Inverted Rows' },
-      { movementId: 'pullups', level: 3, tier: 'normal', label: 'Strict / Kipping Pull-Ups (Rx Baseline)' },
-      { movementId: 'chin_ups', level: 3, tier: 'normal', label: 'Strict / Kipping Chin-Ups' },
-      { movementId: 'bar_muscle_up', level: 4, tier: 'hard', label: 'Bar Muscle-Ups' },
-      { movementId: 'ring_muscle_up', level: 4, tier: 'hard', label: 'Ring Muscle-Ups' }
+      { movementId: 'pullups', level: 3, tier: 'normal', label: 'Pull-Ups' },
+      { movementId: 'chin_ups', level: 3, tier: 'normal', label: 'Chin-Ups' },
+      { movementId: 'chest_to_bar', level: 4, tier: 'hard', label: 'Chest-to-Bar Pull-Ups' },
+      { movementId: 'bar_muscle_up', level: 5, tier: 'hard', label: 'Bar Muscle-Ups' },
+      { movementId: 'ring_muscle_up', level: 5, tier: 'hard', label: 'Ring Muscle-Ups' }
     ]
   },
   {
@@ -55,7 +56,7 @@ const SCALE_LADDERS = [
     pattern: 'SQUAT',
     description: 'Bilateral air squats advancing through step-back lunges, step-forward lunges, Bulgarian split squats, jumping lunges, and single-leg pistols.',
     steps: [
-      { movementId: 'air_squats', level: 1, tier: 'normal', label: 'Air Squats (Rx Baseline)' },
+      { movementId: 'air_squats', level: 1, tier: 'normal', label: 'Air Squats' },
       { movementId: 'step_back_lunges', level: 2, tier: 'normal', label: 'Alternating Step-Back Lunges' },
       { movementId: 'walking_lunges', level: 3, tier: 'normal', label: 'Alternating Step-Forward Lunges' },
       { movementId: 'bulgarian_split_squats', level: 4, tier: 'normal', label: 'Bulgarian Split Squats (Rear-Foot Elevated)' },
@@ -85,8 +86,9 @@ const SCALE_LADDERS = [
       { movementId: 'tuck_ups', level: 2, tier: 'normal', label: 'Tuck-Ups' },
       { movementId: 'v_ups', level: 2, tier: 'normal', label: 'V-Ups' },
       { movementId: 'hanging_knee_raises', level: 3, tier: 'normal', label: 'Hanging Knee Raises' },
-      { movementId: 'l_sit', level: 4, tier: 'hard', label: 'L-Sit Hold' },
-      { movementId: 'toes_to_bar', level: 4, tier: 'hard', label: 'Toes-to-Bar (T2B)' }
+      { movementId: 'knees_to_elbows', level: 4, tier: 'normal', label: 'Knees-to-Elbows' },
+      { movementId: 'l_sit', level: 5, tier: 'hard', label: 'L-Sit Hold' },
+      { movementId: 'toes_to_bar', level: 5, tier: 'hard', label: 'Toes-to-Bar (T2B)' }
     ]
   },
   {

@@ -1,7 +1,7 @@
 function validatePose(poseType, numSteps = 120, cycleMs = null) {
   const poseCompute = (this && typeof this.computePose === 'function') ? this.computePose.bind(this) : globalThis.computePose;
   if (!cycleMs) {
-    if (poseType === 'man_maker') cycleMs = 6400;
+    if (poseType === 'man_maker') cycleMs = 4600;
     else if (
       poseType === 'stepping_lunge' ||
       poseType === 'step_back_lunge' ||
