@@ -78,9 +78,10 @@ const UI = {
           const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
           if (navigator.share && isMobile) {
             try {
+              const clockLabel = WorkoutGenerator.getClockBadgeLabel(wod);
               await navigator.share({
                 title: `WODFORGE: ${wod.title}`,
-                text: `${wod.title} (${wod.badgeFormat}) - ${wod.prescriptionHeader}`,
+                text: `${wod.title} (${wod.badgeFormat}${clockLabel ? ' • ' + clockLabel : ''}) - ${wod.prescriptionHeader}`,
                 url: shareUrl
               });
               this.showToast('Workout shared successfully!');
@@ -587,8 +588,14 @@ const UI = {
         document.getElementById('wodBadgeFormat').textContent = wod.badgeFormat;
         document.getElementById('wodBadgeDifficulty').textContent = wod.difficultyLabel;
         document.getElementById('wodTitle').textContent = wod.title;
-        document.getElementById('wodPrescriptionHeader').textContent = wod.prescriptionHeader;
-        document.getElementById('wodTimeCapBadge').textContent = `${wod.minutes}:00 Clock`;
+        document.getElementById('wodPrescriptionHeader').textContent = WorkoutGenerator.formatBannerPrescriptionHeader(wod.prescriptionHeader, wod.format);
+        const clockLabel = WorkoutGenerator.getClockBadgeLabel(wod);
+        const timeCapTextEl = document.getElementById('wodTimeCapText');
+        if (timeCapTextEl) {
+          timeCapTextEl.textContent = clockLabel;
+        } else {
+          document.getElementById('wodTimeCapBadge').textContent = clockLabel;
+        }
         document.getElementById('wodStimulusText').textContent = wod.stimulus;
         document.getElementById('wodLogicText').textContent = wod.logic;
         this.renderWodIntensityControl(wod);
@@ -1160,7 +1167,13 @@ const UI = {
                     </span>
                   </div>
                 </div>
-                <div class="text-[11px] font-mono text-cyan-300 mb-1.5 sm:mb-2">${bm.prescriptionHeader}</div>
+                <div class="flex items-center justify-between gap-2 mb-1.5 sm:mb-2">
+                  <div class="text-[11px] font-mono text-cyan-300">${WorkoutGenerator.formatBannerPrescriptionHeader(bm.prescriptionHeader, bm.format)}</div>
+                  <span class="inline-flex items-center gap-1 text-[10px] font-mono font-bold text-amber-300 bg-amber-500/10 border border-amber-500/30 px-1.5 py-0.5 rounded whitespace-nowrap shrink-0">
+                    <i data-lucide="clock" class="w-3 h-3 shrink-0"></i>
+                    <span>${WorkoutGenerator.getClockBadgeLabel(bm)}</span>
+                  </span>
+                </div>
                 <ul class="text-xs text-slate-300 space-y-0.5 sm:space-y-1">
                   ${bm.items.map(it => `<li>• ${it.label}</li>`).join('')}
                 </ul>
@@ -1572,9 +1585,10 @@ const UI = {
             shareUrl = await WorkoutSharing.createShareUrl(wod);
           } catch (e) { }
 
+          const clockLabel = WorkoutGenerator.getClockBadgeLabel(wod);
           const textParts = [
-            `${wod.title} (${wod.badgeFormat})`,
-            wod.prescriptionHeader,
+            `${wod.title} (${wod.badgeFormat}${clockLabel ? ' • ' + clockLabel : ''})`,
+            WorkoutGenerator.formatBannerPrescriptionHeader(wod.prescriptionHeader, wod.format),
             ...wod.items.map(i => {
               const subSuffix = ((i.isOptionalGear || i.isMissingGear) && i.alternative) ? ` [Or Sub: ${i.alternative.text}]` : '';
               return `- ${i.prescriptionText}${subSuffix}`;

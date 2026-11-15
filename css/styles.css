@@ -259,6 +259,31 @@ body {
   overflow: hidden;
 }
 
+@media (min-width: 768px) {
+  .intensity-panel-collapse {
+    grid-template-rows: 1fr;
+    grid-template-columns: 1fr;
+    transform: translateX(0);
+    transition:
+      grid-template-columns 0.34s cubic-bezier(0.16, 1, 0.3, 1),
+      opacity 0.22s ease,
+      transform 0.34s cubic-bezier(0.16, 1, 0.3, 1),
+      margin 0.34s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .intensity-panel-collapse.is-collapsed {
+    grid-template-rows: 1fr;
+    grid-template-columns: 0fr;
+    transform: translateX(6px);
+    margin-left: 0 !important;
+  }
+
+  .intensity-panel-inner {
+    min-width: 0;
+    white-space: nowrap;
+  }
+}
+
 /* Subtle Pulse for Rep & Prescription Updates */
 @keyframes repUpdatePulse {
   0% {

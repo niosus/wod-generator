@@ -39,6 +39,47 @@ const WorkoutGenerator = {
     return '21 - 15 - 9';
   },
 
+  /**
+   * Formats a clean clock/time-cap badge label consistently across all workouts.
+   */
+  getClockBadgeLabel(wod) {
+    if (!wod || !wod.minutes) return '';
+    return wod.format === 'FOR_TIME' ? `${wod.minutes}:00 Cap` : `${wod.minutes}:00`;
+  },
+
+  /**
+   * Strips redundant time-cap or minute-duration phrasing from a prescription
+   * header since duration/cap is displayed in the dedicated clock badge.
+   */
+  formatBannerPrescriptionHeader(header, formatKey = '') {
+    if (!header || typeof header !== 'string') return '';
+    let out = header.trim();
+
+    // "For Time (25 Min Cap): Rest..." -> "For Time — Rest..." (or "For Time:" if nothing follows)
+    out = out.replace(/^For Time\s*\(\d+\s*Min(?:ute)?s?\s*(?:Time\s*)?Cap\)\s*:\s*(.+)$/i, 'For Time — $1');
+    out = out.replace(/^For Time\s*\(\d+\s*Min(?:ute)?s?\s*(?:Time\s*)?Cap\)\s*:$/i, 'For Time:');
+    // Trailing "(16 Min Cap)" or "(16 Min Time Cap)"
+    out = out.replace(/\s*\(\d+\s*Min(?:ute)?s?\s*(?:Time\s*)?Cap\)/gi, '');
+    // "AMRAP in 20 Minutes (extra):" -> "AMRAP (extra):" or "AMRAP in 20 Minutes:" -> "AMRAP • Max Rounds & Reps:"
+    if (/^AMRAP in \d+\s*Min(?:ute)?s?:$/i.test(out)) {
+      return 'AMRAP • Max Rounds & Reps:';
+    }
+    out = out.replace(/^AMRAP in \d+\s*Min(?:ute)?s?\s*/i, 'AMRAP ');
+    // "Every Minute on the Minute for 30 Minutes:" -> "EMOM:"
+    out = out.replace(/^Every Minute on the Minute for \d+\s*Min(?:ute)?s?\s*:$/i, 'EMOM:');
+    out = out.replace(/^Every Minute on the Minute for \d+\s*Min(?:ute)?s?\s*/i, 'EMOM ');
+    // "16 Minute EMOM (...):" -> "EMOM (...):"
+    out = out.replace(/^\d+\s*Min(?:ute)?s?\s*EMOM\b/i, 'EMOM');
+    // Normalize "For Time: Foo:" -> "For Time — Foo:"
+    out = out.replace(/^For Time:\s*(.+:)$/i, 'For Time — $1');
+
+    if (formatKey === 'AMRAP' && /^AMRAP:$/i.test(out)) {
+      return 'AMRAP • Max Rounds & Reps:';
+    }
+
+    return out.replace(/\s{2,}/g, ' ').replace(/\s+:/g, ':').trim();
+  },
+
   pickRandom(arr) {
     return arr[Math.floor(Math.random() * arr.length)];
   },
@@ -508,11 +549,11 @@ const WorkoutGenerator = {
       const hasVeryHighSkill = roundMovements.some(m => (m.intensity || 1.8) >= 5.0);
       const scheme = this.getDescendingCoupletScheme({ unit: 'reps' }, tier, hasVeryHighSkill);
       wod.badgeFormat = `${scheme} FOR TIME`;
-      wod.prescriptionHeader = `${scheme} Reps For Time (${wod.minutes} Min Cap):`;
+      wod.prescriptionHeader = `${scheme} Reps For Time:`;
     } else if (wod.format === 'INTERVALS') {
       const split = this.getIntervalSplit(tier);
       wod.difficultyLabel = `${split.work}s Work / ${split.rest}s Rest`;
-      wod.prescriptionHeader = `Tabata Intervals (${split.work} Seconds Max Effort / ${split.rest} Seconds Rest):`;
+      wod.prescriptionHeader = `Tabata • ${split.work}s Work / ${split.rest}s Rest:`;
     }
 
     const hasVeryHighSkill = isCouplet && roundMovements.some(m => (m.intensity || 1.8) >= 5.0);
@@ -717,7 +758,7 @@ const WorkoutGenerator = {
       intensity: 'standard',
       badgeFormat: `${bm.minutes} MIN ${bm.format.replace('_', ' ')}`,
       difficultyLabel: `Classical Benchmark`,
-      prescriptionHeader: bm.prescriptionHeader,
+      prescriptionHeader: this.formatBannerPrescriptionHeader(bm.prescriptionHeader, bm.format),
       items: enrichedItems,
       stimulus: bm.stimulus,
       logic: bm.logic
@@ -771,7 +812,7 @@ const WorkoutGenerator = {
         rounds,
         badgeFormat: `${totalMinutes} MIN EMOM`,
         difficultyLabel: `${numStations}-Station Rotation (${rounds} Sets)`,
-        prescriptionHeader: `Every Minute on the Minute for ${totalMinutes} Minutes (${rounds} Rounds):`,
+        prescriptionHeader: `EMOM • ${rounds} Rounds:`,
         items,
         stimulus: `Target ~40–50 seconds of consistent work each minute, leaving 10–20 seconds to breathe and transition to the next station.`,
         logic: `Alternates ${selected.map(s => globalThis.PATTERNS[s.pattern]?.label || s.pattern).join(' → ')} across alternating minutes so local muscle groups recover while systemic heart rate stays high.`
@@ -815,7 +856,7 @@ const WorkoutGenerator = {
           isDescendingCouplet: true,
           badgeFormat: `${standardRepScheme} FOR TIME`,
           difficultyLabel: `Descending Couplet`,
-          prescriptionHeader: `${standardRepScheme} Reps For Time (${capMinutes} Min Cap):`,
+          prescriptionHeader: `${standardRepScheme} Reps For Time:`,
           items,
           stimulus: `Classic anaerobic threshold couplet. Push the opening set aggressively and fight through the fatigue on set 2.`,
           logic: `Complementary ${selected.map(s => globalThis.PATTERNS[s.pattern]?.label || s.pattern).join(' + ')} couplet eliminates muscular interference during high-speed cycling.`
@@ -847,7 +888,7 @@ const WorkoutGenerator = {
           rounds,
           badgeFormat: `${rounds} ROUNDS FOR TIME`,
           difficultyLabel: `Balanced ${selected.length}-Movement Metcon`,
-          prescriptionHeader: `${rounds} Rounds For Time (${capMinutes} Min Time Cap):`,
+          prescriptionHeader: `${rounds} Rounds For Time:`,
           items,
           stimulus: `Aim for consistent round splits within 10 seconds of each other. Smooth transitions beat early redlining.`,
           logic: `Synergistic ${selected.map(s => globalThis.PATTERNS[s.pattern]?.label || s.pattern).join(' + ')} sequence engineered for continuous multi-round output.`
@@ -884,7 +925,7 @@ const WorkoutGenerator = {
         intensity: initialIntensity,
         badgeFormat: `${totalMinutes} MIN TABATA`,
         difficultyLabel: `${split.work}s Work / ${split.rest}s Rest`,
-        prescriptionHeader: `Tabata Intervals (${split.work} Seconds Max Effort / ${split.rest} Seconds Rest):`,
+        prescriptionHeader: `Tabata • ${split.work}s Work / ${split.rest}s Rest:`,
         items,
         stimulus: `Score is your lowest rep count across any of the 8 intervals. Pace intervals 1–3 at 85% so you don't crash on interval 6.`,
         logic: `High-turnover intervals targeting ${selected.map(s => globalThis.PATTERNS[s.pattern]?.label || s.pattern).join(' & ')} energy systems.`
@@ -919,7 +960,7 @@ const WorkoutGenerator = {
       intensity: initialIntensity,
       badgeFormat: `${totalMinutes} MIN AMRAP`,
       difficultyLabel: `Balanced ${selected.length}-Movement Triplet`,
-      prescriptionHeader: `AMRAP in ${totalMinutes} Minutes:`,
+      prescriptionHeader: `AMRAP • Max Rounds & Reps:`,
       items,
       stimulus: `Find a sustainable pace from round 1 and aim for unbroken sets with minimal transition rest across the ${totalMinutes}-minute window.`,
       logic: `Pairs ${selected.map(s => globalThis.PATTERNS[s.pattern]?.label || s.pattern).join(' + ')} to avoid local muscular bottlenecks across the ${totalMinutes}-minute window.`
