@@ -1,10 +1,16 @@
+<p align="center">
+  <a href="https://niosus.github.io/wod-generator/">
+    <img src="./public/og-image.png" alt="WODROLL — Precision HIIT & CrossFit WOD Generator" width="100%" />
+  </a>
+</p>
+
 # WODROLL
 
-<img src="./favicon.svg" align="right" width="84" height="84" hspace="16" alt="WODROLL Logo" />
+<img src="./public/favicon.svg" align="right" width="72" height="72" hspace="16" alt="WODROLL Logo" />
 
 **Precision Biomechanical HIIT WOD Generator**
 
-Generate competition-grade CrossFit, Hyrox, and HIIT workouts tailored to your gear, skill level, and timeframe — powered by real-time multi-view stick-figure animations, collision-free scaling ladders, and compact URL &amp; PNG card sharing.
+Generate competition-grade CrossFit, Hyrox, and HIIT workouts tailored to your gear, skill level, and timeframe — powered by real-time multi-view stick-figure animations, collision-free scaling ladders, integrated workout timer, and compact URL &amp; PNG card sharing.
 
 <br clear="both" />
 
@@ -12,7 +18,7 @@ Generate competition-grade CrossFit, Hyrox, and HIIT workouts tailored to your g
 
 [![Kinematics Audit](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fniosus%2Fwog-generator%2Fbadges%2Fkinematics.json&style=for-the-badge&labelColor=09090b)](https://github.com/niosus/wog-generator/actions/workflows/ci.yml) [![Movements](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fniosus%2Fwog-generator%2Fbadges%2Fmovements.json&style=for-the-badge&labelColor=09090b)](./src/data/movements.js) [![Benchmarks](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fniosus%2Fwog-generator%2Fbadges%2Fbenchmarks.json&style=for-the-badge&labelColor=09090b)](./src/data/benchmarks.js)
 
-[**Open Live App in Browser**](https://niosus.github.io/wod-generator/) · [**Run Kinematics Audit**](#-2-run-biomechanical-kinematics-audit) · [**Explore Architecture**](#%EF%B8%8F-architecture--modular-structure)
+[**Open Live App in Browser**](https://niosus.github.io/wod-generator/) · [**Run Kinematics Audit**](#2-run-biomechanical-kinematics-audit) · [**Explore Architecture**](#%EF%B8%8F-architecture--modular-structure)
 
 ---
 
@@ -66,7 +72,7 @@ Generate competition-grade CrossFit, Hyrox, and HIIT workouts tailored to your g
 ## 🎛️ Page Workflow at a Glance
 
 1. **Lead With the Workout:** Opening the app immediately generates a tailored WOD card with live 2D thumbnails, rep/load badges, collapsible **Coach's Notes & Stimulus**, and inline **Scale** / **Swap** / **Progression** actions.
-2. **Tune in Place or Rapidly Re-Roll:** Use the **Quick Setup** bar below the card (`Bodyweight` / `Minimal` / `Full Gym`, `~10m` / `~15m` / `25m+`, `Standard` / `Rx+`) or open **Tune** to customize all 14 gear items, format rules, and the 85-movement pool.
+2. **Tune in Place or Rapidly Re-Roll:** Use the **Quick Setup** bar below the card (`Bodyweight` / `Minimal` / `Full Gym`, `~10m` / `~15m` / `25m+`, `Standard` / `Rx+`) or open **Tune** to customize all 14 gear items, format rules, and the 87-movement pool.
 3. **Export Anywhere:** Copy a **1080×1080 PNG card**, share a compact `?wod=...` link, or bookmark/share your equipment setup with `?cfg=...`.
 
 ---
@@ -133,7 +139,7 @@ Then visit `http://localhost:8080`.
 
 ### 2. Run Biomechanical Kinematics Audit
 
-Sample all **85** movements across a 120-frame cycle (**10,200 frames total**) to assert rigid bone invariants, floor and plyo-box non-penetration, knee non-hyperextension, and `C⁰` trajectory continuity:
+Sample all **87** movements across a 120-frame cycle (**10,440 frames total**) to assert rigid bone invariants, floor and plyo-box non-penetration, knee non-hyperextension, and `C⁰` trajectory continuity:
 
 ```bash
 npm test
