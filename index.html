@@ -355,82 +355,106 @@
     <!-- SIMPLE MODE QUICK SETUP BAR (Positioned below Workout Card so WOD leads immediately) -->
     <section aria-label="Quick Setup" class="w-full">
       <div
-        class="flex flex-wrap items-center gap-1.5 sm:gap-2 bg-white/90 dark:bg-zinc-900/90 border border-zinc-200 dark:border-zinc-800 rounded-xl p-2 shadow-sm">
-        <!-- Gear Preset Group (Row 1 on mobile, inline on sm+) -->
-        <div
-          class="w-full sm:w-auto flex items-center p-0.5 rounded-lg bg-zinc-100 dark:bg-zinc-950 border border-zinc-200/80 dark:border-zinc-800"
-          role="group" aria-label="Equipment preset">
-          <button type="button" data-preset="bodyweight"
-            class="quick-preset-btn flex-1 sm:flex-initial px-2 sm:px-2.5 py-1 rounded-md text-[11px] font-semibold transition whitespace-nowrap text-center">
-            Bodyweight
+        class="bg-white/90 dark:bg-zinc-900/90 border border-zinc-200 dark:border-zinc-800 rounded-xl p-2 shadow-sm flex flex-col gap-1.5">
+        <div class="flex flex-wrap items-center gap-1.5 sm:gap-2">
+          <!-- Gear Preset Group (Row 1 on mobile, inline on sm+) -->
+          <div
+            class="w-full sm:w-auto flex items-center p-0.5 rounded-lg bg-zinc-100 dark:bg-zinc-950 border border-zinc-200/80 dark:border-zinc-800"
+            role="group" aria-label="Equipment preset">
+            <button type="button" data-preset="bodyweight"
+              class="quick-preset-btn flex-1 sm:flex-initial px-2 sm:px-2.5 py-1 rounded-md text-[11px] font-semibold transition whitespace-nowrap text-center">
+              Bodyweight
+            </button>
+            <button type="button" data-preset="minimal"
+              class="quick-preset-btn flex-1 sm:flex-initial px-2 sm:px-2.5 py-1 rounded-md text-[11px] font-semibold transition whitespace-nowrap text-center"
+              title="Bodyweight, Pull-Up Bar + Optional Rings, KB, BikeErg, Rope, Running">
+              Minimal
+            </button>
+            <button type="button" data-preset="full"
+              class="quick-preset-btn flex-1 sm:flex-initial px-2 sm:px-2.5 py-1 rounded-md text-[11px] font-semibold transition whitespace-nowrap text-center">
+              Full Gym
+            </button>
+            <button type="button" id="customPresetBadge"
+              class="hidden flex-1 sm:flex-initial px-2 sm:px-2.5 py-1 rounded-md text-[11px] font-semibold bg-zinc-950 text-white dark:bg-volt dark:text-zinc-950 transition whitespace-nowrap text-center"
+              title="Custom equipment selection active — click to edit">
+              Custom
+            </button>
+          </div>
+
+          <!-- Duration Group (Row 2 on mobile, inline on sm+) -->
+          <div
+            class="inline-flex items-center p-0.5 rounded-lg bg-zinc-100 dark:bg-zinc-950 border border-zinc-200/80 dark:border-zinc-800"
+            role="group" aria-label="Workout duration">
+            <button type="button" data-duration="short"
+              class="quick-duration-btn px-2 py-1 rounded-md text-[11px] font-mono font-semibold transition whitespace-nowrap"
+              title="8 – 12 Min">
+              ~10m
+            </button>
+            <button type="button" data-duration="medium"
+              class="quick-duration-btn px-2 py-1 rounded-md text-[11px] font-mono font-semibold transition whitespace-nowrap"
+              title="14 – 20 Min">
+              ~15m
+            </button>
+            <button type="button" data-duration="long"
+              class="quick-duration-btn px-2 py-1 rounded-md text-[11px] font-mono font-semibold transition whitespace-nowrap"
+              title="24 – 40 Min">
+              25m+
+            </button>
+          </div>
+
+          <!-- Skill Tier Quick Toggle -->
+          <button type="button" id="quickSkillToggleBtn"
+            class="px-2 sm:px-2.5 py-1.5 rounded-lg border text-[11px] font-mono font-semibold transition whitespace-nowrap flex items-center gap-1.5"
+            title="Toggle High-Skill Rx+ Movements (Muscle-Ups, HSPU, Pistols, Double-Unders, Squat Snatch)">
+            <span id="quickSkillDot" class="w-1.5 h-1.5 rounded-full"></span>
+            <span id="quickSkillLabel">Standard</span>
           </button>
-          <button type="button" data-preset="minimal"
-            class="quick-preset-btn flex-1 sm:flex-initial px-2 sm:px-2.5 py-1 rounded-md text-[11px] font-semibold transition whitespace-nowrap text-center"
-            title="Bodyweight, Pull-Up Bar + Optional Rings, KB, BikeErg, Rope, Running">
-            Minimal
-          </button>
-          <button type="button" data-preset="full"
-            class="quick-preset-btn flex-1 sm:flex-initial px-2 sm:px-2.5 py-1 rounded-md text-[11px] font-semibold transition whitespace-nowrap text-center">
-            Full Gym
-          </button>
-          <button type="button" id="customPresetBadge"
-            class="hidden flex-1 sm:flex-initial px-2 sm:px-2.5 py-1 rounded-md text-[11px] font-semibold bg-zinc-950 text-white dark:bg-volt dark:text-zinc-950 transition whitespace-nowrap text-center"
-            title="Custom equipment selection active — click to edit">
-            Custom
+
+          <!-- Advanced Mode Trigger (Right-aligned on Row 2 on mobile, right-aligned on sm+) -->
+          <button type="button" id="openAdvancedModalBtn"
+            class="ml-auto flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-zinc-100 dark:bg-zinc-800/80 hover:bg-zinc-200/80 dark:hover:bg-zinc-800 border border-zinc-200 dark:border-zinc-700/80 text-[11px] font-semibold text-zinc-800 dark:text-zinc-200 transition shrink-0 whitespace-nowrap"
+            title="Open Advanced Equipment, Format & Movement Pool Controls">
+            <i data-lucide="sliders-horizontal" class="w-3.5 h-3.5"></i>
+            <span>Tune</span>
+            <span id="advancedActiveBadge"
+              class="hidden px-1.5 py-0.2 rounded-full text-[10px] font-mono font-bold bg-zinc-950 text-white dark:bg-volt dark:text-zinc-950">0</span>
           </button>
         </div>
 
-        <!-- Duration Group (Row 2 on mobile, inline on sm+) -->
-        <div
-          class="inline-flex items-center p-0.5 rounded-lg bg-zinc-100 dark:bg-zinc-950 border border-zinc-200/80 dark:border-zinc-800"
-          role="group" aria-label="Workout duration">
-          <button type="button" data-duration="short"
-            class="quick-duration-btn px-2 py-1 rounded-md text-[11px] font-mono font-semibold transition whitespace-nowrap"
-            title="8 – 12 Min">
-            ~10m
-          </button>
-          <button type="button" data-duration="medium"
-            class="quick-duration-btn px-2 py-1 rounded-md text-[11px] font-mono font-semibold transition whitespace-nowrap"
-            title="14 – 20 Min">
-            ~15m
-          </button>
-          <button type="button" data-duration="long"
-            class="quick-duration-btn px-2 py-1 rounded-md text-[11px] font-mono font-semibold transition whitespace-nowrap"
-            title="24 – 40 Min">
-            25m+
-          </button>
-        </div>
+        <!-- Source Mode Selector (Mixed / Algorithmic / Classics) + Current Selection Pool Summary -->
+        <div id="selectionPoolSummary"
+          class="pt-1.5 border-t border-zinc-200/70 dark:border-zinc-800/70 flex flex-wrap items-center justify-between gap-2 text-[11px] text-zinc-500 dark:text-zinc-400"
+          title="Number of unique workouts matching your current equipment, movements, format, and duration">
+          <div
+            class="w-full sm:w-auto flex items-center p-0.5 rounded-lg bg-zinc-100 dark:bg-zinc-950 border border-zinc-200/80 dark:border-zinc-800"
+            role="group" aria-label="Workout source">
+            <button type="button" data-mode="smart"
+              class="quick-mode-btn flex-1 sm:flex-initial px-2 sm:px-2.5 py-1 rounded-md text-[11px] font-semibold transition whitespace-nowrap text-center"
+              title="Smart Mixed — Algorithmic workouts + Classical benchmarks">
+              Mixed
+            </button>
+            <button type="button" data-mode="algorithmic"
+              class="quick-mode-btn flex-1 sm:flex-initial px-2 sm:px-2.5 py-1 rounded-md text-[11px] font-semibold transition whitespace-nowrap text-center"
+              title="Algorithmic Only — Custom generated HIIT workouts">
+              Algorithmic
+            </button>
+            <button type="button" data-mode="benchmark"
+              class="quick-mode-btn flex-1 sm:flex-initial px-2 sm:px-2.5 py-1 rounded-md text-[11px] font-semibold transition whitespace-nowrap text-center"
+              title="Classics Only — CrossFit Girls, Hero WODs &amp; Hyrox benchmarks">
+              Classics
+            </button>
+          </div>
 
-        <!-- Skill Tier Quick Toggle -->
-        <button type="button" id="quickSkillToggleBtn"
-          class="px-2 sm:px-2.5 py-1.5 rounded-lg border text-[11px] font-mono font-semibold transition whitespace-nowrap flex items-center gap-1.5"
-          title="Toggle High-Skill Rx+ Movements (Muscle-Ups, HSPU, Pistols, Double-Unders, Squat Snatch)">
-          <span id="quickSkillDot" class="w-1.5 h-1.5 rounded-full"></span>
-          <span id="quickSkillLabel">Standard</span>
-        </button>
-
-        <!-- Advanced Mode Trigger (Right-aligned on Row 2 on mobile, right-aligned on sm+) -->
-        <button type="button" id="openAdvancedModalBtn"
-          class="ml-auto flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-zinc-100 dark:bg-zinc-800/80 hover:bg-zinc-200/80 dark:hover:bg-zinc-800 border border-zinc-200 dark:border-zinc-700/80 text-[11px] font-semibold text-zinc-800 dark:text-zinc-200 transition shrink-0 whitespace-nowrap"
-          title="Open Advanced Equipment, Format & Movement Pool Controls">
-          <i data-lucide="sliders-horizontal" class="w-3.5 h-3.5"></i>
-          <span>Tune</span>
-          <span id="advancedActiveBadge"
-            class="hidden px-1.5 py-0.2 rounded-full text-[10px] font-mono font-bold bg-zinc-950 text-white dark:bg-volt dark:text-zinc-950">0</span>
-        </button>
-      </div>
-
-      <!-- Current Selection Workout Pool Summary -->
-      <div id="selectionPoolSummary"
-        class="mt-1.5 px-2.5 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-[11px] text-zinc-500 dark:text-zinc-400"
-        title="Number of unique workouts matching your current equipment, movements, format, and duration">
-        <div class="flex items-center gap-1.5 min-w-0">
-          <i id="selectionPoolIcon" data-lucide="layers" class="w-3.5 h-3.5 text-zinc-400 dark:text-zinc-500 shrink-0"></i>
-          <span id="selectionPoolHeadline" class="truncate">
-            <strong class="font-mono font-bold tabular-nums text-zinc-900 dark:text-zinc-100">0</strong> algorithmic · <strong class="font-mono font-bold tabular-nums text-zinc-900 dark:text-zinc-100">0</strong> classics
-          </span>
-        </div>
-        <div id="selectionPoolBreakdown" class="font-mono text-[10px] text-zinc-500 dark:text-zinc-400 flex flex-wrap items-center gap-x-1.5">
+          <div class="flex flex-wrap items-center justify-between sm:justify-end gap-x-2.5 gap-y-1 w-full sm:w-auto px-1 sm:px-0.5 min-w-0">
+            <div class="flex items-center gap-1.5 min-w-0">
+              <i id="selectionPoolIcon" data-lucide="layers" class="w-3.5 h-3.5 text-zinc-400 dark:text-zinc-500 shrink-0"></i>
+              <span id="selectionPoolHeadline" class="truncate">
+                <strong class="font-mono font-bold tabular-nums text-zinc-900 dark:text-zinc-100">0</strong> algorithmic · <strong class="font-mono font-bold tabular-nums text-zinc-900 dark:text-zinc-100">0</strong> classics
+              </span>
+            </div>
+            <div id="selectionPoolBreakdown" class="font-mono text-[10px] text-zinc-500 dark:text-zinc-400 flex flex-wrap items-center gap-x-1.5">
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -937,6 +961,23 @@
       <div id="scaleLaddersContainer" class="flex-1 overflow-y-auto px-4 sm:px-6 py-4 space-y-3">
         <!-- Populated by JS -->
       </div>
+    </div>
+  </div>
+
+  <!-- FLOATING RE-ROLL CTA (Appears when top Re-Roll button scrolls off screen) -->
+  <div id="floatingRerollBar"
+    class="fixed bottom-5 left-1/2 -translate-x-1/2 z-40 transition-all duration-300 opacity-0 translate-y-10 pointer-events-none">
+    <div class="flex items-center gap-2">
+      <span id="floatingRerollSideDot"
+        class="hidden w-2.5 h-2.5 rounded-full bg-volt-600 dark:bg-volt shadow-sm shrink-0"
+        title="Settings changed"></span>
+      <button id="floatingRerollBtn" type="button"
+        class="flex items-center gap-2 px-5 py-2.5 rounded-full bg-zinc-950 hover:bg-zinc-800 dark:bg-volt dark:hover:bg-volt-400 active:scale-[0.98] text-white dark:text-zinc-950 font-bold text-xs uppercase tracking-wider shadow-xl border border-zinc-800/80 dark:border-volt/50 transition whitespace-nowrap"
+        title="Generate Another WOD">
+        <i data-lucide="refresh-cw" class="w-3.5 h-3.5 stroke-[2.5] shrink-0"></i>
+        <span id="floatingRerollLabel">Re-Roll</span>
+        <i data-lucide="arrow-up" class="w-3.5 h-3.5 stroke-[2.5] shrink-0"></i>
+      </button>
     </div>
   </div>
 

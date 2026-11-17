@@ -274,13 +274,16 @@ const UI = {
     const badge = document.getElementById('wodOutdatedBadge');
     const mainGenBtn = document.getElementById('generateWodBtn');
     const rerollBtn = document.getElementById('rerollWodBtn');
+    const floatRerollBtn = document.getElementById('floatingRerollBtn');
     const mainLabel = document.getElementById('generateWodBtnLabel');
     const rerollLabel = document.getElementById('rerollWodLabel');
+    const floatRerollLabel = document.getElementById('floatingRerollLabel');
     const mainSideDot = document.getElementById('generateWodSideDot');
     const rerollSideDot = document.getElementById('rerollSideDot');
+    const floatSideDot = document.getElementById('floatingRerollSideDot');
 
-    const sideDots = [mainSideDot, rerollSideDot].filter(Boolean);
-    const actionButtons = [mainGenBtn, rerollBtn].filter(Boolean);
+    const sideDots = [mainSideDot, rerollSideDot, floatSideDot].filter(Boolean);
+    const actionButtons = [mainGenBtn, rerollBtn, floatRerollBtn].filter(Boolean);
 
     if (isOutdated) {
       this.clearConfigUrl();
@@ -291,6 +294,7 @@ const UI = {
       }
       if (mainLabel) mainLabel.textContent = 'Update & Roll';
       if (rerollLabel) rerollLabel.textContent = 'Update';
+      if (floatRerollLabel) floatRerollLabel.textContent = 'Update';
       sideDots.forEach(dot => dot.classList.remove('hidden'));
 
       actionButtons.forEach(btn => {
@@ -309,10 +313,30 @@ const UI = {
       }
       if (mainLabel) mainLabel.textContent = 'Apply & Roll Workout';
       if (rerollLabel) rerollLabel.textContent = 'Re-Roll';
+      if (floatRerollLabel) floatRerollLabel.textContent = 'Re-Roll';
       sideDots.forEach(dot => dot.classList.add('hidden'));
       actionButtons.forEach(btn => btn.classList.remove('btn-bump'));
     }
     lucide.createIcons();
+  },
+
+  updateFloatingRerollVisibility() {
+    const floatingBar = document.getElementById('floatingRerollBar');
+    const topRerollBtn = document.getElementById('rerollWodBtn');
+    if (!floatingBar || !topRerollBtn) return;
+
+    const header = document.querySelector('header');
+    const headerBottom = header ? Math.max(0, header.getBoundingClientRect().bottom) : 0;
+    const rect = topRerollBtn.getBoundingClientRect();
+    const isTopBtnOffScreen = rect.bottom <= headerBottom + 4 || rect.top >= window.innerHeight;
+    const shouldShow = isTopBtnOffScreen && this._activeModalCount === 0;
+
+    floatingBar.classList.toggle('opacity-100', shouldShow);
+    floatingBar.classList.toggle('translate-y-0', shouldShow);
+    floatingBar.classList.toggle('pointer-events-auto', shouldShow);
+    floatingBar.classList.toggle('opacity-0', !shouldShow);
+    floatingBar.classList.toggle('translate-y-10', !shouldShow);
+    floatingBar.classList.toggle('pointer-events-none', !shouldShow);
   },
 
   syncQuickBar() {
@@ -349,6 +373,16 @@ const UI = {
     document.querySelectorAll('.quick-duration-btn').forEach(btn => {
       const isMatch = btn.dataset.duration === AppState.duration;
       btn.className = `quick-duration-btn px-2 py-1 rounded-md text-[11px] font-mono font-semibold transition whitespace-nowrap ${
+        isMatch
+          ? 'bg-zinc-950 text-white dark:bg-volt dark:text-zinc-950 shadow-sm'
+          : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white'
+      }`;
+    });
+
+    // Quick Bar Source Mode buttons (Mixed / Algorithmic / Classics)
+    document.querySelectorAll('.quick-mode-btn').forEach(btn => {
+      const isMatch = btn.dataset.mode === AppState.mode;
+      btn.className = `quick-mode-btn flex-1 sm:flex-initial px-2 sm:px-2.5 py-1 rounded-md text-[11px] font-semibold transition whitespace-nowrap text-center ${
         isMatch
           ? 'bg-zinc-950 text-white dark:bg-volt dark:text-zinc-950 shadow-sm'
           : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-950 dark:hover:text-white'
@@ -426,7 +460,7 @@ const UI = {
     } else if (stats.mode === 'benchmark') {
       if (stats.benchmarkCount > 0) {
         headlineHtml = `${numSpan(stats.benchmarkCount)} classic ${plural(stats.benchmarkCount, 'benchmark')}`;
-        breakdownText = `${formatPrefix}Classics Only · ${stats.activeMovementCount} ${plural(stats.activeMovementCount, 'movement')}`;
+        breakdownText = `${formatPrefix}${stats.activeMovementCount} ${plural(stats.activeMovementCount, 'movement')}`;
         modalTextHtml = `${numSpan(stats.benchmarkCount)} ${plural(stats.benchmarkCount, 'classic')}`;
         tooltipText = `${stats.benchmarkCount} classical benchmark ${plural(stats.benchmarkCount, 'workout')} match your current gear, format, and duration.`;
       } else {
@@ -438,7 +472,7 @@ const UI = {
       }
     } else if (stats.mode === 'algorithmic') {
       headlineHtml = `${numSpan(stats.algoCount)} algorithmic ${plural(stats.algoCount, 'workout')}`;
-      breakdownText = `${formatPrefix}Custom HIIT · ${stats.activeMovementCount} ${plural(stats.activeMovementCount, 'movement')}`;
+      breakdownText = `${formatPrefix}${stats.activeMovementCount} ${plural(stats.activeMovementCount, 'movement')}`;
       modalTextHtml = `${numSpan(stats.algoCount)} algo`;
       tooltipText = `${stats.algoCount.toLocaleString()} unique algorithmic ${plural(stats.algoCount, 'workout')} from ${stats.effectiveMovementCount} top-ladder movements (${stats.activeMovementCount} active).`;
     } else {
@@ -1254,6 +1288,7 @@ const UI = {
         document.body.style.paddingRight = `${scrollbarWidth}px`;
       }
     }
+    this.updateFloatingRerollVisibility();
   },
 
   unlockBodyScroll() {
@@ -1262,6 +1297,7 @@ const UI = {
       document.body.style.overflow = '';
       document.body.style.paddingRight = '';
     }
+    this.updateFloatingRerollVisibility();
   },
 
   _openModalEl(modal, card) {
@@ -1921,24 +1957,21 @@ const UI = {
     }
 
     // Simple Mode Quick Bar & Modal: Equipment Presets
-    const applyPreset = (preset, autoRoll = false) => {
+    const applyPreset = preset => {
+      if (AppState.getActiveEquipmentPreset() === preset) return;
       AppState.applyEquipmentPreset(preset);
       AppState.saveToStorage();
       this.renderEquipmentGrid();
       this.renderMovementMatrix();
-      if (autoRoll) {
-        this.generateAndDisplayWod();
-      } else {
-        this.markWodOutdated(true);
-      }
+      this.markWodOutdated(true);
     };
 
     document.querySelectorAll('.quick-preset-btn').forEach(btn => {
-      btn.addEventListener('click', () => applyPreset(btn.dataset.preset, true));
+      btn.addEventListener('click', () => applyPreset(btn.dataset.preset));
     });
 
     document.querySelectorAll('.preset-btn').forEach(btn => {
-      btn.addEventListener('click', () => applyPreset(btn.dataset.preset, false));
+      btn.addEventListener('click', () => applyPreset(btn.dataset.preset));
     });
 
     const customPresetBadge = document.getElementById('customPresetBadge');
@@ -1949,10 +1982,22 @@ const UI = {
     // Simple Mode Quick Bar: Duration
     document.querySelectorAll('.quick-duration-btn').forEach(btn => {
       btn.addEventListener('click', () => {
+        if (AppState.duration === btn.dataset.duration) return;
         AppState.duration = btn.dataset.duration;
         AppState.saveToStorage();
         this.renderParameterControls();
-        this.generateAndDisplayWod();
+        this.markWodOutdated(true);
+      });
+    });
+
+    // Simple Mode Quick Bar: Workout Source Mode (Mixed / Algorithmic / Classics)
+    document.querySelectorAll('.quick-mode-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (AppState.mode === btn.dataset.mode) return;
+        AppState.mode = btn.dataset.mode;
+        AppState.saveToStorage();
+        this.renderParameterControls();
+        this.markWodOutdated(true);
       });
     });
 
@@ -1969,7 +2014,7 @@ const UI = {
         });
         AppState.saveToStorage();
         this.renderMovementMatrix();
-        this.generateAndDisplayWod();
+        this.markWodOutdated(true);
       });
     }
 
@@ -2180,6 +2225,27 @@ const UI = {
       outdatedRollBtn.addEventListener('click', () => {
         this.generateAndDisplayWod();
       });
+    }
+
+    // Floating Re-Roll Button (visible when top #rerollWodBtn scrolls off screen)
+    const floatingRerollBtn = document.getElementById('floatingRerollBtn');
+    const topRerollBtn = document.getElementById('rerollWodBtn');
+    if (floatingRerollBtn && topRerollBtn) {
+      floatingRerollBtn.addEventListener('click', () => {
+        this.generateAndDisplayWod();
+        if (window.scrollY > 40) {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      });
+
+      const syncFloating = () => this.updateFloatingRerollVisibility();
+      window.addEventListener('scroll', syncFloating, { passive: true });
+      window.addEventListener('resize', syncFloating, { passive: true });
+      if (typeof IntersectionObserver !== 'undefined') {
+        const observer = new IntersectionObserver(syncFloating, { threshold: [0, 1] });
+        observer.observe(topRerollBtn);
+      }
+      syncFloating();
     }
 
     // WOD Movements List: Swap, Scale Down, Open Progression, OR Open Movement Detail

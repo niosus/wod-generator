@@ -157,7 +157,6 @@ const LEGACY_STORAGE_KEY = 'wodforge_local_prefs_v3';
         let count = 0;
         if (this.getActiveEquipmentPreset() === 'custom') count++;
         if (this.format && this.format !== 'ANY') count++;
-        if (this.mode && this.mode !== 'smart') count++;
         if (this.hasCustomMovementExclusions()) count++;
         return count;
       },
