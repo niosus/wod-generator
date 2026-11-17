@@ -1,7 +1,7 @@
 {
   "name": "wodroll",
   "version": "4.0.0",
-  "description": "Precision Biomechanical HIIT WOD Generator",
+  "description": "Biomechanical HIIT & Functional Fitness WOD Generator",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -15,7 +15,7 @@
     "url": "https://github.com/niosus/wod-generator.git"
   },
   "keywords": [
-    "crossfit",
+    "functional-fitness",
     "hiit",
     "wod-generator",
     "biomechanics",

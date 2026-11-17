@@ -480,7 +480,7 @@ const WorkoutGenerator = {
   },
 
   /**
-   * Generates a deterministic, context-aware CrossFit/conditioning workout title
+   * Generates a deterministic, context-aware Functional Fitness/conditioning workout title
    * tied to the workout's actual movements, equipment, and format.
    */
   generateName(context = {}) {

@@ -1,6 +1,6 @@
 /**
- * Complete Classical CrossFit Benchmarks & Hero WODs Collection
- * Includes all classic "Girls", "Hero WODs", and signature conditioning tests.
+ * Complete Classical Functional Fitness & Conditioning Benchmarks Collection
+ * Includes classic "Girls Benchmarks", "Hero Benchmarks", and signature conditioning tests.
  */
 const CLASSICAL_BENCHMARKS = [
   // ==========================================
@@ -9,7 +9,7 @@ const CLASSICAL_BENCHMARKS = [
   {
     id: 'cindy',
     title: 'CINDY',
-    category: 'CrossFit Benchmark Girl',
+    category: 'Girls Benchmark',
     format: 'AMRAP',
     durationCategory: 'medium',
     minutes: 20,
@@ -25,7 +25,7 @@ const CLASSICAL_BENCHMARKS = [
   {
     id: 'chelsea',
     title: 'CHELSEA',
-    category: 'CrossFit Benchmark Girl',
+    category: 'Girls Benchmark',
     format: 'EMOM',
     durationCategory: 'long',
     minutes: 30,
@@ -41,7 +41,7 @@ const CLASSICAL_BENCHMARKS = [
   {
     id: 'fran',
     title: 'FRAN',
-    category: 'CrossFit Benchmark Girl',
+    category: 'Girls Benchmark',
     format: 'FOR_TIME',
     durationCategory: 'short',
     minutes: 8,
@@ -56,7 +56,7 @@ const CLASSICAL_BENCHMARKS = [
   {
     id: 'annie',
     title: 'ANNIE',
-    category: 'CrossFit Benchmark Girl',
+    category: 'Girls Benchmark',
     format: 'FOR_TIME',
     durationCategory: 'short',
     minutes: 10,
@@ -71,7 +71,7 @@ const CLASSICAL_BENCHMARKS = [
   {
     id: 'helen',
     title: 'HELEN',
-    category: 'CrossFit Benchmark Girl',
+    category: 'Girls Benchmark',
     format: 'FOR_TIME',
     durationCategory: 'medium',
     minutes: 14,
@@ -87,7 +87,7 @@ const CLASSICAL_BENCHMARKS = [
   {
     id: 'mary',
     title: 'MARY',
-    category: 'CrossFit Benchmark Girl',
+    category: 'Girls Benchmark',
     format: 'AMRAP',
     durationCategory: 'medium',
     minutes: 20,
@@ -103,7 +103,7 @@ const CLASSICAL_BENCHMARKS = [
   {
     id: 'angie',
     title: 'ANGIE',
-    category: 'CrossFit Benchmark Girl',
+    category: 'Girls Benchmark',
     format: 'FOR_TIME',
     durationCategory: 'long',
     minutes: 25,
@@ -120,7 +120,7 @@ const CLASSICAL_BENCHMARKS = [
   {
     id: 'barbara',
     title: 'BARBARA',
-    category: 'CrossFit Benchmark Girl',
+    category: 'Girls Benchmark',
     format: 'FOR_TIME',
     durationCategory: 'long',
     minutes: 30,
@@ -137,7 +137,7 @@ const CLASSICAL_BENCHMARKS = [
   {
     id: 'diane',
     title: 'DIANE',
-    category: 'CrossFit Benchmark Girl',
+    category: 'Girls Benchmark',
     format: 'FOR_TIME',
     durationCategory: 'short',
     minutes: 9,
@@ -152,7 +152,7 @@ const CLASSICAL_BENCHMARKS = [
   {
     id: 'elizabeth',
     title: 'ELIZABETH',
-    category: 'CrossFit Benchmark Girl',
+    category: 'Girls Benchmark',
     format: 'FOR_TIME',
     durationCategory: 'short',
     minutes: 10,
@@ -167,7 +167,7 @@ const CLASSICAL_BENCHMARKS = [
   {
     id: 'grace',
     title: 'GRACE',
-    category: 'CrossFit Benchmark Girl',
+    category: 'Girls Benchmark',
     format: 'FOR_TIME',
     durationCategory: 'short',
     minutes: 6,
@@ -175,13 +175,13 @@ const CLASSICAL_BENCHMARKS = [
     items: [
       { movementId: 'bb_push_jerk', reps: 30, label: '30 Clean & Jerks (60/42.5 kg)' }
     ],
-    stimulus: 'One of the fastest benchmark sprint tests in CrossFit. Cycle fast singles or quick touch-and-go doubles.',
+    stimulus: 'One of the fastest classic benchmark sprint tests. Cycle fast singles or quick touch-and-go doubles.',
     logic: 'Maximal ground-to-overhead power output and aerobic-anaerobic threshold capacity.'
   },
   {
     id: 'isabel',
     title: 'ISABEL',
-    category: 'CrossFit Benchmark Girl',
+    category: 'Girls Benchmark',
     format: 'FOR_TIME',
     durationCategory: 'short',
     minutes: 6,
@@ -195,7 +195,7 @@ const CLASSICAL_BENCHMARKS = [
   {
     id: 'jackie',
     title: 'JACKIE',
-    category: 'CrossFit Benchmark Girl',
+    category: 'Girls Benchmark',
     format: 'FOR_TIME',
     durationCategory: 'short',
     minutes: 12,
@@ -211,7 +211,7 @@ const CLASSICAL_BENCHMARKS = [
   {
     id: 'karen',
     title: 'KAREN',
-    category: 'CrossFit Benchmark Girl',
+    category: 'Girls Benchmark',
     format: 'FOR_TIME',
     durationCategory: 'short',
     minutes: 12,
@@ -225,7 +225,7 @@ const CLASSICAL_BENCHMARKS = [
   {
     id: 'kelly',
     title: 'KELLY',
-    category: 'CrossFit Benchmark Girl',
+    category: 'Girls Benchmark',
     format: 'FOR_TIME',
     durationCategory: 'long',
     minutes: 26,
@@ -241,7 +241,7 @@ const CLASSICAL_BENCHMARKS = [
   {
     id: 'eva',
     title: 'EVA',
-    category: 'CrossFit Benchmark Girl',
+    category: 'Girls Benchmark',
     format: 'FOR_TIME',
     durationCategory: 'long',
     minutes: 30,
@@ -257,7 +257,7 @@ const CLASSICAL_BENCHMARKS = [
   {
     id: 'nancy',
     title: 'NANCY',
-    category: 'CrossFit Benchmark Girl',
+    category: 'Girls Benchmark',
     format: 'FOR_TIME',
     durationCategory: 'medium',
     minutes: 16,
@@ -272,7 +272,7 @@ const CLASSICAL_BENCHMARKS = [
   {
     id: 'amanda',
     title: 'AMANDA',
-    category: 'CrossFit Benchmark Girl',
+    category: 'Girls Benchmark',
     format: 'FOR_TIME',
     durationCategory: 'short',
     minutes: 10,
@@ -287,7 +287,7 @@ const CLASSICAL_BENCHMARKS = [
   {
     id: 'nicole',
     title: 'NICOLE',
-    category: 'CrossFit Benchmark Girl',
+    category: 'Girls Benchmark',
     format: 'AMRAP',
     durationCategory: 'medium',
     minutes: 20,
@@ -302,7 +302,7 @@ const CLASSICAL_BENCHMARKS = [
   {
     id: 'grettel',
     title: 'GRETTEL',
-    category: 'CrossFit Benchmark Girl',
+    category: 'Girls Benchmark',
     format: 'FOR_TIME',
     durationCategory: 'short',
     minutes: 8,
@@ -317,7 +317,7 @@ const CLASSICAL_BENCHMARKS = [
   {
     id: 'ingrid',
     title: 'INGRID',
-    category: 'CrossFit Benchmark Girl',
+    category: 'Girls Benchmark',
     format: 'FOR_TIME',
     durationCategory: 'short',
     minutes: 8,
@@ -611,12 +611,12 @@ const CLASSICAL_BENCHMARKS = [
   },
 
   // ==========================================
-  // SIGNATURE CONDITIONING & HYROX BENCHMARKS
+  // SIGNATURE CONDITIONING & HYBRID BENCHMARKS
   // ==========================================
   {
     id: 'hyrox_erg_sim',
-    title: 'HYROX ENGINE BUILDER',
-    category: 'Hyrox Conditioning',
+    title: 'HYBRID ENGINE BUILDER',
+    category: 'Hybrid Conditioning',
     format: 'FOR_TIME',
     durationCategory: 'long',
     minutes: 28,
@@ -751,7 +751,7 @@ const CLASSICAL_BENCHMARKS = [
   {
     id: 'tabata_something_else',
     title: 'TABATA SOMETHING ELSE',
-    category: 'CrossFit Benchmark Classic',
+    category: 'Classic Benchmark',
     format: 'INTERVALS',
     durationCategory: 'medium',
     minutes: 16,

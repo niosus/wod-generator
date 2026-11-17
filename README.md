@@ -1,6 +1,6 @@
 <p align="center">
   <a href="https://niosus.github.io/wod-generator/">
-    <img src="./public/og-image.png" alt="WODROLL — Precision HIIT & CrossFit WOD Generator" width="100%" />
+    <img src="./public/og-image.png" alt="WODROLL — HIIT & Functional Fitness WOD Generator" width="100%" />
   </a>
 </p>
 
@@ -8,9 +8,9 @@
 
 <img src="./public/favicon.svg" align="right" width="72" height="72" hspace="16" alt="WODROLL Logo" />
 
-**Precision Biomechanical HIIT WOD Generator**
+**Biomechanical HIIT & Functional Fitness WOD Generator**
 
-Generate competition-grade CrossFit, Hyrox, and HIIT workouts tailored to your gear, skill level, and timeframe — powered by real-time multi-view stick-figure animations, collision-free scaling ladders, integrated workout timer, and compact URL &amp; PNG card sharing.
+Generate competition-grade HIIT and Functional Fitness workouts tailored to your gear, skill level, and timeframe — powered by real-time multi-view stick-figure animations, collision-free scaling ladders, integrated workout timer, and compact URL &amp; PNG card sharing.
 
 <br clear="both" />
 
@@ -31,7 +31,7 @@ Generate competition-grade CrossFit, Hyrox, and HIIT workouts tailored to your g
       <ul>
         <li><b>3 Programming Modes:</b> <i>Smart Mixed</i> (35% eligible classics + algorithmic), <i>Custom HIIT</i> (pure rules), and <i>Classics Only</i>.</li>
         <li><b>5 Formats:</b> <code>ANY</code>, <code>AMRAP</code>, <code>EMOM</code>, <code>FOR TIME</code> (including <code>21-15-9</code> &amp; <code>15-12-9</code> descending couplets), and <code>TABATA</code> intervals.</li>
-        <li><b>3 Time Domains:</b> Sprint/Short (<code>8–12m</code>), Classic Metcon (<code>14–20m</code>), and Engine/Hyrox (<code>24–40m</code>).</li>
+        <li><b>3 Time Domains:</b> Sprint/Short (<code>8–12m</code>), Classic Metcon (<code>14–20m</code>), and Engine/Hybrid (<code>24–40m</code>).</li>
         <li><b>Post-Roll Intensity Toggle:</b> Switch between <b>Moderate</b>, <b>Standard</b>, and <b>High</b> directly on the WOD card to rescale reps, distances, calories, and Tabata splits in place.</li>
         <li><b>LRU Deduplication:</b> Remembers recent workouts in <code>localStorage</code> so consecutive rolls stay fresh.</li>
       </ul>
@@ -58,7 +58,7 @@ Generate competition-grade CrossFit, Hyrox, and HIIT workouts tailored to your g
     <td width="50%" valign="top">
       <h3>🔗 Sharing, PNG Cards &amp; Classics</h3>
       <ul>
-        <li><b>Benchmark WODs:</b> Girls, Hero WODs, <i>Death By</i> EMOM challenges, and Hyrox/signature workouts with live search and <i>Ready With My Gear</i> filtering.</li>
+        <li><b>Benchmark WODs:</b> Girls Benchmarks, Hero Benchmarks, <i>Death By</i> EMOM challenges, and Hybrid/signature workouts with live search and <i>Ready With My Gear</i> filtering.</li>
         <li><b>Compact Binary URL Sharing:</b> Share exact workouts (<code>?wod=...</code>) or your full gear/filter setup (<code>?cfg=...</code>) with binary v2 encoding, <code>deflate-raw</code> fallback, and mobile Web Share API support.</li>
         <li><b>1080×1080 PNG Card Export:</b> Click <b>Copy</b> to render a crisp workout card image with 2D stick-figure thumbnails to your clipboard (with plain-text fallback).</li>
         <li><b>Adaptive Theme:</b> Light, Dark, and System <b>Auto</b> mode with zero-FOUC startup.</li>
@@ -101,7 +101,7 @@ wod-generator/
     │   ├── patterns.js          # 6 biomechanical movement patterns & badge styles
     │   ├── movements.js         # Movements DB (equipment, difficulty, scale-downs, fallbacks, cues)
     │   ├── progressions.js      # 8 scaling ladders & ProgressionEngine
-    │   ├── benchmarks.js        # Girl, Hero, Hyrox, Signature & Death By WODs
+    │   ├── benchmarks.js        # Girls, Hero, Hybrid, Signature & Death By Benchmarks
     │   ├── presets.js           # Default states & Bodyweight / Minimal / Full Gym presets
     │   └── index.js             # ESM barrel re-export
     ├── animator/                # 2D Biomechanical Kinematics Engine

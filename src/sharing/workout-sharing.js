@@ -1477,7 +1477,7 @@ const WorkoutSharing = {
     ctx.font = `700 14px ${monoFamily}`;
     ctx.fillStyle = theme.textMuted;
     ctx.textAlign = 'left';
-    ctx.fillText('WODROLL • HIIT & CROSSFIT GENERATOR', contentX, bottomY);
+    ctx.fillText('WODROLL • HIIT & FUNCTIONAL FITNESS', contentX, bottomY);
 
     if (shareUrl) {
       const displayUrl = String(shareUrl).replace(/^https?:\/\//i, '');

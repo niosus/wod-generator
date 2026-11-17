@@ -1,7 +1,7 @@
 {
-  "name": "WODROLL — Precision HIIT & CrossFit WOD Generator",
+  "name": "WODROLL — HIIT & Functional Fitness WOD Generator",
   "short_name": "WODROLL",
-  "description": "Free, zero-signup CrossFit, Hyrox, and HIIT WOD generator tailored to your equipment, skill level, and timeframe, featuring random WOD generation, 2D animated movements, and classic benchmark workouts.",
+  "description": "Free, zero-signup HIIT and Functional Fitness WOD generator tailored to your equipment, skill level, and timeframe, featuring random WOD generation, 2D animated movements, and classic benchmark workouts.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
