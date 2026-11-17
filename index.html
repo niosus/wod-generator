@@ -100,9 +100,9 @@
   class="bg-gym-grid min-h-screen flex flex-col text-zinc-950 dark:text-zinc-50 selection:bg-volt selection:text-zinc-950">
 
   <!-- TOP NAVIGATION BAR -->
-  <header
+  <header id="appHeader"
     class="sticky top-0 z-30 backdrop-blur-xl bg-white/85 dark:bg-zinc-950/85 border-b border-zinc-200/80 dark:border-zinc-800/80 transition-colors">
-    <div class="max-w-3xl mx-auto px-3.5 sm:px-6 py-2.5 flex items-center justify-between gap-2">
+    <div id="headerInner" class="max-w-3xl mx-auto px-3.5 sm:px-6 py-2.5 flex items-center justify-between gap-2 transition-[max-width] duration-300">
       <!-- Brand Identity -->
       <a href="#" class="flex items-center gap-2 shrink-0 group" title="WODROLL">
         <div
@@ -167,8 +167,10 @@
     </div>
   </header>
 
-  <!-- MAIN WORKSPACE: SINGLE-COLUMN CENTERED LAYOUT -->
-  <main class="flex-1 max-w-3xl w-full mx-auto px-3.5 sm:px-6 py-4 sm:py-7 flex flex-col gap-3.5">
+  <!-- MAIN WORKSPACE: SINGLE-COLUMN CENTERED (EXPANDS WHEN TIMER OPENS) -->
+  <main id="appMain" class="flex-1 max-w-3xl w-full mx-auto px-3.5 sm:px-6 py-4 sm:py-7">
+    <div id="wodWorkspaceGrid" class="grid grid-cols-1 gap-3.5">
+      <div id="wodPrimaryColumn" class="flex flex-col gap-3.5 min-w-0 lg:col-start-1">
 
     <!-- HERO SECTION: FRONT & CENTRAL GENERATED WOD BOARD -->
     <section id="heroWodSection" class="w-full relative">
@@ -254,11 +256,14 @@
                 class="text-sm font-bold text-zinc-900 dark:text-zinc-100 leading-snug min-w-0">
                 AMRAP • Max Rounds &amp; Reps:
               </p>
-              <span id="wodTimeCapBadge"
-                class="inline-flex items-center gap-1.5 text-xs sm:text-sm font-mono font-bold tabular-nums text-zinc-800 dark:text-zinc-200 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 px-2.5 py-1 rounded-lg whitespace-nowrap shrink-0">
-                <i data-lucide="clock" class="w-3.5 h-3.5 text-zinc-500 dark:text-zinc-400 shrink-0"></i>
+              <button type="button" id="wodTimeCapBadge"
+                class="inline-flex items-center gap-1.5 text-xs sm:text-sm font-mono font-bold tabular-nums text-zinc-800 dark:text-zinc-200 bg-white dark:bg-zinc-900 hover:bg-zinc-100 dark:hover:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-volt px-2.5 py-1 rounded-lg whitespace-nowrap shrink-0 transition cursor-pointer"
+                title="Open Workout Timer" aria-expanded="false" aria-controls="wodTimerSection">
+                <span data-cap-icon="play" class="inline-flex items-center"><i data-lucide="play" class="w-3 h-3 text-volt-600 dark:text-volt fill-current shrink-0"></i></span>
+                <span data-cap-icon="timer" class="hidden items-center"><i data-lucide="timer" class="w-3.5 h-3.5 text-volt-600 dark:text-volt shrink-0"></i></span>
+                <span data-cap-icon="pause" class="hidden items-center"><i data-lucide="pause" class="w-3.5 h-3.5 text-volt-600 dark:text-volt shrink-0"></i></span>
                 <span id="wodTimeCapText">15:00</span>
-              </span>
+              </button>
             </div>
 
             <!-- Post-Generation Workout Intensity Choice -->
@@ -458,10 +463,213 @@
         </div>
       </div>
     </section>
+      </div><!-- /#wodPrimaryColumn -->
+
+      <!-- OPTIONAL WORKOUT TIMER (Sticky Top Bar on <lg, Sticky Right Dock on lg+) -->
+      <aside id="wodTimerSection" aria-label="Workout Timer"
+        class="hidden order-first lg:order-last lg:col-start-2 sticky top-[calc(var(--header-height,49px)+8px)] lg:top-[72px] z-20 min-w-0">
+
+        <!-- COMPACT TOP STICKY BAR (Mobile / Tablet < lg) -->
+        <div id="wodTimerCompactCard"
+          class="lg:hidden bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-md dark:shadow-xl relative overflow-hidden transition-colors">
+          <div data-timer-accent
+            class="absolute top-0 inset-x-0 h-[2px] bg-gradient-to-r from-zinc-900 via-volt-600 to-zinc-900 dark:from-volt dark:via-zinc-200 dark:to-volt transition-colors">
+          </div>
+
+          <!-- Row 1: Clock + Phase + Controls -->
+          <div class="px-3 pt-2.5 pb-1.5 flex items-center justify-between gap-2">
+            <div class="flex items-center gap-1.5 sm:gap-2 min-w-0 flex-1 overflow-hidden">
+              <span data-timer-status-dot class="w-2 h-2 rounded-full bg-zinc-400 shrink-0"></span>
+              <span data-timer-clock
+                class="font-mono text-lg sm:text-2xl font-extrabold tracking-tight tabular-nums text-zinc-950 dark:text-white shrink-0">
+                15:00
+              </span>
+              <span data-timer-phase data-timer-phase-row1
+                class="hidden min-[360px]:inline-block px-1.5 py-0.5 rounded text-[10px] font-mono font-bold uppercase tracking-wider bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-200 whitespace-nowrap shrink-0">
+                READY
+              </span>
+            </div>
+
+            <div class="flex items-center gap-1 shrink-0">
+              <button type="button" data-timer-action="toggle"
+                class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-zinc-950 hover:bg-zinc-800 dark:bg-volt dark:hover:bg-volt-400 text-white dark:text-zinc-950 flex items-center justify-center transition shrink-0"
+                title="Start / Pause Timer">
+                <span data-timer-toggle-icon="play" class="inline-flex items-center"><i data-lucide="play" class="w-3.5 h-3.5 fill-current"></i></span>
+                <span data-timer-toggle-icon="pause" class="hidden items-center"><i data-lucide="pause" class="w-3.5 h-3.5"></i></span>
+                <span data-timer-toggle-icon="restart" class="hidden items-center"><i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i></span>
+              </button>
+              <button type="button" data-timer-action="reset"
+                class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-600 dark:text-zinc-300 flex items-center justify-center transition shrink-0"
+                title="Reset Timer">
+                <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+              </button>
+              <button type="button" data-timer-action="mute"
+                class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-600 dark:text-zinc-300 flex items-center justify-center transition shrink-0"
+                title="Toggle Sound Cues">
+                <span data-timer-mute-icon="on" class="inline-flex items-center"><i data-lucide="volume-2" class="w-3.5 h-3.5"></i></span>
+                <span data-timer-mute-icon="off" class="hidden items-center"><i data-lucide="volume-x" class="w-3.5 h-3.5"></i></span>
+              </button>
+              <button type="button" data-timer-action="focus"
+                class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-600 dark:text-zinc-300 flex items-center justify-center transition shrink-0"
+                title="Expand Gym Clock View">
+                <i data-lucide="maximize-2" class="w-3.5 h-3.5"></i>
+              </button>
+              <button type="button" data-timer-action="close"
+                class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-500 dark:text-zinc-400 flex items-center justify-center transition shrink-0"
+                title="Close Timer">
+                <i data-lucide="x" class="w-3.5 h-3.5"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Row 2: Full-width Active Movement / Rounds + Next / Contextual Action -->
+          <div class="px-3 pb-2 pt-1 flex items-center justify-between gap-2 text-xs border-t border-zinc-100 dark:border-zinc-800/80">
+            <div class="flex items-center gap-1.5 min-w-0 flex-1">
+              <span data-timer-phase data-timer-phase-xs
+                class="inline-block min-[360px]:hidden px-1.5 py-0.5 rounded text-[10px] font-mono font-bold uppercase tracking-wider bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-200 whitespace-nowrap shrink-0">
+                READY
+              </span>
+              <span data-timer-active-line class="font-semibold text-zinc-800 dark:text-zinc-100 truncate min-w-0"></span>
+            </div>
+            <div class="flex items-center gap-1.5 shrink-0 max-w-[55%]">
+              <span data-timer-compact-right class="text-[11px] font-mono text-zinc-500 dark:text-zinc-400 truncate"></span>
+              <button type="button" data-timer-action="round-minus" data-timer-compact-minus
+                class="hidden w-6 h-6 rounded-md bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 border border-zinc-200 dark:border-zinc-700 text-xs font-mono font-bold text-zinc-700 dark:text-zinc-200 items-center justify-center transition shrink-0"
+                title="Subtract Round">
+                −
+              </button>
+              <button type="button" data-timer-context-btn
+                class="hidden px-2.5 py-1 rounded-md bg-zinc-900 dark:bg-zinc-800 hover:bg-zinc-700 dark:hover:bg-volt dark:hover:text-zinc-950 text-white dark:text-zinc-100 border border-zinc-900 dark:border-zinc-700 text-[11px] font-mono font-bold transition whitespace-nowrap shrink-0">
+                +1 Rnd
+              </button>
+            </div>
+          </div>
+
+          <div class="h-[2px] w-full bg-zinc-100 dark:bg-zinc-800 overflow-hidden">
+            <div data-timer-progress class="h-full bg-zinc-950 dark:bg-volt transition-[width] duration-150" style="width: 0%;"></div>
+          </div>
+        </div>
+
+        <!-- FULL SIDE DOCK CARD (Wide Screen lg+) -->
+        <div id="wodTimerDesktopCard"
+          class="hidden lg:flex flex-col bg-white dark:bg-zinc-900/95 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 shadow-sm dark:shadow-2xl relative overflow-hidden transition-colors">
+          <div data-timer-accent
+            class="absolute top-0 inset-x-0 h-[2px] bg-gradient-to-r from-zinc-900 via-volt-600 to-zinc-900 dark:from-volt dark:via-zinc-200 dark:to-volt transition-colors">
+          </div>
+
+          <!-- Header Row -->
+          <div class="flex items-center justify-between gap-2 pb-3 border-b border-zinc-200/80 dark:border-zinc-800/80">
+            <div class="flex items-center gap-2 min-w-0">
+              <span data-timer-status-dot class="w-2 h-2 rounded-full bg-zinc-400 shrink-0"></span>
+              <span data-timer-phase
+                class="px-2 py-0.5 rounded-md text-[10px] font-mono font-bold uppercase tracking-wider bg-zinc-950 text-white dark:bg-volt dark:text-zinc-950 whitespace-nowrap">
+                AMRAP
+              </span>
+              <span data-timer-subphase class="text-xs font-medium text-zinc-500 dark:text-zinc-400 truncate">
+              </span>
+            </div>
+
+            <div class="flex items-center gap-1 shrink-0">
+              <button type="button" data-timer-action="mute"
+                class="w-7 h-7 rounded-lg bg-zinc-100 dark:bg-zinc-800/80 hover:bg-zinc-200 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-300 flex items-center justify-center transition"
+                title="Toggle Sound Cues">
+                <span data-timer-mute-icon="on" class="inline-flex items-center"><i data-lucide="volume-2" class="w-3.5 h-3.5"></i></span>
+                <span data-timer-mute-icon="off" class="hidden items-center"><i data-lucide="volume-x" class="w-3.5 h-3.5"></i></span>
+              </button>
+              <button type="button" data-timer-action="focus"
+                class="w-7 h-7 rounded-lg bg-zinc-100 dark:bg-zinc-800/80 hover:bg-zinc-200 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-300 flex items-center justify-center transition"
+                title="Expand Gym Clock View">
+                <i data-lucide="maximize-2" class="w-3.5 h-3.5"></i>
+              </button>
+              <button type="button" data-timer-action="close"
+                class="w-7 h-7 rounded-lg bg-zinc-100 dark:bg-zinc-800/80 hover:bg-zinc-200 dark:hover:bg-zinc-800 text-zinc-500 dark:text-zinc-400 flex items-center justify-center transition"
+                title="Close Timer">
+                <i data-lucide="x" class="w-3.5 h-3.5"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Primary Digital Clock -->
+          <div
+            class="my-3.5 rounded-xl bg-zinc-50 dark:bg-zinc-950/60 border border-zinc-200/80 dark:border-zinc-800/80 px-4 py-4 text-center relative overflow-hidden">
+            <div data-timer-clock
+              class="font-mono text-5xl font-extrabold tracking-tight tabular-nums text-zinc-950 dark:text-white leading-none">
+              15:00
+            </div>
+            <div data-timer-secondary
+              class="mt-2 text-[11px] font-mono text-zinc-500 dark:text-zinc-400 tabular-nums">
+              15:00 total
+            </div>
+            <div class="mt-3 h-1 w-full rounded-full bg-zinc-200/80 dark:bg-zinc-800 overflow-hidden">
+              <div data-timer-progress class="h-full bg-zinc-950 dark:bg-volt transition-[width] duration-150" style="width: 0%;"></div>
+            </div>
+          </div>
+
+          <!-- Workout-Tailored Station / Round / Cap Context -->
+          <div data-timer-station-box class="hidden space-y-2 mb-3.5">
+            <div class="rounded-xl bg-zinc-50 dark:bg-zinc-950/60 border border-volt-600/40 dark:border-volt/40 px-3 py-2.5">
+              <div class="flex items-center justify-between gap-2 mb-0.5">
+                <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-volt-600 dark:text-volt">Now</span>
+                <span data-timer-ascending-pill class="hidden text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-volt-600/10 dark:bg-volt/15 text-volt-700 dark:text-volt"></span>
+              </div>
+              <p data-timer-active-line class="text-sm font-bold text-zinc-950 dark:text-white leading-snug"></p>
+            </div>
+            <div data-timer-next-wrap class="hidden px-2.5 py-1.5 rounded-lg bg-zinc-50/70 dark:bg-zinc-950/40 border border-zinc-200/70 dark:border-zinc-800/70 flex items-center justify-between gap-2 text-xs">
+              <span class="text-[10px] font-mono font-semibold uppercase tracking-wider text-zinc-400 shrink-0">Next</span>
+              <span data-timer-next-line class="text-zinc-600 dark:text-zinc-300 font-medium truncate"></span>
+            </div>
+          </div>
+
+          <!-- AMRAP Round Stepper -->
+          <div data-timer-amrap-box
+            class="hidden mb-3.5 rounded-xl bg-zinc-50 dark:bg-zinc-950/60 border border-zinc-200/80 dark:border-zinc-800/80 px-3 py-2 flex items-center justify-between gap-2">
+            <div>
+              <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 block">Rounds</span>
+              <span data-timer-rounds-count class="font-mono text-lg font-extrabold tabular-nums text-zinc-950 dark:text-white">0</span>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <button type="button" data-timer-action="round-minus"
+                class="w-8 h-8 rounded-lg bg-white dark:bg-zinc-900 hover:bg-zinc-100 dark:hover:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-xs font-mono font-bold text-zinc-700 dark:text-zinc-200 transition">
+                −
+              </button>
+              <button type="button" data-timer-action="round-plus"
+                class="px-3 h-8 rounded-lg bg-zinc-900 dark:bg-zinc-800 hover:bg-zinc-700 dark:hover:bg-volt dark:hover:text-zinc-950 text-white dark:text-zinc-100 border border-zinc-900 dark:border-zinc-700 text-xs font-mono font-bold transition">
+                +1 Round
+              </button>
+            </div>
+          </div>
+
+          <!-- FOR TIME Finish Action -->
+          <div data-timer-fortime-box class="hidden mb-3.5">
+            <button type="button" data-timer-action="finish"
+              class="w-full py-2 px-3 rounded-xl bg-zinc-100 dark:bg-zinc-800/90 hover:bg-zinc-200 dark:hover:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-xs font-mono font-bold uppercase tracking-wider text-zinc-900 dark:text-zinc-100 flex items-center justify-center gap-1.5 transition">
+              <i data-lucide="flag" class="w-3.5 h-3.5 text-volt-600 dark:text-volt"></i>
+              <span>Finish &amp; Log Time</span>
+            </button>
+          </div>
+
+          <!-- Primary Controls -->
+          <div class="flex items-center gap-2">
+            <button type="button" data-timer-action="toggle"
+              class="flex-1 py-2.5 px-4 rounded-xl bg-zinc-950 hover:bg-zinc-800 dark:bg-volt dark:hover:bg-volt-400 active:scale-[0.98] text-white dark:text-zinc-950 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-sm transition">
+              <span data-timer-toggle-icon="play" class="inline-flex items-center"><i data-lucide="play" class="w-3.5 h-3.5 fill-current"></i></span>
+              <span data-timer-toggle-icon="pause" class="hidden items-center"><i data-lucide="pause" class="w-3.5 h-3.5"></i></span>
+              <span data-timer-toggle-icon="restart" class="hidden items-center"><i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i></span>
+              <span data-timer-toggle-label>Start</span>
+            </button>
+            <button type="button" data-timer-action="reset"
+              class="px-3 py-2.5 rounded-xl bg-zinc-100 dark:bg-zinc-800/80 hover:bg-zinc-200/80 dark:hover:bg-zinc-800 border border-zinc-200 dark:border-zinc-700/80 text-xs font-semibold text-zinc-700 dark:text-zinc-200 flex items-center justify-center transition"
+              title="Reset Timer">
+              <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>
+        </div>
+      </aside>
+    </div><!-- /#wodWorkspaceGrid -->
   </main>
 
   <!-- MINIMAL FOOTER & INDEXABLE OVERVIEW -->
-  <footer class="max-w-3xl w-full mx-auto px-3.5 sm:px-6 pb-5 pt-1 text-[11px] text-zinc-500 dark:text-zinc-400">
+  <footer id="appFooter" class="max-w-3xl w-full mx-auto px-3.5 sm:px-6 pb-5 pt-1 text-[11px] text-zinc-500 dark:text-zinc-400">
     <details
       class="group rounded-xl border border-zinc-200/70 dark:border-zinc-800/70 bg-white/60 dark:bg-zinc-900/50 px-3.5 py-2 transition-colors">
       <summary
@@ -964,6 +1172,86 @@
     </div>
   </div>
 
+  <!-- GYM-FLOOR FOCUS CLOCK MODAL (Optional Expanded View) -->
+  <div id="timerFocusModal"
+    class="fixed inset-0 z-50 hidden items-center justify-center p-3 sm:p-6 bg-zinc-950/60 dark:bg-zinc-950/85 backdrop-blur-md">
+    <div id="timerFocusCard"
+      class="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl max-w-xl w-full max-h-[94vh] flex flex-col shadow-2xl relative overflow-hidden p-5 sm:p-7">
+      <div data-timer-accent
+        class="absolute top-0 inset-x-0 h-[3px] bg-gradient-to-r from-zinc-900 via-volt-600 to-zinc-900 dark:from-volt dark:via-zinc-200 dark:to-volt transition-colors">
+      </div>
+
+      <!-- Focus Header -->
+      <div class="flex items-center justify-between gap-2 pb-3 border-b border-zinc-200/80 dark:border-zinc-800/80">
+        <div class="flex items-center gap-2 min-w-0">
+          <span data-timer-status-dot class="w-2.5 h-2.5 rounded-full bg-zinc-400 shrink-0"></span>
+          <span data-timer-phase
+            class="px-2 py-0.5 rounded-md text-[11px] font-mono font-bold uppercase tracking-wider bg-zinc-950 text-white dark:bg-volt dark:text-zinc-950 whitespace-nowrap">
+            AMRAP
+          </span>
+          <span id="timerFocusWodTitle"
+            class="text-xs font-bold text-zinc-600 dark:text-zinc-300 uppercase tracking-wider truncate">
+          </span>
+        </div>
+
+        <div class="flex items-center gap-1.5 shrink-0">
+          <button type="button" data-timer-action="mute"
+            class="w-8 h-8 rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-600 dark:text-zinc-300 flex items-center justify-center transition"
+            title="Toggle Sound Cues">
+            <span data-timer-mute-icon="on" class="inline-flex items-center"><i data-lucide="volume-2" class="w-4 h-4"></i></span>
+            <span data-timer-mute-icon="off" class="hidden items-center"><i data-lucide="volume-x" class="w-4 h-4"></i></span>
+          </button>
+          <button type="button" id="closeTimerFocusBtn"
+            class="w-8 h-8 rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-600 dark:text-zinc-300 flex items-center justify-center transition"
+            title="Exit Focus View">
+            <i data-lucide="minimize-2" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Giant Clock -->
+      <div class="py-6 sm:py-8 text-center">
+        <div data-timer-subphase class="text-xs font-mono font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-2">
+        </div>
+        <div data-timer-clock
+          class="font-mono text-7xl sm:text-8xl font-extrabold tracking-tight tabular-nums text-zinc-950 dark:text-white leading-none">
+          15:00
+        </div>
+        <div data-timer-secondary class="mt-3 text-xs font-mono text-zinc-500 dark:text-zinc-400 tabular-nums">
+        </div>
+        <div class="mt-4 h-1.5 w-full rounded-full bg-zinc-100 dark:bg-zinc-800 overflow-hidden">
+          <div data-timer-progress class="h-full bg-zinc-950 dark:bg-volt transition-[width] duration-150" style="width: 0%;"></div>
+        </div>
+      </div>
+
+      <!-- Active / Workout Movements Context -->
+      <div id="timerFocusMovementsArea" class="mb-5 space-y-2 overflow-y-auto max-h-44">
+        <!-- Populated dynamically for EMOM/Tabata active movement + canvas, or AMRAP/ForTime list -->
+      </div>
+
+      <!-- Focus Controls -->
+      <div class="flex flex-wrap items-center gap-2 pt-2 border-t border-zinc-200/80 dark:border-zinc-800/80">
+        <button type="button" data-timer-context-btn
+          class="hidden px-4 py-3 rounded-xl bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 border border-zinc-200 dark:border-zinc-700 text-xs font-mono font-bold uppercase tracking-wider text-zinc-900 dark:text-zinc-100 transition whitespace-nowrap">
+          +1 Round
+        </button>
+        <button type="button" data-timer-action="toggle"
+          class="flex-1 py-3 px-5 rounded-xl bg-zinc-950 hover:bg-zinc-800 dark:bg-volt dark:hover:bg-volt-400 active:scale-[0.98] text-white dark:text-zinc-950 font-bold text-sm uppercase tracking-wider flex items-center justify-center gap-2 shadow-sm transition">
+          <span data-timer-toggle-icon="play" class="inline-flex items-center"><i data-lucide="play" class="w-4 h-4 fill-current"></i></span>
+          <span data-timer-toggle-icon="pause" class="hidden items-center"><i data-lucide="pause" class="w-4 h-4"></i></span>
+          <span data-timer-toggle-icon="restart" class="hidden items-center"><i data-lucide="rotate-ccw" class="w-4 h-4"></i></span>
+          <span data-timer-toggle-label>Start</span>
+        </button>
+        <button type="button" data-timer-action="reset"
+          class="px-4 py-3 rounded-xl bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 border border-zinc-200 dark:border-zinc-700 text-xs font-semibold text-zinc-700 dark:text-zinc-200 flex items-center justify-center gap-1.5 transition"
+          title="Reset Timer">
+          <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+          <span class="hidden sm:inline">Reset</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- FLOATING RE-ROLL CTA (Appears when top Re-Roll button scrolls off screen) -->
   <div id="floatingRerollBar"
     class="fixed bottom-5 left-1/2 -translate-x-1/2 z-40 transition-all duration-300 opacity-0 translate-y-10 pointer-events-none">
@@ -997,6 +1285,7 @@
   <script src="src/state/app-state.js"></script>
   <script src="src/generator/workout-generator.js"></script>
   <script src="src/sharing/workout-sharing.js"></script>
+  <script src="src/timer/workout-timer.js"></script>
   <script src="src/ui/ui.js"></script>
   <script src="src/main.js"></script>
 </body>

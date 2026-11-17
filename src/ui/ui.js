@@ -9,9 +9,21 @@ const UI = {
   _matrixShowAllEquipment: false,
   _demoContext: null,
   _returnToDemoState: null,
+  _isTimerOpen: false,
+  _isTimerFocusOpen: false,
+  _lastTimerActiveRow: null,
+  _lastFocusKey: null,
 
   async init() {
     AppState.loadFromStorage();
+
+    if (globalThis.WorkoutTimer) {
+      WorkoutTimer.init({
+        onTick: snap => this.renderTimerSnapshot(snap),
+        onCue: (cue, snap) => this.handleTimerCue(cue, snap)
+      });
+    }
+    this.syncHeaderHeightVar();
 
     const sharedCfg = WorkoutSharing.loadConfigFromUrl();
     if (sharedCfg) {
@@ -286,6 +298,7 @@ const UI = {
     const actionButtons = [mainGenBtn, rerollBtn, floatRerollBtn].filter(Boolean);
 
     if (isOutdated) {
+      this.closeWorkoutTimer();
       this.clearConfigUrl();
       if (card) card.classList.add('wod-outdated');
       if (badge) {
@@ -900,6 +913,13 @@ const UI = {
     }
 
     this.renderWodIntensityControl(wod);
+
+    if (globalThis.WorkoutTimer) {
+      WorkoutTimer.setWorkout(wod, { preserveIfSame: true });
+      if (this._isTimerOpen) {
+        this.animateTimerRefresh();
+      }
+    }
   },
 
   generateAndDisplayWod() {
@@ -939,7 +959,7 @@ const UI = {
     const timeCapBadgeEl = document.getElementById('wodTimeCapBadge');
     const timeCapTextEl = document.getElementById('wodTimeCapText');
     if (timeCapTextEl) {
-      timeCapTextEl.textContent = clockLabel;
+      this.animateTextUpdate(timeCapTextEl, clockLabel, 'rep-pulse');
     }
     if (timeCapBadgeEl) {
       timeCapBadgeEl.classList.toggle('hidden', !clockLabel);
@@ -976,6 +996,17 @@ const UI = {
     }).join('');
 
     lucide.createIcons();
+
+    if (globalThis.WorkoutTimer) {
+      this._lastTimerActiveRow = null;
+      this._lastFocusKey = null;
+      WorkoutTimer.setWorkout(wod);
+      if (!wod.items || wod.items.length === 0) {
+        this.closeWorkoutTimer();
+      } else if (this._isTimerOpen) {
+        this.animateTimerRefresh();
+      }
+    }
   },
 
   renderWodItemHtml(item, index, animationDelay = null, isSingleRow = false) {
@@ -1242,6 +1273,14 @@ const UI = {
 
       if (typeof lucide !== 'undefined' && lucide.createIcons) {
         lucide.createIcons();
+      }
+
+      if (globalThis.WorkoutTimer) {
+        this._lastFocusKey = null;
+        WorkoutTimer.setWorkout(wod, { preserveIfSame: true });
+        if (this._isTimerOpen) {
+          this.animateTimerRefresh();
+        }
       }
     }, 140);
   },
@@ -2547,6 +2586,11 @@ const UI = {
     // Global Escape Key listener to gracefully close top-most modal
     window.addEventListener('keydown', e => {
       if (e.key !== 'Escape') return;
+      const focusModal = document.getElementById('timerFocusModal');
+      if (focusModal && !focusModal.classList.contains('hidden') && !focusModal._isClosing) {
+        this.closeTimerFocusModal();
+        return;
+      }
       const demoModal = document.getElementById('movementDemoModal');
       if (demoModal && !demoModal.classList.contains('hidden') && !demoModal._isClosing) {
         this.closeMovementDemoModal();
@@ -2568,6 +2612,46 @@ const UI = {
       }
     });
 
+    // Workout Timer Entry & Delegated Controls
+    const timeCapBadge = document.getElementById('wodTimeCapBadge');
+    if (timeCapBadge) {
+      timeCapBadge.addEventListener('click', () => this.toggleWorkoutTimer());
+    }
+
+    const handleTimerContainerClick = e => {
+      const actionBtn = e.target.closest('[data-timer-action]');
+      if (actionBtn) {
+        this.handleTimerAction(actionBtn.dataset.timerAction);
+        return;
+      }
+      const ctxBtn = e.target.closest('[data-timer-context-btn]');
+      if (ctxBtn && globalThis.WorkoutTimer) {
+        const snap = WorkoutTimer.getSnapshot();
+        if (!snap) return;
+        if (snap.format === 'AMRAP') {
+          WorkoutTimer.adjustRounds(1);
+        } else if (snap.format === 'FOR_TIME') {
+          WorkoutTimer.finishNow();
+        }
+      }
+    };
+
+    const timerSection = document.getElementById('wodTimerSection');
+    if (timerSection) {
+      timerSection.addEventListener('click', handleTimerContainerClick);
+    }
+
+    const timerFocusModal = document.getElementById('timerFocusModal');
+    if (timerFocusModal) {
+      timerFocusModal.addEventListener('click', e => {
+        if (e.target.id === 'timerFocusModal' || e.target.closest('#closeTimerFocusBtn')) {
+          this.closeTimerFocusModal();
+          return;
+        }
+        handleTimerContainerClick(e);
+      });
+    }
+
     // Reset Preferences Button
     document.getElementById('resetPrefsBtn').addEventListener('click', () => {
       localStorage.removeItem(STORAGE_KEY);
@@ -2588,6 +2672,641 @@ const UI = {
       this.generateAndDisplayWod();
       this.showToast('Preferences reset to defaults.');
     });
+  },
+
+  // ===========================================================================
+  // WORKOUT TIMER DOCK & VISUAL/AUDIO CUES
+  // ===========================================================================
+  toggleWorkoutTimer() {
+    if (this._isTimerOpen) {
+      this.closeWorkoutTimer();
+    } else {
+      this.openWorkoutTimer();
+    }
+  },
+
+  _animateWorkspaceFlip(applyLayoutFn) {
+    const col = document.getElementById('wodPrimaryColumn');
+    const firstRect = col ? col.getBoundingClientRect() : null;
+
+    if (col && col._flipTimer) {
+      clearTimeout(col._flipTimer);
+      col._flipTimer = null;
+    }
+
+    applyLayoutFn();
+
+    if (!col || !firstRect) return;
+    const lastRect = col.getBoundingClientRect();
+    const dx = firstRect.left - lastRect.left;
+    const dy = firstRect.top - lastRect.top;
+
+    if (Math.abs(dx) < 0.5 && Math.abs(dy) < 0.5) return;
+
+    col.style.transition = 'none';
+    col.style.transform = `translate3d(${dx}px, ${dy}px, 0)`;
+    col.style.willChange = 'transform';
+    void col.offsetWidth;
+
+    requestAnimationFrame(() => {
+      col.style.transition = 'transform 0.34s cubic-bezier(0.16, 1, 0.3, 1)';
+      col.style.transform = 'translate3d(0, 0, 0)';
+    });
+
+    const cleanup = () => {
+      col.style.transition = '';
+      col.style.transform = '';
+      col.style.willChange = '';
+      if (col._flipTimer) {
+        clearTimeout(col._flipTimer);
+        col._flipTimer = null;
+      }
+    };
+    col.addEventListener('transitionend', cleanup, { once: true });
+    col._flipTimer = setTimeout(cleanup, 380);
+  },
+
+  _clearTimerExitStyles(timerSection) {
+    if (!timerSection) return;
+    if (timerSection._closeTimeout) {
+      clearTimeout(timerSection._closeTimeout);
+      timerSection._closeTimeout = null;
+    }
+    timerSection.classList.remove('timer-dock-exit');
+    timerSection.style.position = '';
+    timerSection.style.top = '';
+    timerSection.style.left = '';
+    timerSection.style.width = '';
+    timerSection.style.zIndex = '';
+    timerSection.style.pointerEvents = '';
+  },
+
+  openWorkoutTimer() {
+    const wod = AppState.currentWod;
+    if (this.isOutdated || !wod || !wod.items || wod.items.length === 0 || !globalThis.WorkoutTimer) return;
+    if (this._isTimerOpen) return;
+    if (!WorkoutTimer.getPlan() || WorkoutTimer.getPlan().wod !== wod) {
+      WorkoutTimer.setWorkout(wod, { preserveIfSame: true });
+    }
+
+    this._isTimerOpen = true;
+    const timerSection = document.getElementById('wodTimerSection');
+    const grid = document.getElementById('wodWorkspaceGrid');
+    const main = document.getElementById('appMain');
+    const headerInner = document.getElementById('headerInner');
+    const footer = document.getElementById('appFooter');
+    const badge = document.getElementById('wodTimeCapBadge');
+
+    this._clearTimerExitStyles(timerSection);
+
+    this._animateWorkspaceFlip(() => {
+      [main, headerInner, footer].forEach(el => {
+        if (!el) return;
+        el.classList.remove('max-w-3xl');
+        el.classList.add('max-w-3xl', 'lg:max-w-6xl', 'xl:max-w-[1164px]');
+      });
+
+      if (grid) {
+        grid.classList.add('lg:grid-cols-[minmax(0,1fr)_340px]', 'xl:grid-cols-[minmax(0,1fr)_376px]', 'lg:gap-5', 'lg:items-start');
+      }
+
+      if (timerSection) {
+        timerSection.classList.remove('hidden', 'timer-dock-enter');
+        void timerSection.offsetWidth;
+        timerSection.classList.add('timer-dock-enter');
+      }
+    });
+
+    if (badge) {
+      badge.setAttribute('aria-expanded', 'true');
+    }
+
+    this.renderTimerSnapshot(WorkoutTimer.getSnapshot());
+  },
+
+  closeWorkoutTimer() {
+    if (!this._isTimerOpen) return;
+    this._isTimerOpen = false;
+    this.closeTimerFocusModal();
+
+    if (globalThis.WorkoutTimer && WorkoutTimer.isActive()) {
+      WorkoutTimer.startOrPause();
+    }
+
+    const timerSection = document.getElementById('wodTimerSection');
+    const grid = document.getElementById('wodWorkspaceGrid');
+    const main = document.getElementById('appMain');
+    const headerInner = document.getElementById('headerInner');
+    const footer = document.getElementById('appFooter');
+    const badge = document.getElementById('wodTimeCapBadge');
+
+    const timerRect = (timerSection && !timerSection.classList.contains('hidden'))
+      ? timerSection.getBoundingClientRect()
+      : null;
+
+    this._clearTimerExitStyles(timerSection);
+
+    if (timerSection && timerRect && timerRect.width > 0) {
+      timerSection.classList.remove('timer-dock-enter');
+      timerSection.style.position = 'fixed';
+      timerSection.style.top = `${timerRect.top}px`;
+      timerSection.style.left = `${timerRect.left}px`;
+      timerSection.style.width = `${timerRect.width}px`;
+      timerSection.style.zIndex = '15';
+      timerSection.style.pointerEvents = 'none';
+    }
+
+    this._animateWorkspaceFlip(() => {
+      if (grid) {
+        grid.classList.remove('lg:grid-cols-[minmax(0,1fr)_340px]', 'xl:grid-cols-[minmax(0,1fr)_376px]', 'lg:gap-5', 'lg:items-start');
+      }
+      [main, headerInner, footer].forEach(el => {
+        if (!el) return;
+        el.classList.remove('lg:max-w-6xl', 'xl:max-w-[1164px]');
+        el.classList.add('max-w-3xl');
+      });
+    });
+
+    if (timerSection) {
+      if (timerRect && timerRect.width > 0) {
+        void timerSection.offsetWidth;
+        timerSection.classList.add('timer-dock-exit');
+        const finalizeClose = () => {
+          if (this._isTimerOpen) return;
+          timerSection.classList.add('hidden');
+          this._clearTimerExitStyles(timerSection);
+        };
+        timerSection.addEventListener('animationend', finalizeClose, { once: true });
+        timerSection._closeTimeout = setTimeout(finalizeClose, 280);
+      } else {
+        timerSection.classList.add('hidden');
+      }
+    }
+
+    if (badge) {
+      badge.setAttribute('aria-expanded', 'false');
+    }
+
+    this.syncTimerRowHighlights(null);
+    if (AppState.currentWod) {
+      const timeCapTextEl = document.getElementById('wodTimeCapText');
+      if (timeCapTextEl) {
+        timeCapTextEl.textContent = WorkoutGenerator.getClockBadgeLabel(AppState.currentWod);
+      }
+    }
+    this._updateTimeCapBadgeState(false, 'idle');
+  },
+
+  openTimerFocusModal() {
+    if (!globalThis.WorkoutTimer) return;
+    const modal = document.getElementById('timerFocusModal');
+    const card = document.getElementById('timerFocusCard');
+    const titleEl = document.getElementById('timerFocusWodTitle');
+    if (titleEl && AppState.currentWod) {
+      titleEl.textContent = AppState.currentWod.title || '';
+    }
+    this._isTimerFocusOpen = true;
+    this._lastFocusKey = null;
+    this._openModalEl(modal, card);
+    this.renderTimerSnapshot(WorkoutTimer.getSnapshot());
+  },
+
+  closeTimerFocusModal() {
+    const modal = document.getElementById('timerFocusModal');
+    const card = document.getElementById('timerFocusCard');
+    this._isTimerFocusOpen = false;
+    this._closeModalEl(modal, card);
+  },
+
+  handleTimerAction(action) {
+    if (!globalThis.WorkoutTimer) return;
+    switch (action) {
+      case 'toggle':
+        WorkoutTimer.startOrPause();
+        break;
+      case 'reset':
+        WorkoutTimer.reset();
+        break;
+      case 'mute':
+        WorkoutTimer.toggleMute();
+        break;
+      case 'focus':
+        this.openTimerFocusModal();
+        break;
+      case 'close':
+        this.closeWorkoutTimer();
+        break;
+      case 'finish':
+        WorkoutTimer.finishNow();
+        break;
+      case 'round-plus':
+        WorkoutTimer.adjustRounds(1);
+        break;
+      case 'round-minus':
+        WorkoutTimer.adjustRounds(-1);
+        break;
+    }
+  },
+
+  syncHeaderHeightVar() {
+    const header = document.getElementById('appHeader');
+    if (!header || typeof document === 'undefined') return;
+    const applyHeight = () => {
+      const h = Math.round(header.getBoundingClientRect().height);
+      if (h > 0) {
+        document.documentElement.style.setProperty('--header-height', `${h}px`);
+      }
+    };
+    applyHeight();
+    if (typeof ResizeObserver !== 'undefined' && !this._headerResizeObserver) {
+      this._headerResizeObserver = new ResizeObserver(applyHeight);
+      this._headerResizeObserver.observe(header);
+    }
+    if (!this._headerResizeBound) {
+      this._headerResizeBound = true;
+      window.addEventListener('resize', applyHeight, { passive: true });
+    }
+  },
+
+  _setIconState(root, selector, activeKey) {
+    if (!root) return;
+    root.querySelectorAll(selector).forEach(el => {
+      const key = el.getAttribute(selector.slice(1, -1));
+      const isMatch = key === activeKey;
+      el.classList.toggle('hidden', !isMatch);
+      el.classList.toggle('inline-flex', isMatch);
+    });
+  },
+
+  _updateTimeCapBadgeState(isOpen, status, liveClockText = null) {
+    const badge = document.getElementById('wodTimeCapBadge');
+    const textEl = document.getElementById('wodTimeCapText');
+    if (!badge) return;
+
+    const isRunning = status === 'running' || status === 'countdown';
+    if (isOpen) {
+      badge.className = 'inline-flex items-center gap-1.5 text-xs sm:text-sm font-mono font-bold tabular-nums text-zinc-950 dark:text-volt bg-sky-50 dark:bg-volt/15 border border-volt-600/50 dark:border-volt/60 px-2.5 py-1 rounded-lg whitespace-nowrap shrink-0 transition cursor-pointer';
+      this._setIconState(badge, '[data-cap-icon]', isRunning ? 'pause' : 'timer');
+    } else {
+      badge.className = 'inline-flex items-center gap-1.5 text-xs sm:text-sm font-mono font-bold tabular-nums text-zinc-800 dark:text-zinc-200 bg-white dark:bg-zinc-900 hover:bg-zinc-100 dark:hover:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-volt px-2.5 py-1 rounded-lg whitespace-nowrap shrink-0 transition cursor-pointer';
+      this._setIconState(badge, '[data-cap-icon]', 'play');
+    }
+
+    if (textEl && AppState.currentWod) {
+      textEl.textContent = (isOpen && status !== 'idle' && liveClockText)
+        ? liveClockText
+        : WorkoutGenerator.getClockBadgeLabel(AppState.currentWod);
+    }
+  },
+
+  renderTimerSnapshot(snap) {
+    if (!snap) return;
+
+    this._updateTimeCapBadgeState(this._isTimerOpen, snap.status, snap.primaryDisplay);
+    if (!this._isTimerOpen && !this._isTimerFocusOpen) return;
+
+    const roots = [
+      document.getElementById('wodTimerSection'),
+      this._isTimerFocusOpen ? document.getElementById('timerFocusModal') : null
+    ].filter(Boolean);
+
+    const toneDotClasses = {
+      idle: 'bg-zinc-400 dark:bg-zinc-500',
+      countdown: 'bg-amber-500 animate-pulse',
+      work: 'bg-volt-600 dark:bg-volt animate-pulse',
+      rest: 'bg-amber-500 dark:bg-amber-400',
+      warning: 'bg-rose-500 animate-ping',
+      done: 'bg-emerald-500'
+    };
+
+    const tonePhaseClasses = {
+      idle: 'bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-200',
+      countdown: 'bg-amber-500/15 text-amber-800 dark:text-amber-300 border border-amber-500/30',
+      work: 'bg-zinc-950 text-white dark:bg-volt dark:text-zinc-950',
+      rest: 'bg-amber-500/15 text-amber-800 dark:text-amber-300 border border-amber-500/30',
+      warning: 'bg-rose-500/15 text-rose-700 dark:text-rose-300 border border-rose-500/35',
+      done: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30'
+    };
+
+    const toneProgressClasses = {
+      idle: 'bg-zinc-400 dark:bg-zinc-600',
+      countdown: 'bg-amber-500',
+      work: 'bg-zinc-950 dark:bg-volt',
+      rest: 'bg-amber-500 dark:bg-amber-400',
+      warning: 'bg-rose-500',
+      done: 'bg-emerald-500'
+    };
+
+    const isRunning = snap.status === 'running' || snap.status === 'countdown';
+    const toggleIconKey = isRunning ? 'pause' : (snap.status === 'finished' ? 'restart' : 'play');
+    const toggleLabelText = isRunning
+      ? 'Pause'
+      : (snap.status === 'paused' ? 'Resume' : (snap.status === 'finished' ? 'Restart' : 'Start'));
+    const muteIconKey = snap.isMuted ? 'off' : 'on';
+
+    roots.forEach(root => {
+      root.querySelectorAll('[data-timer-clock]').forEach(el => {
+        el.textContent = snap.primaryDisplay;
+      });
+      root.querySelectorAll('[data-timer-secondary]').forEach(el => {
+        el.textContent = snap.secondaryDisplay || '';
+      });
+      root.querySelectorAll('[data-timer-phase]').forEach(el => {
+        el.textContent = snap.phaseLabel;
+        let base = 'px-2 py-0.5 rounded-md text-[10px] font-mono font-bold uppercase tracking-wider whitespace-nowrap';
+        if (el.hasAttribute('data-timer-phase-row1')) {
+          base = 'hidden min-[360px]:inline-block px-1.5 py-0.5 rounded text-[10px] font-mono font-bold uppercase tracking-wider whitespace-nowrap shrink-0';
+        } else if (el.hasAttribute('data-timer-phase-xs')) {
+          base = 'inline-block min-[360px]:hidden px-1.5 py-0.5 rounded text-[10px] font-mono font-bold uppercase tracking-wider whitespace-nowrap shrink-0';
+        }
+        el.className = `${base} ${tonePhaseClasses[snap.phaseTone] || tonePhaseClasses.idle}`;
+      });
+      root.querySelectorAll('[data-timer-subphase]').forEach(el => {
+        el.textContent = snap.subPhaseLabel || '';
+      });
+      root.querySelectorAll('[data-timer-status-dot]').forEach(el => {
+        const sizeCls = el.closest('#timerFocusCard') ? 'w-2.5 h-2.5' : 'w-2 h-2';
+        el.className = `${sizeCls} rounded-full shrink-0 ${toneDotClasses[snap.phaseTone] || toneDotClasses.idle}`;
+      });
+      root.querySelectorAll('[data-timer-progress]').forEach(el => {
+        el.style.width = `${Math.max(0, Math.min(100, snap.progressPct || 0))}%`;
+        el.className = `h-full transition-[width] duration-150 ${toneProgressClasses[snap.phaseTone] || toneProgressClasses.work}`;
+      });
+      root.querySelectorAll('[data-timer-toggle-label]').forEach(el => {
+        el.textContent = toggleLabelText;
+      });
+      this._setIconState(root, '[data-timer-toggle-icon]', toggleIconKey);
+      this._setIconState(root, '[data-timer-mute-icon]', muteIconKey);
+
+      // Active / next movement lines
+      root.querySelectorAll('[data-timer-active-line]').forEach(el => {
+        if (snap.liveTargetText) {
+          el.textContent = snap.liveTargetText;
+        } else if (snap.format === 'AMRAP') {
+          el.textContent = `Rounds: ${snap.rounds}`;
+        } else if (snap.format === 'FOR_TIME') {
+          el.textContent = snap.subPhaseLabel || '';
+        } else {
+          el.textContent = '';
+        }
+      });
+
+      root.querySelectorAll('[data-timer-next-line]').forEach(el => {
+        el.textContent = snap.nextTargetText ? `Next: ${snap.nextTargetText}` : '';
+      });
+
+      root.querySelectorAll('[data-timer-compact-right]').forEach(el => {
+        const showForTimeFinish = snap.format === 'FOR_TIME' && (snap.status === 'running' || snap.status === 'paused');
+        if (snap.format === 'AMRAP' || showForTimeFinish) {
+          el.textContent = '';
+          el.classList.add('hidden');
+        } else {
+          el.classList.remove('hidden');
+          el.textContent = snap.nextTargetText ? `Next: ${snap.nextTargetText}` : (snap.secondaryDisplay || '');
+        }
+      });
+
+      root.querySelectorAll('[data-timer-compact-minus]').forEach(btn => {
+        const show = snap.format === 'AMRAP';
+        btn.classList.toggle('hidden', !show);
+        btn.classList.toggle('inline-flex', show);
+      });
+
+      const compactCard = root.querySelector('#wodTimerCompactCard');
+      if (compactCard) {
+        const compactReset = compactCard.querySelector('[data-timer-action="reset"]');
+        if (compactReset) {
+          const hideReset = snap.status === 'idle';
+          compactReset.classList.toggle('hidden', hideReset);
+          compactReset.classList.toggle('flex', !hideReset);
+        }
+      }
+
+      root.querySelectorAll('[data-timer-rounds-count]').forEach(el => {
+        el.textContent = String(snap.rounds || 0);
+      });
+
+      // Contextual mobile / focus button (+1 Rnd for AMRAP, Finish for For Time)
+      root.querySelectorAll('[data-timer-context-btn]').forEach(btn => {
+        if (snap.format === 'AMRAP') {
+          btn.classList.remove('hidden');
+          btn.textContent = btn.closest('#wodTimerCompactCard') ? '+1 Rnd' : `+1 Rnd (${snap.rounds})`;
+        } else if (snap.format === 'FOR_TIME' && (snap.status === 'running' || snap.status === 'paused')) {
+          btn.classList.remove('hidden');
+          btn.textContent = 'Finish';
+        } else {
+          btn.classList.add('hidden');
+        }
+      });
+    });
+
+    // Desktop side card contextual panels
+    const desktopCard = document.getElementById('wodTimerDesktopCard');
+    if (desktopCard) {
+      const stationBox = desktopCard.querySelector('[data-timer-station-box]');
+      const nextWrap = desktopCard.querySelector('[data-timer-next-wrap]');
+      const ascPill = desktopCard.querySelector('[data-timer-ascending-pill]');
+      const amrapBox = desktopCard.querySelector('[data-timer-amrap-box]');
+      const forTimeBox = desktopCard.querySelector('[data-timer-fortime-box]');
+
+      const isStationFormat = snap.format === 'EMOM' || snap.format === 'INTERVALS';
+      if (stationBox) stationBox.classList.toggle('hidden', !isStationFormat);
+      if (nextWrap) nextWrap.classList.toggle('hidden', !snap.nextTargetText);
+      if (ascPill) {
+        ascPill.classList.toggle('hidden', !snap.ascendingTarget);
+        if (snap.ascendingTarget) ascPill.textContent = snap.ascendingTarget;
+      }
+      if (amrapBox) amrapBox.classList.toggle('hidden', snap.format !== 'AMRAP');
+      if (forTimeBox) {
+        const showFinish = snap.format === 'FOR_TIME' && (snap.status === 'running' || snap.status === 'paused');
+        forTimeBox.classList.toggle('hidden', !showFinish);
+      }
+    }
+
+    this.syncTimerRowHighlights(snap);
+    if (this._isTimerFocusOpen) {
+      this.renderTimerFocusMovements(snap);
+    }
+  },
+
+  syncTimerRowHighlights(snap) {
+    const listEl = document.getElementById('wodMovementsList');
+    if (!listEl) return;
+
+    const rows = Array.from(listEl.querySelectorAll('[data-wod-row-index]'));
+    const hasStationHighlight = Boolean(
+      snap &&
+      this._isTimerOpen &&
+      (snap.format === 'EMOM' || snap.format === 'INTERVALS') &&
+      snap.status !== 'idle' &&
+      snap.status !== 'finished' &&
+      snap.activeItemIndex !== null &&
+      snap.activeItemIndex !== undefined
+    );
+
+    rows.forEach((row, idx) => {
+      row.classList.remove('wod-row-active', 'wod-row-dimmed');
+      const existingTag = row.querySelector('[data-timer-row-tag]');
+      if (existingTag) existingTag.remove();
+
+      if (!hasStationHighlight) return;
+
+      const isAll = snap.activeItemIndex === 'all';
+      const isActive = isAll || snap.activeItemIndex === idx;
+      const isNext = !isAll && snap.nextItemIndex === idx;
+
+      if (isActive) {
+        row.classList.add('wod-row-active');
+        const badgeRow = row.querySelector('.flex.flex-wrap.items-center.gap-1\\.5.mb-1');
+        if (badgeRow) {
+          const tag = document.createElement('span');
+          tag.dataset.timerRowTag = 'now';
+          tag.className = 'font-mono text-[10px] font-extrabold uppercase tracking-wider px-1.5 py-0.5 rounded bg-volt-600 text-white dark:bg-volt dark:text-zinc-950 whitespace-nowrap';
+          tag.textContent = snap.ascendingTarget ? `NOW • ${snap.ascendingTarget}` : 'NOW';
+          badgeRow.prepend(tag);
+        }
+      } else {
+        row.classList.add('wod-row-dimmed');
+        if (isNext) {
+          const badgeRow = row.querySelector('.flex.flex-wrap.items-center.gap-1\\.5.mb-1');
+          if (badgeRow) {
+            const tag = document.createElement('span');
+            tag.dataset.timerRowTag = 'next';
+            tag.className = 'font-mono text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-zinc-200 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 whitespace-nowrap';
+            tag.textContent = 'NEXT';
+            badgeRow.prepend(tag);
+          }
+        }
+      }
+    });
+
+    // On narrow screens, gently keep the active station in view when it switches
+    if (
+      hasStationHighlight &&
+      typeof snap.activeItemIndex === 'number' &&
+      snap.activeItemIndex !== this._lastTimerActiveRow
+    ) {
+      this._lastTimerActiveRow = snap.activeItemIndex;
+      if (window.innerWidth < 1024 && (snap.status === 'running' || snap.status === 'countdown')) {
+        const activeRow = rows[snap.activeItemIndex];
+        if (activeRow && typeof activeRow.scrollIntoView === 'function') {
+          activeRow.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+      }
+    } else if (!hasStationHighlight) {
+      this._lastTimerActiveRow = null;
+    }
+  },
+
+  renderTimerFocusMovements(snap) {
+    const area = document.getElementById('timerFocusMovementsArea');
+    const wod = AppState.currentWod;
+    if (!area || !wod || !Array.isArray(wod.items)) return;
+
+    const focusKey = `${wod.title}:${snap.format}:${snap.activeItemIndex}:${snap.ascendingTarget || ''}:${snap.nextTargetText || ''}`;
+    if (this._lastFocusKey === focusKey) return;
+    this._lastFocusKey = focusKey;
+
+    if ((snap.format === 'EMOM' || snap.format === 'INTERVALS') && typeof snap.activeItemIndex === 'number') {
+      const item = wod.items[snap.activeItemIndex];
+      const mov = item?.movement;
+      if (!mov) return;
+      const targetText = snap.liveTargetText || `${item.repsDisplay} ${mov.name}`;
+
+      area.innerHTML = `
+        <div class="rounded-xl bg-zinc-50 dark:bg-zinc-950/70 border border-volt-600/50 dark:border-volt/50 p-3 flex items-center gap-3">
+          <div class="w-14 h-14 rounded-xl bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 flex items-center justify-center shrink-0 overflow-hidden">
+            <canvas id="timerFocusCanvas" width="72" height="72" class="w-14 h-14 block"></canvas>
+          </div>
+          <div class="min-w-0 flex-1">
+            <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-volt-600 dark:text-volt">Active Movement</span>
+            <p class="text-base font-extrabold text-zinc-950 dark:text-white leading-snug break-words">${targetText}</p>
+            ${snap.nextTargetText ? `<p class="text-xs text-zinc-500 dark:text-zinc-400 truncate mt-0.5">Next: ${snap.nextTargetText}</p>` : ''}
+          </div>
+        </div>
+      `;
+      const canvas = document.getElementById('timerFocusCanvas');
+      if (canvas && globalThis.BiomechanicalStickAnimator) {
+        BiomechanicalStickAnimator.registerCanvas(canvas, mov.poseType);
+      }
+      return;
+    }
+
+    // AMRAP / FOR_TIME / EVERY_MIN: compact checklist of all movements so you always see the WOD
+    area.innerHTML = `
+      <div class="rounded-xl bg-zinc-50 dark:bg-zinc-950/60 border border-zinc-200/80 dark:border-zinc-800/80 divide-y divide-zinc-200/70 dark:divide-zinc-800/70">
+        ${wod.items.map(it => `
+          <div class="px-3 py-2 flex items-center justify-between gap-2 text-xs">
+            <span class="font-bold text-zinc-900 dark:text-zinc-100 truncate">${it.prescriptionText || it.movement?.name || ''}</span>
+            <span class="font-mono font-bold px-2 py-0.5 rounded bg-zinc-200/80 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 whitespace-nowrap shrink-0">${it.repsDisplay}</span>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  },
+
+  _pulseOnce(el, animClass) {
+    if (!el) return;
+    el.classList.remove(animClass);
+    void el.offsetWidth;
+    el.classList.add(animClass);
+    el.addEventListener('animationend', () => {
+      el.classList.remove(animClass);
+    }, { once: true });
+  },
+
+  animateTimerRefresh() {
+    if (!this._isTimerOpen) return;
+    const timerSection = document.getElementById('wodTimerSection');
+    if (!timerSection) return;
+
+    [
+      document.getElementById('wodTimerCompactCard'),
+      document.getElementById('wodTimerDesktopCard')
+    ].forEach(card => {
+      this._pulseOnce(card, 'wod-card-refresh');
+    });
+
+    timerSection.querySelectorAll('[data-timer-accent]').forEach(bar => {
+      this._pulseOnce(bar, 'accent-glow-sweep');
+    });
+    timerSection.querySelectorAll('[data-timer-clock], [data-timer-phase]').forEach(el => {
+      this._pulseOnce(el, 'rep-pulse');
+    });
+    timerSection.querySelectorAll('[data-timer-active-line], [data-timer-secondary]').forEach(el => {
+      this._pulseOnce(el, 'text-pulse');
+    });
+  },
+
+  handleTimerCue(cue) {
+    if (!cue) return;
+    if (cue.type === 'countdown_pip') {
+      document.querySelectorAll('#wodTimerSection [data-timer-clock], #timerFocusModal [data-timer-clock]').forEach(el => {
+        el.classList.remove('timer-warning-tick');
+        void el.offsetWidth;
+        el.classList.add('timer-warning-tick');
+      });
+      return;
+    }
+
+    const pulseTargets = [
+      document.getElementById('wodTimerCompactCard'),
+      document.getElementById('wodTimerDesktopCard'),
+      document.getElementById('timerFocusCard')
+    ].filter(Boolean);
+
+    pulseTargets.forEach(el => {
+      el.classList.remove('timer-cue-pulse');
+      void el.offsetWidth;
+      el.classList.add('timer-cue-pulse');
+    });
+
+    const accentBar = document.getElementById('wodAccentBar');
+    if (accentBar && (cue.type === 'minute_change' || cue.type === 'complete' || cue.type === 'time_cap')) {
+      accentBar.classList.remove('accent-glow-sweep');
+      void accentBar.offsetWidth;
+      accentBar.classList.add('accent-glow-sweep');
+    }
   }
 };
 

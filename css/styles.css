@@ -41,7 +41,8 @@ html.dark {
 
 #scaleModal,
 #benchmarksModal,
-#advancedModal {
+#advancedModal,
+#timerFocusModal {
   overscroll-behavior: contain;
 }
 
@@ -53,7 +54,7 @@ html.dark {
 }
 
 html {
-  overflow-x: hidden;
+  overflow-x: clip;
   max-width: 100vw;
   width: 100%;
 }
@@ -61,7 +62,7 @@ html {
 body {
   background-color: var(--bg-app);
   color: var(--text-main);
-  overflow-x: hidden;
+  overflow-x: clip;
   max-width: 100vw;
   width: 100%;
   transition: background-color 0.2s ease, color 0.2s ease;
@@ -233,6 +234,10 @@ html.dark .bg-gym-grid {
   overflow: hidden;
 }
 
+[data-timer-accent].accent-glow-sweep {
+  position: absolute;
+}
+
 .accent-glow-sweep::after {
   content: '';
   position: absolute;
@@ -382,4 +387,133 @@ html.dark .bg-gym-grid {
 
 span.text-pulse {
   display: inline-block;
+}
+
+/* ============================================================================
+   WORKOUT TIMER DOCK & VISUAL CUES
+   ============================================================================ */
+@keyframes timerDockEnter {
+  0% {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.985);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (min-width: 1024px) {
+  @keyframes timerDockEnter {
+    0% {
+      opacity: 0;
+      transform: translateX(18px) scale(0.985);
+    }
+    100% {
+      opacity: 1;
+      transform: translateX(0) scale(1);
+    }
+  }
+}
+
+.timer-dock-enter {
+  animation: timerDockEnter 0.34s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes timerDockExit {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.985);
+  }
+}
+
+@media (min-width: 1024px) {
+  @keyframes timerDockExit {
+    0% {
+      opacity: 1;
+      transform: translateX(0) scale(1);
+    }
+    100% {
+      opacity: 0;
+      transform: translateX(18px) scale(0.985);
+    }
+  }
+}
+
+.timer-dock-exit {
+  animation: timerDockExit 0.26s cubic-bezier(0.2, 0.9, 0.3, 1) both;
+}
+
+@keyframes timerCuePulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(2, 132, 199, 0.38);
+    transform: scale(1);
+  }
+  45% {
+    box-shadow: 0 0 0 7px rgba(2, 132, 199, 0);
+    transform: scale(1.012);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(2, 132, 199, 0);
+    transform: scale(1);
+  }
+}
+
+html.dark @keyframes timerCuePulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.42);
+    transform: scale(1);
+  }
+  45% {
+    box-shadow: 0 0 0 8px rgba(56, 189, 248, 0);
+    transform: scale(1.012);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(56, 189, 248, 0);
+    transform: scale(1);
+  }
+}
+
+@keyframes timerWarningFlash {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.03);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.timer-cue-pulse {
+  animation: timerCuePulse 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.timer-warning-tick {
+  animation: timerWarningFlash 0.28s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.wod-row-active {
+  border-color: #0284c7 !important;
+  box-shadow: 0 0 0 1px rgba(2, 132, 199, 0.22);
+  background-color: rgba(2, 132, 199, 0.045) !important;
+}
+
+html.dark .wod-row-active {
+  border-color: #38bdf8 !important;
+  box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.25);
+  background-color: rgba(56, 189, 248, 0.065) !important;
+}
+
+.wod-row-dimmed {
+  opacity: 0.58;
+}
+
+.wod-row-dimmed:hover {
+  opacity: 0.92;
 }
