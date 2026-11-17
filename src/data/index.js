@@ -1,29 +1,6 @@
-import './equipment.js';
-import './patterns.js';
-import './movements.js';
-import './progressions.js';
-import './benchmarks.js';
-import './presets.js';
-
-const {
-  EQUIPMENT_CATALOG,
-  PATTERNS,
-  MOVEMENTS_DB,
-  CLASSICAL_BENCHMARKS,
-  DEFAULT_EQUIPMENT_STATES,
-  EQUIPMENT_PRESETS,
-  SCALE_LADDERS,
-  ProgressionEngine
-} = globalThis;
-
-export {
-  EQUIPMENT_CATALOG,
-  PATTERNS,
-  MOVEMENTS_DB,
-  CLASSICAL_BENCHMARKS,
-  DEFAULT_EQUIPMENT_STATES,
-  EQUIPMENT_PRESETS,
-  SCALE_LADDERS,
-  ProgressionEngine
-};
-
+export { EQUIPMENT_CATALOG } from './equipment.js';
+export { PATTERNS } from './patterns.js';
+export { MOVEMENTS_DB } from './movements.js';
+export { SCALE_LADDERS, ProgressionEngine } from './progressions.js';
+export { CLASSICAL_BENCHMARKS } from './benchmarks.js';
+export { DEFAULT_EQUIPMENT_STATES, EQUIPMENT_PRESETS } from './presets.js';

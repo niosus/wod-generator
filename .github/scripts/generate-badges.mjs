@@ -9,7 +9,7 @@
 import { execFileSync } from 'node:child_process';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import '../../src/data/benchmarks.js';
+import { CLASSICAL_BENCHMARKS } from '../../src/data/benchmarks.js';
 
 const outDir = resolve(process.argv[2] || 'badges-out');
 mkdirSync(outDir, { recursive: true });
@@ -28,8 +28,8 @@ try {
   }
 }
 
-const benchmarksCount = Array.isArray(globalThis.CLASSICAL_BENCHMARKS)
-  ? globalThis.CLASSICAL_BENCHMARKS.length
+const benchmarksCount = Array.isArray(CLASSICAL_BENCHMARKS)
+  ? CLASSICAL_BENCHMARKS.length
   : 0;
 
 const badges = {

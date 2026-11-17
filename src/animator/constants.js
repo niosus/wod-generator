@@ -14,3 +14,12 @@ globalThis.L_SHIN = L_SHIN;
 globalThis.L_UPPER_ARM = L_UPPER_ARM;
 globalThis.L_FOREARM = L_FOREARM;
 globalThis.L_NECK = L_NECK;
+
+export {
+  L_TORSO,
+  L_THIGH,
+  L_SHIN,
+  L_UPPER_ARM,
+  L_FOREARM,
+  L_NECK
+};

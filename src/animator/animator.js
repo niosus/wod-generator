@@ -2,6 +2,19 @@
  * WODROLL Biomechanical Stick Animator
  * Coordinates 2D IK computation, rendering, active canvas tracking & requestAnimationFrame loop
  */
+import {
+  L_TORSO,
+  L_THIGH,
+  L_SHIN,
+  L_UPPER_ARM,
+  L_FOREARM,
+  L_NECK
+} from './constants.js';
+import { KinematicMath } from './math.js';
+import { computePose } from './poses.js';
+import { validatePose, validateAllPoses } from './validator.js';
+import { renderFrame } from './renderer.js';
+
 const SIDE_SWITCHABLE_POSES = new Set([
   'kb_push_jerk',
   'kb_strict_press',
@@ -22,36 +35,36 @@ const SIDE_SWITCHABLE_POSES = new Set([
 
 const BiomechanicalStickAnimator = {
   // Segment Invariants
-  get L_TORSO() { return globalThis.L_TORSO || 46; },
-  get L_THIGH() { return globalThis.L_THIGH || 32; },
-  get L_SHIN() { return globalThis.L_SHIN || 32; },
-  get L_UPPER_ARM() { return globalThis.L_UPPER_ARM || 25; },
-  get L_FOREARM() { return globalThis.L_FOREARM || 24; },
-  get L_NECK() { return globalThis.L_NECK || 15; },
+  L_TORSO,
+  L_THIGH,
+  L_SHIN,
+  L_UPPER_ARM,
+  L_FOREARM,
+  L_NECK,
 
   // Math Solvers
-  lerp(a, b, t) { return globalThis.KinematicMath.lerp(a, b, t); },
-  clamp(v, min, max) { return globalThis.KinematicMath.clamp(v, min, max); },
-  smoothstep(t) { return globalThis.KinematicMath.smoothstep(t); },
-  sampleSpline(p, t) { return globalThis.KinematicMath.sampleSpline(p, t); },
-  sampleTimedKeyframes(k, t) { return globalThis.KinematicMath.sampleTimedKeyframes(k, t); },
-  sampleKeyframes(k, t) { return globalThis.KinematicMath.sampleKeyframes(k, t); },
-  solveIK(rx, ry, tx, ty, L1, L2, b) { return globalThis.KinematicMath.solveIK(rx, ry, tx, ty, L1, L2, b); },
-  solveLegToePivot(hx, hy, tx, ty, L1, L2, b, d) { return globalThis.KinematicMath.solveLegToePivot(hx, hy, tx, ty, L1, L2, b, d); },
-  solveFK(rx, ry, a1, a2, L1, L2) { return globalThis.KinematicMath.solveFK(rx, ry, a1, a2, L1, L2); },
-  solveFrontArm(sx, sy, hx, hy, l) { return globalThis.KinematicMath.solveFrontArm(sx, sy, hx, hy, l); },
-  solveFrontLeg(hx, hy, ax, ay, l, k) { return globalThis.KinematicMath.solveFrontLeg(hx, hy, ax, ay, l, k); },
-  torsoFromHip(hx, hy, s, f, n) { return globalThis.KinematicMath.torsoFromHip(hx, hy, s, f, n); },
-  torsoFromShoulder(sx, sy, s, f, n) { return globalThis.KinematicMath.torsoFromShoulder(sx, sy, s, f, n); },
+  lerp(a, b, t) { return KinematicMath.lerp(a, b, t); },
+  clamp(v, min, max) { return KinematicMath.clamp(v, min, max); },
+  smoothstep(t) { return KinematicMath.smoothstep(t); },
+  sampleSpline(p, t) { return KinematicMath.sampleSpline(p, t); },
+  sampleTimedKeyframes(k, t) { return KinematicMath.sampleTimedKeyframes(k, t); },
+  sampleKeyframes(k, t) { return KinematicMath.sampleKeyframes(k, t); },
+  solveIK(rx, ry, tx, ty, L1, L2, b) { return KinematicMath.solveIK(rx, ry, tx, ty, L1, L2, b); },
+  solveLegToePivot(hx, hy, tx, ty, L1, L2, b, d) { return KinematicMath.solveLegToePivot(hx, hy, tx, ty, L1, L2, b, d); },
+  solveFK(rx, ry, a1, a2, L1, L2) { return KinematicMath.solveFK(rx, ry, a1, a2, L1, L2); },
+  solveFrontArm(sx, sy, hx, hy, l) { return KinematicMath.solveFrontArm(sx, sy, hx, hy, l); },
+  solveFrontLeg(hx, hy, ax, ay, l, k) { return KinematicMath.solveFrontLeg(hx, hy, ax, ay, l, k); },
+  torsoFromHip(hx, hy, s, f, n) { return KinematicMath.torsoFromHip(hx, hy, s, f, n); },
+  torsoFromShoulder(sx, sy, s, f, n) { return KinematicMath.torsoFromShoulder(sx, sy, s, f, n); },
 
   // Pose Computation & Validation
   SIDE_SWITCHABLE_POSES,
-  computePose(poseType, timestamp, options = null) { return globalThis.computePose.call(this, poseType, timestamp, options); },
-  validatePose(poseType, numSteps, cycleMs) { return globalThis.validatePose.call(this, poseType, numSteps, cycleMs); },
-  validateAllPoses(poseTypes) { return globalThis.validateAllPoses.call(this, poseTypes); },
+  computePose(poseType, timestamp, options = null) { return computePose.call(this, poseType, timestamp, options); },
+  validatePose(poseType, numSteps, cycleMs) { return validatePose.call(this, poseType, numSteps, cycleMs); },
+  validateAllPoses(poseTypes) { return validateAllPoses.call(this, poseTypes); },
 
   // Canvas 2D Rendering
-  renderFrame(ctx, frame) { return globalThis.renderFrame(ctx, frame); },
+  renderFrame(ctx, frame) { return renderFrame(ctx, frame); },
 
   // Canvas Registry & Animation Loop
   activeCanvases: new Map(),
@@ -213,3 +226,4 @@ const BiomechanicalStickAnimator = {
 };
 
 globalThis.BiomechanicalStickAnimator = BiomechanicalStickAnimator;
+export { BiomechanicalStickAnimator };

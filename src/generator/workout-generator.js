@@ -1,3 +1,10 @@
+import {
+  MOVEMENTS_DB,
+  CLASSICAL_BENCHMARKS,
+  PATTERNS
+} from '../data/index.js';
+import { AppState } from '../state/app-state.js';
+
 const MOVEMENT_NAME_TOKENS = {
   run: ['TARMAC', 'PAVEMENT', 'BLACKTOP', 'STRIDE', 'TRACK'],
   pullups: ['CHALK', 'HIGH BAR', 'DEAD HANG', 'STRICT BAR', 'LATS'],
@@ -2053,3 +2060,10 @@ globalThis.MOVEMENT_NAME_TOKENS = MOVEMENT_NAME_TOKENS;
 globalThis.FORMAT_NAME_SUFFIXES = FORMAT_NAME_SUFFIXES;
 globalThis.WOD_ARCHETYPE_RULES = WOD_ARCHETYPE_RULES;
 globalThis.WorkoutGenerator = WorkoutGenerator;
+
+export {
+  MOVEMENT_NAME_TOKENS,
+  FORMAT_NAME_SUFFIXES,
+  WOD_ARCHETYPE_RULES,
+  WorkoutGenerator
+};

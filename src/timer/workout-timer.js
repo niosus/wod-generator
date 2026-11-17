@@ -3,8 +3,9 @@
  * Drift-free workout-aware timer with Web Audio cues, Wake Lock support,
  * and live station/interval tracking for AMRAP, EMOM, Tabata, and For Time.
  */
-(function () {
-  const MUTE_STORAGE_KEY = 'wodroll_timer_muted_v1';
+import { WorkoutGenerator } from '../generator/workout-generator.js';
+
+const MUTE_STORAGE_KEY = 'wodroll_timer_muted_v1';
 
   const WorkoutTimer = {
     COUNTDOWN_SECONDS: 3,
@@ -767,4 +768,4 @@
   };
 
   globalThis.WorkoutTimer = WorkoutTimer;
-})();
+export { WorkoutTimer };

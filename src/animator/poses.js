@@ -2,6 +2,16 @@
  * Pure 2D Skeletal Kinematics Pose Computation
  * Computes pure skeleton frames for all WODROLL movements
  */
+import {
+  L_TORSO,
+  L_THIGH,
+  L_SHIN,
+  L_UPPER_ARM,
+  L_FOREARM,
+  L_NECK
+} from './constants.js';
+import { KinematicMath } from './math.js';
+
 function _computePose(poseType, timestamp, options = null) {
   const periodMs = 2400;
   const normT = ((timestamp % periodMs) + periodMs) % periodMs / periodMs;
@@ -2609,3 +2619,4 @@ function computePose(poseType, timestamp, options = null) {
   return _computePose.call(context, poseType, timestamp, options);
 }
 globalThis.computePose = computePose;
+export { computePose };

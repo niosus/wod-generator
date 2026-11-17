@@ -881,7 +881,7 @@ const drawForegroundProp = (ctx, pr, frame, isLight) => {
       drawJumpRope(ctx, pr, false, isLight);
       break;
     case 'hud_badge': {
-      ctx.font = 'bold 10px JetBrains Mono, monospace';
+      ctx.font = 'bold 10px "Fira Code", monospace';
       const w = ctx.measureText(pr.text).width + 10;
       ctx.fillStyle = resolveThemeColor(pr.second ? 'rgba(56, 189, 248, 0.18)' : 'rgba(190, 242, 100, 0.18)', isLight);
       ctx.fillRect(14, 14, w, 18);
@@ -949,3 +949,4 @@ function renderFrame(ctx, frame) {
 renderFrame.isLightTheme = isLightTheme;
 renderFrame.resolveThemeColor = resolveThemeColor;
 globalThis.renderFrame = renderFrame;
+export { renderFrame };

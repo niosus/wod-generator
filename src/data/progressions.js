@@ -187,3 +187,4 @@ const ProgressionEngine = {
 
 globalThis.SCALE_LADDERS = SCALE_LADDERS;
 globalThis.ProgressionEngine = ProgressionEngine;
+export { SCALE_LADDERS, ProgressionEngine };

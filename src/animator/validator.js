@@ -1,5 +1,15 @@
+import {
+  L_TORSO,
+  L_THIGH,
+  L_SHIN,
+  L_UPPER_ARM,
+  L_FOREARM,
+  L_NECK
+} from './constants.js';
+import { computePose as defaultComputePose } from './poses.js';
+
 function validatePose(poseType, numSteps = 120, cycleMs = null) {
-  const poseCompute = (this && typeof this.computePose === 'function') ? this.computePose.bind(this) : globalThis.computePose;
+  const poseCompute = (this && typeof this.computePose === 'function') ? this.computePose.bind(this) : defaultComputePose;
   if (!cycleMs) {
     if (poseType === 'man_maker') cycleMs = 4600;
     else if (
@@ -90,3 +100,4 @@ function validateAllPoses(poseTypes) {
 
 globalThis.validatePose = validatePose;
 globalThis.validateAllPoses = validateAllPoses;
+export { validatePose, validateAllPoses };

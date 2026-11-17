@@ -8,7 +8,7 @@ Generate competition-grade CrossFit, Hyrox, and HIIT workouts tailored to your g
 
 <br clear="both" />
 
-[![Live App](https://img.shields.io/badge/LAUNCH_APP-Live_on_GitHub_Pages-38bdf8?style=for-the-badge&logo=vercel&logoColor=09090b&labelColor=09090b)](https://niosus.github.io/wod-generator/) [![Zero Build](https://img.shields.io/badge/Zero_Build-Static_HTML_%2B_JS-27272a?style=for-the-badge&labelColor=09090b)](./index.html) [![License: MIT](https://img.shields.io/badge/License-MIT-f59e0b?style=for-the-badge&labelColor=09090b)](./LICENSE)
+[![Live App](https://img.shields.io/badge/LAUNCH_APP-Live_on_GitHub_Pages-38bdf8?style=for-the-badge&logo=vercel&logoColor=09090b&labelColor=09090b)](https://niosus.github.io/wod-generator/) [![Vite](https://img.shields.io/badge/Bundled_with-Vite_%2B_Tailwind-27272a?style=for-the-badge&labelColor=09090b)](./vite.config.js) [![License: MIT](https://img.shields.io/badge/License-MIT-f59e0b?style=for-the-badge&labelColor=09090b)](./LICENSE)
 
 [![Kinematics Audit](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fniosus%2Fwog-generator%2Fbadges%2Fkinematics.json&style=for-the-badge&labelColor=09090b)](https://github.com/niosus/wog-generator/actions/workflows/ci.yml) [![Movements](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fniosus%2Fwog-generator%2Fbadges%2Fmovements.json&style=for-the-badge&labelColor=09090b)](./src/data/movements.js) [![Benchmarks](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fniosus%2Fwog-generator%2Fbadges%2Fbenchmarks.json&style=for-the-badge&labelColor=09090b)](./src/data/benchmarks.js)
 
@@ -73,32 +73,35 @@ Generate competition-grade CrossFit, Hyrox, and HIIT workouts tailored to your g
 
 ## 🏗️ Architecture & Modular Structure
 
-WODROLL requires **no build step or bundler**. The browser app loads zero-build `<script>` modules directly into `globalThis` from `index.html` (paired with Tailwind CSS CDN and Lucide icons), while `package.json` (`"type": "module"`), `index.js` barrels, and `validate_kinematics.js` use native Node ESM for the kinematics test suite.
+WODROLL is built with **Vite + Tailwind CSS** with all fonts and icons bundled locally for fast offline-ready loads, while preserving native Node ESM support (`"type": "module"`) for the kinematics test suite and core barrel exports (`src/core/index.js`).
 
 ```text
 wod-generator/
-├── index.html                   # Single-page UI, Quick Setup bar & 4 interactive modals (811 lines)
-├── favicon.svg                  # Adaptive light/dark lightning bolt icon
-├── package.json                 # Node ESM configuration & test/start scripts
-├── validate_kinematics.js       # Kinematic invariant audit script (85/85 poses, 10,200 frames)
+├── index.html                   # Single-page UI, Quick Setup bar & interactive modals
+├── vite.config.js               # Vite bundler configuration (base: './' -> dist/)
+├── tailwind.config.js           # Tailwind theme tokens, Inter & Fira Code fonts
+├── postcss.config.js            # PostCSS pipeline for Tailwind + Autoprefixer
+├── package.json                 # Node ESM configuration, Vite & test scripts
+├── validate_kinematics.js       # Kinematic invariant audit script (87/87 poses, 10,440 frames)
+├── public/                      # Static root assets (favicon.svg, manifest.json, icons, og-image.png)
 ├── css/
-│   └── styles.css               # Dual-theme CSS variables, animations, scrollbars & grid backdrop
-├── js/
-│   └── tailwind-config.js       # Tailwind theme tokens, Inter & JetBrains Mono fonts
+│   └── styles.css               # Tailwind layers, dual-theme CSS variables & animations
 └── src/
-    ├── main.js                  # Application entry point & DOM bootstrap
+    ├── main.js                  # Application entry point, local fonts & DOM bootstrap
+    ├── core/
+    │   └── index.js             # Unified ESM barrel export for all core engine modules
     ├── data/                    # Domain databases
     │   ├── equipment.js         # 14-item 3-state equipment catalog
     │   ├── patterns.js          # 6 biomechanical movement patterns & badge styles
-    │   ├── movements.js         # 85 movements (equipment, difficulty, scale-downs, fallbacks, cues)
+    │   ├── movements.js         # Movements DB (equipment, difficulty, scale-downs, fallbacks, cues)
     │   ├── progressions.js      # 8 scaling ladders & ProgressionEngine
-    │   ├── benchmarks.js        # 46 Girl, Hero, Hyrox, Signature & Death By WODs
+    │   ├── benchmarks.js        # Girl, Hero, Hyrox, Signature & Death By WODs
     │   ├── presets.js           # Default states & Bodyweight / Minimal / Full Gym presets
     │   └── index.js             # ESM barrel re-export
     ├── animator/                # 2D Biomechanical Kinematics Engine
     │   ├── constants.js         # Rigid segment invariants (Torso, Neck, Thigh, Shin, Arms)
     │   ├── math.js              # 2-Bone analytic IK/FK solvers, splines & smoothstep
-    │   ├── poses.js             # Pure pose computation for all 85 movements
+    │   ├── poses.js             # Pure pose computation for all movements
     │   ├── validator.js         # Invariant audit suite (120 frames/cycle per pose)
     │   ├── renderer.js          # Multi-view 2D Canvas renderer & equipment props
     │   ├── animator.js          # Canvas registry, viewport culling & RAF loop
@@ -109,7 +112,10 @@ wod-generator/
     │   └── workout-generator.js # HIIT solver, dynamic rep/intensity scaling, naming & LRU dedup
     ├── sharing/
     │   └── workout-sharing.js   # Binary v2 / deflate-raw URL serialization (?wod & ?cfg) + PNG card renderer
+    ├── timer/
+    │   └── workout-timer.js     # Workout-aware timer engine with Web Audio cues & Wake Lock
     └── ui/
+        ├── lucide-icons.js      # Offline tree-shaken Lucide icon registry
         └── ui.js                # DOM renderers, modals, clipboard/share actions, theme & event bindings
 ```
 
@@ -119,17 +125,19 @@ wod-generator/
 
 ### 1. Run Locally
 
-Serve the repository over HTTP from any static server:
+Install dependencies and start the Vite dev server:
 
 ```bash
-# Using npm
-npm start
-
-# Or using Python
-python3 -m http.server 8080
+npm install
+npm run dev
 ```
 
-Then visit `http://localhost:8080`.
+To build and preview the production static bundle (`dist/`):
+
+```bash
+npm run build
+npm run preview
+```
 
 ### 2. Run Biomechanical Kinematics Audit
 
