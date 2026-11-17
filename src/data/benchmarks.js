@@ -732,6 +732,57 @@ const CLASSICAL_BENCHMARKS = [
     ],
     stimulus: 'Posterior-chain hinge power and forearm grip endurance test with rapid +3 rep escalation.',
     logic: '+3 reps per minute drives work cleanly into the 21–36 rep/min redzone during minutes 7–12.'
+  },
+  {
+    id: 'tabata_sprint',
+    title: 'TABATA ENGINE SPRINT',
+    category: 'Interval Benchmark',
+    format: 'INTERVALS',
+    durationCategory: 'short',
+    minutes: 8,
+    prescriptionHeader: 'Tabata • 20s Work / 10s Rest (Complete 8 Rounds of Each Before Moving On):',
+    items: [
+      { movementId: 'burpees', reps: 8, label: '8x (20s Max Burpees / 10s Rest)' },
+      { movementId: 'air_squats', reps: 8, label: '8x (20s Max Air Squats / 10s Rest)' }
+    ],
+    stimulus: 'Score is the sum of your lowest round on each movement. Hold a repeatable floor pace early so round 6 does not collapse.',
+    logic: 'Zero-equipment full-body plyo + bilateral squat couplet taxes both aerobic power and leg stamina in 8 minutes.'
+  },
+  {
+    id: 'tabata_something_else',
+    title: 'TABATA SOMETHING ELSE',
+    category: 'CrossFit Benchmark Classic',
+    format: 'INTERVALS',
+    durationCategory: 'medium',
+    minutes: 16,
+    prescriptionHeader: 'Tabata • 20s Work / 10s Rest (Complete 8 Rounds of Each Before Moving On):',
+    items: [
+      { movementId: 'pullups', reps: 8, label: '8x (20s Max Pull-Ups / 10s Rest)' },
+      { movementId: 'pushups', reps: 8, label: '8x (20s Max Push-Ups / 10s Rest)' },
+      { movementId: 'situps', reps: 8, label: '8x (20s Max AbMat Sit-Ups / 10s Rest)' },
+      { movementId: 'air_squats', reps: 8, label: '8x (20s Max Air Squats / 10s Rest)' }
+    ],
+    stimulus: 'Classic 32-interval bodyweight benchmark scored by total reps across all rounds. Manage upper-body fatigue on pull-ups and push-ups before failure.',
+    logic: 'Sequential Pull → Push → Core → Squat rotation isolates local fatigue across four 4-minute Tabata blocks.'
+  },
+  {
+    id: 'tabata_gauntlet',
+    title: 'TABATA GAUNTLET',
+    category: 'Interval Benchmark',
+    format: 'INTERVALS',
+    durationCategory: 'long',
+    minutes: 24,
+    prescriptionHeader: 'Tabata • 20s Work / 10s Rest (Complete 8 Rounds of Each Before Moving On):',
+    items: [
+      { movementId: 'burpees', reps: 8, label: '8x (20s Max Burpees / 10s Rest)' },
+      { movementId: 'pushups', reps: 8, label: '8x (20s Max Push-Ups / 10s Rest)' },
+      { movementId: 'walking_lunges', reps: 8, label: '8x (20s Max Alternating Lunges / 10s Rest)' },
+      { movementId: 'situps', reps: 8, label: '8x (20s Max AbMat Sit-Ups / 10s Rest)' },
+      { movementId: 'mountain_climbers', reps: 8, label: '8x (20s Max Mountain Climbers / 10s Rest)' },
+      { movementId: 'air_squats', reps: 8, label: '8x (20s Max Air Squats / 10s Rest)' }
+    ],
+    stimulus: 'Extended 24-minute interval endurance test. Keep turnover crisp across all 6 blocks without redlining in block 1.',
+    logic: 'Alternates full-body sprawl, upper push, unilateral legs, midline, fast-feet cardio, and squats across 48 intervals.'
   }
 ];
 

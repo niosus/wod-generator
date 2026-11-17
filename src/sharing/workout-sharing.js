@@ -354,12 +354,13 @@ const WorkoutSharing = {
         if (!movRef) return null;
         const stationModified = movRef.flag;
         const mov = movRef.item || db[0];
+        const stationIndex = (bm.format === 'EMOM' || bm.format === 'INTERVALS') ? i : null;
         if (stationModified) {
           const customScheme = this.readCompactScheme(bytes, offset);
           newItems.push({
             movement: mov,
             formatKey: bm.format,
-            stationIndex: bm.format === 'EMOM' ? i : null,
+            stationIndex,
             customScheme
           });
         } else if (restoredWod.items[i]) {
@@ -368,7 +369,7 @@ const WorkoutSharing = {
           newItems.push({
             movement: mov,
             formatKey: bm.format,
-            stationIndex: bm.format === 'EMOM' ? i : null,
+            stationIndex,
             customScheme: null
           });
         }
@@ -455,7 +456,7 @@ const WorkoutSharing = {
 
     const coupletSchemeOverride = isDescendingCouplet
       ? (customSchemes.find(s => typeof s === 'string' && /^\d+(\s*-\s*\d+)+$/.test(s)) || null)
-      : null;
+      : (format === 'EMOM' && movements.length === 1 && !rounds && typeof customSchemes[0] === 'string' ? customSchemes[0] : null);
 
     const meta = wg.buildAlgorithmicWodMetadata({
       format,

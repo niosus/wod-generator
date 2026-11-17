@@ -279,6 +279,62 @@ const WorkoutGenerator = {
     return '21 - 15 - 9';
   },
 
+  isEveryMinEmomContext(formatKey, context = {}) {
+    const stations = context.numStations || (context.roundMovements ? context.roundMovements.length : 1);
+    return formatKey === 'EMOM' &&
+      Boolean(context.rounds) &&
+      Boolean(context.totalMinutes) &&
+      context.rounds === context.totalMinutes &&
+      stations > 1;
+  },
+
+  isChipperContext(formatKey, context = {}) {
+    return formatKey === 'FOR_TIME' && context.rounds === 1;
+  },
+
+  /**
+   * Returns an ascending "Death By" EMOM rep/calorie progression string for a movement.
+   */
+  getAscendingEmomScheme(mov, intensityLevel = 'standard') {
+    const tier = this.normalizeIntensity(intensityLevel);
+    if (mov && mov.unit === 'cal') {
+      if (tier === 'moderate') return '3, 4, 5, ...';
+      if (tier === 'high') return '7, 8, 9, ...';
+      return '5, 6, 7, ...';
+    }
+    if (mov && mov.id === 'double_unders') {
+      if (tier === 'moderate') return '5, 10, 15, ...';
+      if (tier === 'high') return '15, 30, 45, ...';
+      return '10, 20, 30, ...';
+    }
+    if (mov && mov.id === 'single_unders') {
+      if (tier === 'moderate') return '10, 20, 30, ...';
+      if (tier === 'high') return '20, 40, 60, ...';
+      return '15, 30, 45, ...';
+    }
+    const fastCadenceIds = new Set([
+      'air_squats', 'situps', 'jumping_jacks', 'mountain_climbers',
+      'kb_swings', 'wall_balls', 'walking_lunges', 'step_back_lunges'
+    ]);
+    if (mov && fastCadenceIds.has(mov.id)) {
+      if (tier === 'moderate') return '2, 4, 6, ...';
+      if (tier === 'high') return '4, 8, 12, ...';
+      return '3, 6, 9, ...';
+    }
+    if (tier === 'high') return '2, 3, 4, ...';
+    return '1, 2, 3, ...';
+  },
+
+  formatAscendingEmomHeader(scheme, mov) {
+    const raw = String(scheme || '1, 2, 3, ...');
+    const match = raw.match(/(\d+)\s*,\s*(\d+)/);
+    const start = match ? parseInt(match[1], 10) : 1;
+    const second = match ? parseInt(match[2], 10) : start + 1;
+    const step = Math.max(1, second - start);
+    const unitLabel = mov?.unit === 'cal' ? 'Cal' : (step > 1 ? 'Reps' : 'Rep');
+    return `Ascending EMOM • Min 1 = ${start}, +${step} ${unitLabel}/Min Until Failure:`;
+  },
+
   /**
    * Formats a clean clock/time-cap badge label consistently across all workouts.
    */
@@ -588,18 +644,41 @@ const WorkoutGenerator = {
     // Fatigue modifier: reduce reps per station if multiple exercises fatigue the same muscles
     const interferenceMod = muscularOverlapCount > 0 ? (1 / (1 + 0.30 * muscularOverlapCount)) : 1.0;
 
+    const isEveryMinEmom = this.isEveryMinEmomContext(formatKey, context);
+    const isChipper = this.isChipperContext(formatKey, context);
+    const everyMinStations = context.numStations || roundMovements.length || 2;
+    const everyMinScale = everyMinStations >= 3 ? 0.40 : 0.55;
+
     // Unit-specific overrides for meters, calories, and seconds
     if (unit === 'sec') {
       const baseSec = (mov.reps && mov.reps[formatKey === 'EMOM' ? 'emom' : (formatKey === 'FOR_TIME' ? 'forTime' : 'amrap')]) || 40;
       const intensityFactor = intensityLevel === 'moderate' ? 0.75 : (intensityLevel === 'high' ? 1.25 : 1.0);
+      if (isEveryMinEmom) {
+        return this.ensureEvenUnilateralValue(mov, Math.max(10, Math.min(25, Math.round((baseSec * intensityFactor * everyMinScale) / 5) * 5)));
+      }
+      if (isChipper) {
+        const chipSec = (intensityLevel === 'moderate' ? 45 : (intensityLevel === 'high' ? 75 : 60)) * (duration === 'long' ? 1.15 : 1.0);
+        return this.ensureEvenUnilateralValue(mov, Math.round(chipSec / 5) * 5);
+      }
       const durFactor = duration === 'short' ? 0.9 : (duration === 'long' ? 1.1 : 1.0);
       return this.ensureEvenUnilateralValue(mov, Math.round((baseSec * intensityFactor * durFactor) / 5) * 5);
     }
     if (unit === 'm') {
       if (formatKey === 'EMOM') {
+        if (isEveryMinEmom) return intensityLevel === 'high' ? 150 : 100;
         if (intensityLevel === 'moderate') return 150;
         if (intensityLevel === 'high') return 250;
         return 200;
+      }
+      if (isChipper) {
+        if (duration === 'long') {
+          if (intensityLevel === 'moderate') return 400;
+          if (intensityLevel === 'high') return 800;
+          return 600;
+        }
+        if (intensityLevel === 'moderate') return 300;
+        if (intensityLevel === 'high') return 600;
+        return 400;
       }
       if (duration === 'long') {
         if (intensityLevel === 'moderate') return 300;
@@ -613,8 +692,16 @@ const WorkoutGenerator = {
     if (unit === 'cal') {
       if (formatKey === 'EMOM') {
         const baseCal = intensityLevel === 'moderate' ? 12 : (intensityLevel === 'high' ? 18 : 15);
+        if (isEveryMinEmom) {
+          return Math.max(4, Math.round(baseCal * everyMinScale));
+        }
         const durMod = duration === 'short' ? 1.05 : (duration === 'long' ? 0.95 : 1.0);
         return this.snapToStandardReps(baseCal * durMod, 'cal');
+      }
+      if (isChipper) {
+        const baseCal = intensityLevel === 'moderate' ? 25 : (intensityLevel === 'high' ? 45 : 35);
+        const durMod = duration === 'long' ? 1.25 : 1.0;
+        return Math.round((baseCal * durMod) / 5) * 5;
       }
       const baseCal = intensityLevel === 'moderate' ? 12 : (intensityLevel === 'high' ? 20 : 16);
       return this.snapToStandardReps(baseCal, 'cal');
@@ -624,7 +711,12 @@ const WorkoutGenerator = {
     if (mov.id === 'double_unders') {
       if (formatKey === 'EMOM') {
         const baseDU = intensityLevel === 'moderate' ? 35 : (intensityLevel === 'high' ? 60 : 45);
+        if (isEveryMinEmom) return Math.max(10, Math.round((baseDU * everyMinScale) / 5) * 5);
         return Math.round(baseDU / 5) * 5;
+      }
+      if (isChipper) {
+        const baseDU = intensityLevel === 'moderate' ? 60 : (intensityLevel === 'high' ? 110 : 80);
+        return Math.round((baseDU * (duration === 'long' ? 1.2 : 1.0)) / 5) * 5;
       }
       if (formatKey === 'FOR_TIME') {
         const baseDU = intensityLevel === 'moderate' ? 35 : (intensityLevel === 'high' ? 60 : 45);
@@ -636,7 +728,12 @@ const WorkoutGenerator = {
     if (mov.id === 'single_unders') {
       if (formatKey === 'EMOM') {
         const baseSU = intensityLevel === 'moderate' ? 60 : (intensityLevel === 'high' ? 95 : 75);
+        if (isEveryMinEmom) return Math.max(15, Math.round((baseSU * everyMinScale) / 5) * 5);
         return Math.round(baseSU / 5) * 5;
+      }
+      if (isChipper) {
+        const baseSU = intensityLevel === 'moderate' ? 90 : (intensityLevel === 'high' ? 160 : 120);
+        return Math.round((baseSU * (duration === 'long' ? 1.2 : 1.0)) / 5) * 5;
       }
       const baseSU = intensityLevel === 'moderate' ? 50 : (intensityLevel === 'high' ? 80 : 60);
       return Math.round(baseSU / 5) * 5;
@@ -650,6 +747,10 @@ const WorkoutGenerator = {
       const durFactor = duration === 'short' ? 1.05 : (duration === 'long' ? 0.95 : 1.0);
 
       let rawReps = baseEmom * intensityFactor * durFactor * interferenceMod;
+      if (isEveryMinEmom) {
+        rawReps *= everyMinScale;
+        return this.ensureEvenUnilateralValue(mov, this.snapToStandardReps(rawReps, unit, 2, 20));
+      }
 
       // Safety ceilings calibrated by tier (fitter athletes clear higher rep targets within 60s)
       if (mov.id === 'pushups') rawReps = Math.min(rawReps, intensityLevel === 'high' ? 18 : (intensityLevel === 'standard' ? 15 : 12));
@@ -670,6 +771,15 @@ const WorkoutGenerator = {
     // 2. FOR_TIME Format: Scale around movement's calibrated forTime baseline
     if (formatKey === 'FOR_TIME') {
       const baseForTime = (mov.reps && mov.reps.forTime) ? mov.reps.forTime : 15;
+      if (isChipper) {
+        const chipperMult = duration === 'long' ? 3.2 : 2.6;
+        let rawChipper = baseForTime * chipperMult * intensityScale * interferenceMod;
+        if (intensity >= 5.0) {
+          rawChipper = Math.min(rawChipper, intensityLevel === 'high' ? 25 : (intensityLevel === 'moderate' ? 15 : 20));
+        }
+        const snapped = rawChipper >= 20 ? Math.round(rawChipper / 5) * 5 : this.snapToStandardReps(rawChipper, unit, 6, 100);
+        return this.ensureEvenUnilateralValue(mov, Math.min(100, Math.max(8, snapped)));
+      }
       const rawReps = baseForTime * intensityScale * durFactor * interferenceMod;
       return this.ensureEvenUnilateralValue(mov, this.snapToStandardReps(rawReps, unit, 3, 80));
     }
@@ -944,11 +1054,14 @@ const WorkoutGenerator = {
     const badgeUnitSep = (mov.unit === 'm' || mov.unit === 'sec') ? '' : ' ';
     const badgeUnitText = badgeUnitLabel && !hasTrailingBadgeUnit ? `${badgeUnitSep}${badgeUnitLabel}` : '';
     const isAscendingScheme = typeof repVal === 'string' && repVal.includes('...');
+    const isEveryMin = this.isEveryMinEmomContext(formatKey, context);
 
     let emomMinuteBadge = null;
     if (formatKey === 'EMOM') {
       if (isAscendingScheme) {
         emomMinuteBadge = 'MIN N';
+      } else if (isEveryMin) {
+        emomMinuteBadge = 'EVERY MIN';
       } else if (stationIndex !== null && stationIndex !== undefined) {
         emomMinuteBadge = `MIN ${stationIndex + 1}`;
       }
@@ -958,7 +1071,11 @@ const WorkoutGenerator = {
     let prescriptionText = mov.name;
     let copyText = `${repVal}${unitText} ${mov.name}${loadSuffix}${uniFull ? ' ' + uniFull : ''}`.replace(/\s+/g, ' ').trim();
 
-    if (formatKey === 'EMOM' && stationIndex !== null && !isAscendingScheme) {
+    if (formatKey === 'EMOM' && isAscendingScheme) {
+      copyText = `Min N: ${repVal}${unitText} ${mov.name}${loadSuffix}${uniFull ? ' ' + uniFull : ''}`.replace(/\s+/g, ' ').trim();
+    } else if (formatKey === 'EMOM' && isEveryMin) {
+      copyText = `Every Min: ${repVal}${unitText} ${mov.name}${loadSuffix}${uniFull ? ' ' + uniFull : ''}`.replace(/\s+/g, ' ').trim();
+    } else if (formatKey === 'EMOM' && stationIndex !== null) {
       copyText = `Minute ${stationIndex + 1}: ${repVal}${unitText} ${mov.name}${loadSuffix}${uniFull ? ' ' + uniFull : ''}`.replace(/\s+/g, ' ').trim();
     } else if (formatKey === 'INTERVALS' && stationIndex !== null) {
       const split = this.getIntervalSplit(context.intensity);
@@ -1074,7 +1191,7 @@ const WorkoutGenerator = {
       const built = this.buildItemPrescription(
         item.movement,
         item.formatKey || wod.format,
-        item.stationIndex !== undefined ? item.stationIndex : (wod.format === 'EMOM' ? idx : null),
+        item.stationIndex !== undefined ? item.stationIndex : ((wod.format === 'EMOM' || wod.format === 'INTERVALS') ? idx : null),
         item.customScheme,
         usedIds,
         context
@@ -1104,6 +1221,11 @@ const WorkoutGenerator = {
       wod.isDescendingCouplet ||
       (wod.format === 'FOR_TIME' && typeof wod.badgeFormat === 'string' && wod.badgeFormat.includes('-'))
     );
+    const isAscendingEmom = Boolean(
+      wod.format === 'EMOM' &&
+      wod.items.length === 1 &&
+      (wod.rounds === 0 || String(wod.items[0]?.customScheme || '').includes('...'))
+    );
     if (isCouplet) {
       wod.isDescendingCouplet = true;
       const hasVeryHighSkill = roundMovements.some(m => (m.intensity || 1.8) >= 5.0);
@@ -1113,6 +1235,11 @@ const WorkoutGenerator = {
       const scheme = this.getDescendingCoupletScheme(schemeSampleMov, tier, hasVeryHighSkill);
       wod.badgeFormat = `${scheme} FOR TIME`;
       wod.prescriptionHeader = `${scheme} Reps For Time:`;
+    } else if (isAscendingEmom) {
+      const scheme = this.getAscendingEmomScheme(wod.items[0].movement, tier);
+      wod.badgeFormat = `${wod.minutes} MIN DEATH BY`;
+      wod.difficultyLabel = 'Ascending EMOM (Until Failure)';
+      wod.prescriptionHeader = this.formatAscendingEmomHeader(scheme, wod.items[0].movement);
     } else if (wod.format === 'INTERVALS') {
       const split = this.getIntervalSplit(tier);
       wod.difficultyLabel = `${split.work}s Work / ${split.rest}s Rest`;
@@ -1128,7 +1255,7 @@ const WorkoutGenerator = {
         : ((formatKey === 'EMOM' || formatKey === 'INTERVALS') ? idx : null);
       const customScheme = isCouplet
         ? this.getDescendingCoupletScheme(item.movement, tier, hasVeryHighSkill)
-        : null;
+        : (isAscendingEmom ? this.getAscendingEmomScheme(item.movement, tier) : null);
       return this.buildItemPrescription(item.movement, formatKey, stationIndex, customScheme, usedIds, context);
     });
 
@@ -1227,20 +1354,35 @@ const WorkoutGenerator = {
   _getAlgorithmicStationCounts(poolLength, formatKey, durationCategory) {
     if (poolLength <= 0) return [];
     if (formatKey === 'AMRAP') {
-      return [poolLength >= 3 ? 3 : Math.min(2, poolLength)];
+      if (durationCategory === 'short') {
+        const raw = poolLength >= 3 ? [2, 3] : [Math.min(2, poolLength)];
+        return Array.from(new Set(raw.map(c => Math.min(c, poolLength))));
+      }
+      const raw = poolLength >= 4 ? [3, 4] : [poolLength >= 3 ? 3 : Math.min(2, poolLength)];
+      return Array.from(new Set(raw.map(c => Math.min(c, poolLength))));
     }
     if (formatKey === 'EMOM') {
-      const raw = poolLength >= 3 ? [2, 3, 4] : [Math.min(2, poolLength)];
+      const raw = poolLength >= 3 ? [1, 2, 3, 4] : (poolLength === 2 ? [1, 2] : [1]);
       return Array.from(new Set(raw.map(c => Math.min(c, poolLength))));
     }
     if (formatKey === 'FOR_TIME') {
       const sizes = new Set();
       if (durationCategory === 'short' && poolLength >= 2) sizes.add(2);
       sizes.add(poolLength >= 3 ? 3 : Math.min(2, poolLength));
+      if (durationCategory !== 'short' && poolLength >= 4) sizes.add(4);
+      if (durationCategory === 'long' && poolLength >= 5) sizes.add(5);
       return Array.from(sizes);
     }
     if (formatKey === 'INTERVALS') {
-      return [Math.min(poolLength, durationCategory === 'short' ? 2 : 3)];
+      if (durationCategory === 'short') {
+        const raw = poolLength >= 3 ? [2, 3] : [Math.min(2, poolLength)];
+        return Array.from(new Set(raw.map(c => Math.min(c, poolLength))));
+      }
+      if (durationCategory === 'medium') {
+        const raw = poolLength >= 4 ? [4, 5] : [poolLength];
+        return Array.from(new Set(raw.map(c => Math.min(c, poolLength))));
+      }
+      return [Math.min(poolLength, 6)];
     }
     return [];
   },
@@ -1293,7 +1435,7 @@ const WorkoutGenerator = {
 
     let algoCount = 0;
     if (mode === 'smart' || mode === 'algorithmic') {
-      const formatsToCount = format === 'ANY' ? ['AMRAP', 'EMOM', 'FOR_TIME'] : [format];
+      const formatsToCount = format === 'ANY' ? ['AMRAP', 'EMOM', 'FOR_TIME', 'INTERVALS'] : [format];
       for (const fmt of formatsToCount) {
         const stationCounts = this._getAlgorithmicStationCounts(effectivePool.length, fmt, duration);
         for (const k of stationCounts) {
@@ -1464,10 +1606,12 @@ const WorkoutGenerator = {
     const headerLoad = this.extractLoadFromText(bm.prescriptionHeader);
     const enrichedItems = bm.items.map((item, idx) => {
       const mov = globalThis.MOVEMENTS_DB.find(m => m.id === item.movementId) || globalThis.MOVEMENTS_DB[0];
-      const built = this.buildItemPrescription(mov, bm.format, bm.format === 'EMOM' ? idx : null, item.reps, usedIds);
+      const stationIdx = (bm.format === 'EMOM' || bm.format === 'INTERVALS') ? idx : null;
+      const built = this.buildItemPrescription(mov, bm.format, stationIdx, item.reps, usedIds);
       this.applyBenchmarkItemFormatting(built, mov, item.label, bm.format, headerLoad);
       return built;
     });
+    const formatLabel = bm.format === 'INTERVALS' ? 'TABATA' : bm.format.replace('_', ' ');
 
     return {
       isBenchmark: true,
@@ -1477,7 +1621,7 @@ const WorkoutGenerator = {
       format: bm.format,
       minutes: bm.minutes,
       intensity: 'standard',
-      badgeFormat: `${bm.minutes} MIN ${bm.format.replace('_', ' ')}`,
+      badgeFormat: `${bm.minutes} MIN ${formatLabel}`,
       difficultyLabel: `Classical Benchmark`,
       prescriptionHeader: this.formatBannerPrescriptionHeader(bm.prescriptionHeader, bm.format),
       items: enrichedItems,
@@ -1496,10 +1640,35 @@ const WorkoutGenerator = {
     const patternList = movements.map(s => globalThis.PATTERNS[s.pattern]?.label || s.pattern);
 
     if (format === 'EMOM') {
+      const isAscending = movements.length === 1 && (!rounds || (typeof schemeOverride === 'string' && schemeOverride.includes('...')));
+      if (isAscending) {
+        const scheme = schemeOverride || this.getAscendingEmomScheme(movements[0], tier);
+        return {
+          badgeFormat: `${minutes} MIN DEATH BY`,
+          difficultyLabel: 'Ascending EMOM (Until Failure)',
+          prescriptionHeader: this.formatAscendingEmomHeader(scheme, movements[0]),
+          stimulus: 'Start controlled—the early minutes feel like a warm-up, then metabolic redline hits abruptly in the final 3–4 minutes.',
+          logic: `Escalating ${patternList[0] || 'Work'} density test builds local muscular stamina and anaerobic threshold under a strict 60-second clock.`,
+          standardRepScheme: null
+        };
+      }
+
+      const isEveryMin = movements.length > 1 && rounds === minutes;
+      if (isEveryMin) {
+        return {
+          badgeFormat: `${minutes} MIN EMOM`,
+          difficultyLabel: `Every Minute (${movements.length}-Movement Set)`,
+          prescriptionHeader: 'Every Minute on the Minute:',
+          stimulus: 'Complete all movements inside each minute in ~40–45 seconds, leaving 15–20 seconds to breathe before the next beep.',
+          logic: `Combines ${patternList.join(' + ')} inside every 60-second window for sustained aerobic and muscular density.`,
+          standardRepScheme: null
+        };
+      }
+
       return {
         badgeFormat: `${minutes} MIN EMOM`,
-        difficultyLabel: `${movements.length}-Station Rotation (${rounds} Sets)`,
-        prescriptionHeader: `EMOM • ${rounds} Rounds:`,
+        difficultyLabel: `${movements.length}-Station Rotation (${rounds} Rounds)`,
+        prescriptionHeader: `EMOM • Rotate 1 Movement/Min (${rounds} Rounds):`,
         stimulus: 'Target ~40–50 seconds of consistent work each minute, leaving 10–20 seconds to breathe and transition to the next station.',
         logic: `Alternates ${patternList.join(' → ')} across alternating minutes so local muscle groups recover while systemic heart rate stays high.`,
         standardRepScheme: null
@@ -1520,6 +1689,17 @@ const WorkoutGenerator = {
           stimulus: 'Classic anaerobic threshold couplet. Push the opening set aggressively and fight through the fatigue on set 2.',
           logic: `Complementary ${patternList.join(' + ')} couplet eliminates muscular interference during high-speed cycling.`,
           standardRepScheme
+        };
+      }
+
+      if (rounds === 1) {
+        return {
+          badgeFormat: 'CHIPPER FOR TIME',
+          difficultyLabel: `${movements.length}-Movement Chipper`,
+          prescriptionHeader: 'For Time (Complete All Reps Before Moving On):',
+          stimulus: 'Break high-volume sets early (sets of 5–10 with quick 5-second rests) to protect grip and keep moving smoothly.',
+          logic: `Sequential ${patternList.join(' → ')} chipper spreads muscular fatigue across distinct movement patterns.`,
+          standardRepScheme: null
         };
       }
 
@@ -1546,9 +1726,12 @@ const WorkoutGenerator = {
     }
 
     // Default: AMRAP
+    const amrapGroupLabel = movements.length === 2
+      ? 'Couplet'
+      : (movements.length === 4 ? 'Quartet' : (movements.length >= 5 ? 'Chipper' : 'Triplet'));
     return {
       badgeFormat: `${minutes} MIN AMRAP`,
-      difficultyLabel: `Balanced ${movements.length}-Movement Triplet`,
+      difficultyLabel: `Balanced ${movements.length}-Movement ${amrapGroupLabel}`,
       prescriptionHeader: 'AMRAP • Max Rounds & Reps:',
       stimulus: `Find a sustainable pace from round 1 and aim for unbroken sets with minimal transition rest across the ${minutes}-minute window.`,
       logic: `Pairs ${patternList.join(' + ')} to avoid local muscular bottlenecks across the ${minutes}-minute window.`,
@@ -1558,7 +1741,7 @@ const WorkoutGenerator = {
 
   generateAlgorithmicWod(pool) {
     const chosenFormat = globalThis.AppState.format === 'ANY'
-      ? this.pickRandom(['AMRAP', 'EMOM', 'FOR_TIME'])
+      ? this.pickRandom(['AMRAP', 'EMOM', 'FOR_TIME', 'INTERVALS'])
       : globalThis.AppState.format;
 
     const durationCategory = globalThis.AppState.duration || 'medium';
@@ -1572,6 +1755,50 @@ const WorkoutGenerator = {
     const dom = durationMap[durationCategory] || durationMap.medium;
 
     if (chosenFormat === 'EMOM') {
+      const ascendingPool = pool.filter(m => !m.unit || m.unit === 'reps' || m.unit === 'cal');
+      const useAscending = ascendingPool.length >= 1 && (pool.length === 1 || Math.random() < 0.20);
+
+      if (useAscending) {
+        const selected = this.selectBalancedMovements(ascendingPool, 1);
+        const usedIds = new Set(selected.map(m => m.id));
+        const totalMinutes = durationCategory === 'short' ? 12 : (durationCategory === 'long' ? 24 : 20);
+        const scheme = this.getAscendingEmomScheme(selected[0], initialIntensity);
+        const context = {
+          durationCategory,
+          intensity: initialIntensity,
+          totalMinutes,
+          numStations: 1,
+          roundMovements: selected,
+          rounds: 0
+        };
+        const items = [this.buildItemPrescription(selected[0], 'EMOM', 0, scheme, usedIds, context)];
+        const meta = this.buildAlgorithmicWodMetadata({
+          format: 'EMOM',
+          minutes: totalMinutes,
+          rounds: 0,
+          intensity: initialIntensity,
+          movements: selected,
+          schemeOverride: scheme
+        });
+
+        return {
+          isBenchmark: false,
+          title: this.generateName({ format: 'EMOM', movements: selected, durationCategory, totalMinutes, rounds: 0 }),
+          badgeType: 'ALGORITHMIC',
+          format: 'EMOM',
+          minutes: totalMinutes,
+          durationCategory,
+          intensity: initialIntensity,
+          rounds: 0,
+          badgeFormat: meta.badgeFormat,
+          difficultyLabel: meta.difficultyLabel,
+          prescriptionHeader: meta.prescriptionHeader,
+          items,
+          stimulus: meta.stimulus,
+          logic: meta.logic
+        };
+      }
+
       const numStations = pool.length >= 3 ? this.pickRandom([2, 3, 4]) : Math.min(2, pool.length);
       const selected = this.selectBalancedMovements(pool, numStations);
       const usedIds = new Set(selected.map(m => m.id));
@@ -1620,7 +1847,15 @@ const WorkoutGenerator = {
 
     if (chosenFormat === 'FOR_TIME') {
       const is21_15_9 = durationCategory === 'short' && Math.random() < 0.45 && pool.length >= 2;
-      const numMovements = is21_15_9 ? 2 : (pool.length >= 3 ? 3 : Math.min(2, pool.length));
+      const ftRoll = Math.random();
+      const isChipper = !is21_15_9 && durationCategory !== 'short' && pool.length >= 4 && ftRoll < (durationCategory === 'long' ? 0.35 : 0.30);
+      const isQuartetRounds = !is21_15_9 && !isChipper && durationCategory !== 'short' && pool.length >= 4 && ftRoll < 0.58;
+
+      const numMovements = is21_15_9
+        ? 2
+        : (isChipper
+          ? (durationCategory === 'long' && pool.length >= 5 ? 5 : 4)
+          : (isQuartetRounds ? 4 : (pool.length >= 3 ? 3 : Math.min(2, pool.length))));
       const selected = this.selectBalancedMovements(pool, numMovements);
       const usedIds = new Set(selected.map(m => m.id));
       const capMinutes = dom.forTimeCap;
@@ -1668,7 +1903,7 @@ const WorkoutGenerator = {
           logic: meta.logic
         };
       } else {
-        const rounds = dom.rounds;
+        const rounds = isChipper ? 1 : (isQuartetRounds ? Math.max(3, dom.rounds - 1) : dom.rounds);
         const context = {
           durationCategory,
           intensity: initialIntensity,
@@ -1712,7 +1947,8 @@ const WorkoutGenerator = {
     }
 
     if (chosenFormat === 'INTERVALS') {
-      const numMovements = Math.min(pool.length, durationCategory === 'short' ? 2 : 3);
+      const blockCounts = this._getAlgorithmicStationCounts(pool.length, 'INTERVALS', durationCategory);
+      const numMovements = this.pickRandom(blockCounts);
       const selected = this.selectBalancedMovements(pool, numMovements);
       const usedIds = new Set(selected.map(m => m.id));
       const totalMinutes = numMovements * 4;
@@ -1755,7 +1991,8 @@ const WorkoutGenerator = {
 
     // Default: AMRAP
     const totalMinutes = this.pickRandom(dom.amrap);
-    const numMovements = pool.length >= 3 ? 3 : Math.min(2, pool.length);
+    const amrapCounts = this._getAlgorithmicStationCounts(pool.length, 'AMRAP', durationCategory);
+    const numMovements = this.pickRandom(amrapCounts);
     const selected = this.selectBalancedMovements(pool, numMovements);
     const usedIds = new Set(selected.map(m => m.id));
 
