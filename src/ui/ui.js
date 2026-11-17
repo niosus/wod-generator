@@ -30,6 +30,8 @@ const UI = {
   _isTimerFocusOpen: false,
   _lastTimerActiveRow: null,
   _lastFocusKey: null,
+  _initialPlaceholderState: 'visible',
+  _initialRevealTimer: null,
 
   async init() {
     AppState.loadFromStorage();
@@ -54,23 +56,101 @@ const UI = {
     this.renderParameterControls();
     this.bindEvents();
 
-    const rawWodPayload = WorkoutSharing.getPayloadFromUrl();
-    const sharedWod = await WorkoutSharing.loadWodFromUrl();
-    if (sharedWod) {
-      this.displayWod(sharedWod);
-      this.showSharedNotice(sharedWod);
-      if (rawWodPayload && WorkoutSharing.isLegacyWodPayload(rawWodPayload) && window.history && window.history.replaceState) {
-        try {
-          const shortUrl = await WorkoutSharing.createShareUrl(sharedWod);
-          window.history.replaceState(null, '', shortUrl);
-        } catch (e) { }
+    try {
+      const rawWodPayload = WorkoutSharing.getPayloadFromUrl();
+      const sharedWod = await WorkoutSharing.loadWodFromUrl();
+      if (sharedWod) {
+        this.displayWod(sharedWod, { animate: false });
+        this.showSharedNotice(sharedWod);
+        if (rawWodPayload && WorkoutSharing.isLegacyWodPayload(rawWodPayload) && window.history && window.history.replaceState) {
+          try {
+            const shortUrl = await WorkoutSharing.createShareUrl(sharedWod);
+            window.history.replaceState(null, '', shortUrl);
+          } catch (e) { }
+        }
+      } else {
+        this.clearSharedUrl();
+        const initialWod = WorkoutGenerator.generate();
+        this.displayWod(initialWod, { animate: false });
       }
-    } else {
-      this.generateAndDisplayWod();
-      if (sharedCfg) {
+
+      await this.waitForInitialPlaceholder();
+      this.hideLoadingPlaceholder();
+
+      if (!sharedWod && sharedCfg) {
         this.showToast('Custom setup loaded from link.');
       }
+    } catch (err) {
+      this.hideLoadingPlaceholder({ immediate: true });
+      throw err;
     }
+  },
+
+  waitForInitialPlaceholder(minVisibleMs = 550) {
+    if (typeof window === 'undefined' || typeof performance === 'undefined') {
+      return Promise.resolve();
+    }
+    if (typeof document !== 'undefined' && document.hidden) {
+      return Promise.resolve();
+    }
+
+    const waitNextFrame = () => (
+      typeof requestAnimationFrame === 'function'
+        ? new Promise(resolve => requestAnimationFrame(() => resolve()))
+        : Promise.resolve()
+    );
+
+    return waitNextFrame().then(() => {
+      let visibleSince = performance.now();
+      if (typeof performance.getEntriesByType === 'function') {
+        const paintEntries = performance.getEntriesByType('paint');
+        const fcp = paintEntries && (
+          paintEntries.find(e => e.name === 'first-contentful-paint') ||
+          paintEntries[0]
+        );
+        if (fcp && typeof fcp.startTime === 'number') {
+          visibleSince = fcp.startTime;
+        }
+      }
+      const visibleElapsed = Math.max(0, performance.now() - visibleSince);
+      const remaining = Math.max(0, minVisibleMs - visibleElapsed);
+      if (remaining < 16) return waitNextFrame();
+      return new Promise(resolve => setTimeout(resolve, remaining)).then(waitNextFrame);
+    });
+  },
+
+  hideLoadingPlaceholder({ immediate = false } = {}) {
+    const placeholder = document.getElementById('appLoadingPlaceholder');
+    if (!placeholder) {
+      this._initialPlaceholderState = 'hidden';
+      return;
+    }
+    if (this._initialPlaceholderState === 'hidden') return;
+
+    const finishHide = () => {
+      if (this._initialRevealTimer) {
+        clearTimeout(this._initialRevealTimer);
+        this._initialRevealTimer = null;
+      }
+      this._initialPlaceholderState = 'hidden';
+      placeholder.hidden = true;
+      placeholder.classList.add('hidden');
+      placeholder.classList.remove('app-placeholder-fade-out');
+    };
+
+    const reducedMotion = typeof window !== 'undefined' &&
+      window.matchMedia &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    if (immediate || reducedMotion) {
+      finishHide();
+      return;
+    }
+
+    if (this._initialPlaceholderState === 'hiding') return;
+    this._initialPlaceholderState = 'hiding';
+    placeholder.classList.add('app-placeholder-fade-out');
+    this._initialRevealTimer = setTimeout(finishHide, 290);
   },
 
   // ===========================================================================
@@ -355,10 +435,11 @@ const UI = {
     const topRerollBtn = document.getElementById('rerollWodBtn');
     if (!floatingBar || !topRerollBtn) return;
 
+    const isTopBtnHidden = topRerollBtn.offsetParent === null;
     const header = document.querySelector('header');
     const headerBottom = header ? Math.max(0, header.getBoundingClientRect().bottom) : 0;
     const rect = topRerollBtn.getBoundingClientRect();
-    const isTopBtnOffScreen = rect.bottom <= headerBottom + 4 || rect.top >= window.innerHeight;
+    const isTopBtnOffScreen = !isTopBtnHidden && (rect.bottom <= headerBottom + 4 || rect.top >= window.innerHeight);
     const shouldShow = isTopBtnOffScreen && this._activeModalCount === 0;
 
     floatingBar.classList.toggle('opacity-100', shouldShow);
@@ -945,7 +1026,7 @@ const UI = {
     this.displayWod(wod);
   },
 
-  displayWod(wod) {
+  displayWod(wod, { animate = true } = {}) {
     AppState.currentWod = wod;
     if (wod && typeof WorkoutGenerator.getWodSignature === 'function') {
       const sig = WorkoutGenerator.getWodSignature(wod);
@@ -955,15 +1036,17 @@ const UI = {
 
     const cardContainer = document.getElementById('wodCardContainer');
     const accentBar = document.getElementById('wodAccentBar');
-    if (cardContainer) {
-      cardContainer.classList.remove('wod-card-refresh');
-      void cardContainer.offsetWidth;
-      cardContainer.classList.add('wod-card-refresh');
-    }
-    if (accentBar) {
-      accentBar.classList.remove('accent-glow-sweep');
-      void accentBar.offsetWidth;
-      accentBar.classList.add('accent-glow-sweep');
+    if (animate) {
+      if (cardContainer) {
+        cardContainer.classList.remove('wod-card-refresh');
+        void cardContainer.offsetWidth;
+        cardContainer.classList.add('wod-card-refresh');
+      }
+      if (accentBar) {
+        accentBar.classList.remove('accent-glow-sweep');
+        void accentBar.offsetWidth;
+        accentBar.classList.add('accent-glow-sweep');
+      }
     }
 
     document.getElementById('wodBadgeType').textContent = wod.badgeType;
@@ -976,7 +1059,11 @@ const UI = {
     const timeCapBadgeEl = document.getElementById('wodTimeCapBadge');
     const timeCapTextEl = document.getElementById('wodTimeCapText');
     if (timeCapTextEl) {
-      this.animateTextUpdate(timeCapTextEl, clockLabel, 'rep-pulse');
+      if (animate) {
+        this.animateTextUpdate(timeCapTextEl, clockLabel, 'rep-pulse');
+      } else {
+        timeCapTextEl.textContent = clockLabel;
+      }
     }
     if (timeCapBadgeEl) {
       timeCapBadgeEl.classList.toggle('hidden', !clockLabel);
@@ -999,7 +1086,11 @@ const UI = {
         </div>
       `;
     } else {
-      listEl.innerHTML = wod.items.map((item, index) => this.renderWodItemHtml(item, index, index * 90)).join('');
+      listEl.innerHTML = wod.items.map((item, index) => (
+        animate
+          ? this.renderWodItemHtml(item, index, index * 90)
+          : this.renderWodItemHtml(item, index, null, true)
+      )).join('');
     }
 
     listEl.querySelectorAll('canvas[data-ik-pose]').forEach(canvas => {
