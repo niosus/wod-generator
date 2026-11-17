@@ -21,7 +21,7 @@ const MOVEMENT_NAME_TOKENS = {
   pike_pushups: ['INVERTED', 'PIKE LINE', 'WALL LINE', 'VERTICAL PRESS'],
   pushups: ['CHEST TO DECK', 'FLOOR PRESS', 'PLANK LINE', 'LOCKOUT'],
   knee_pushups: ['CHEST TO DECK', 'FLOOR PRESS', 'PLANK LINE', 'CLEAN LOCKOUT'],
-  kb_swings: ['PENDULUM', 'CAST IRON', 'RUSSIAN SWING', 'BALLISTIC BELL'],
+  kb_swings: ['PENDULUM', 'CAST IRON', 'KETTLE SWING', 'BALLISTIC BELL'],
   kb_snatch: ['CAST IRON', 'BELL PULL', 'HIGH BELL', 'IRON ARC'],
   kb_hang_power_clean: ['CAST IRON', 'BELL PULL', 'FRONT RACK', 'IRON ARC'],
   goblet_squats: ['GOBLET', 'FRONT RACK', 'IRON BELL', 'DEEP SQUAT'],
@@ -124,7 +124,7 @@ const WOD_ARCHETYPE_RULES = [
   {
     id: 'run_kb',
     match: p => p.ids.has('run') && p.equipments.has('kettlebell'),
-    names: ['BELL & PAVEMENT', 'RUSSIAN MILE', 'IRON STRIDE', 'SWING & STRIDE', 'CAST IRON PACE', 'BALLISTIC LUNGS']
+    names: ['BELL & PAVEMENT', 'KETTLE MILE', 'IRON STRIDE', 'SWING & STRIDE', 'CAST IRON PACE', 'BALLISTIC LUNGS']
   },
   {
     id: 'kb_bar_rings',
@@ -134,7 +134,7 @@ const WOD_ARCHETYPE_RULES = [
   {
     id: 'kb_heavy',
     match: p => p.kbCount >= 2 || (p.ids.has('kb_swings') && ['goblet_squats', 'kb_snatch', 'kb_hang_power_clean', 'kb_thrusters'].some(id => p.ids.has(id))),
-    names: ['CAST IRON FOUNDRY', 'SWING SHIFT', 'RUSSIAN STEEL', 'BELL RINGER', 'BALLISTIC IRON', 'CANNONBALL']
+    names: ['CAST IRON FOUNDRY', 'SWING SHIFT', 'FORGED STEEL', 'BELL RINGER', 'BALLISTIC IRON', 'CANNONBALL']
   },
   {
     id: 'bb_gymnastics',
