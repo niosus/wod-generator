@@ -382,6 +382,85 @@ const UI = {
         advBadge.classList.add('hidden');
       }
     }
+
+    this.renderSelectionPoolSummary();
+  },
+
+  renderSelectionPoolSummary() {
+    if (typeof WorkoutGenerator === 'undefined' || typeof WorkoutGenerator.getSelectionWorkoutStats !== 'function') {
+      return;
+    }
+
+    const stats = WorkoutGenerator.getSelectionWorkoutStats();
+    const headlineEl = document.getElementById('selectionPoolHeadline');
+    const breakdownEl = document.getElementById('selectionPoolBreakdown');
+    const summaryEl = document.getElementById('selectionPoolSummary');
+    const modalBadgeEl = document.getElementById('modalSelectionPoolBadge');
+    const modalTextEl = document.getElementById('modalSelectionPoolText');
+
+    const formatLabels = {
+      AMRAP: 'AMRAP',
+      EMOM: 'EMOM',
+      FOR_TIME: 'For Time',
+      INTERVALS: 'Tabata'
+    };
+    const formatPrefix = stats.format && stats.format !== 'ANY'
+      ? `${formatLabels[stats.format] || stats.format} · `
+      : '';
+    const plural = (count, singular, pluralWord = `${singular}s`) => (count === 1 ? singular : pluralWord);
+    const numSpan = (val, extraClass = 'text-zinc-900 dark:text-zinc-100') =>
+      `<strong class="font-mono font-bold tabular-nums ${extraClass}">${val.toLocaleString()}</strong>`;
+
+    let headlineHtml = '';
+    let breakdownText = '';
+    let modalTextHtml = '';
+    let tooltipText = '';
+
+    const dotSep = '<span class="text-zinc-300 dark:text-zinc-700 mx-1">·</span>';
+
+    if (stats.activeMovementCount === 0) {
+      headlineHtml = `${numSpan(0, 'text-rose-600 dark:text-rose-400')} algorithmic${dotSep}${numSpan(0, 'text-rose-600 dark:text-rose-400')} classics`;
+      breakdownText = 'Enable at least 1 movement in Tune';
+      modalTextHtml = `${numSpan(0, 'text-rose-600 dark:text-rose-400')} algo${dotSep}${numSpan(0, 'text-rose-600 dark:text-rose-400')} classics`;
+      tooltipText = 'No movements are currently active. Enable at least 1 equipment type and movement to generate workouts.';
+    } else if (stats.mode === 'benchmark') {
+      if (stats.benchmarkCount > 0) {
+        headlineHtml = `${numSpan(stats.benchmarkCount)} classic ${plural(stats.benchmarkCount, 'benchmark')}`;
+        breakdownText = `${formatPrefix}Classics Only · ${stats.activeMovementCount} ${plural(stats.activeMovementCount, 'movement')}`;
+        modalTextHtml = `${numSpan(stats.benchmarkCount)} ${plural(stats.benchmarkCount, 'classic')}`;
+        tooltipText = `${stats.benchmarkCount} classical benchmark ${plural(stats.benchmarkCount, 'workout')} match your current gear, format, and duration.`;
+      } else {
+        const fallbackScopeLabel = stats.fallbackScope === 'broader' ? 'other durations' : 'all-gear classics';
+        headlineHtml = `${numSpan(0, 'text-amber-700 dark:text-amber-300')} matching classics`;
+        breakdownText = `${formatPrefix}Falls back to ${stats.fallbackBenchmarkCount} across ${fallbackScopeLabel}`;
+        modalTextHtml = `${numSpan(0, 'text-amber-700 dark:text-amber-300')} exact (${stats.fallbackBenchmarkCount} fallback)`;
+        tooltipText = `0 classical benchmarks match your exact gear, format, and duration; rolling will fall back to ${stats.fallbackBenchmarkCount} ${fallbackScopeLabel}.`;
+      }
+    } else if (stats.mode === 'algorithmic') {
+      headlineHtml = `${numSpan(stats.algoCount)} algorithmic ${plural(stats.algoCount, 'workout')}`;
+      breakdownText = `${formatPrefix}Custom HIIT · ${stats.activeMovementCount} ${plural(stats.activeMovementCount, 'movement')}`;
+      modalTextHtml = `${numSpan(stats.algoCount)} algo`;
+      tooltipText = `${stats.algoCount.toLocaleString()} unique algorithmic ${plural(stats.algoCount, 'workout')} from ${stats.effectiveMovementCount} top-ladder movements (${stats.activeMovementCount} active).`;
+    } else {
+      headlineHtml = `${numSpan(stats.algoCount)} algorithmic${dotSep}${numSpan(stats.benchmarkCount)} ${plural(stats.benchmarkCount, 'classic')}`;
+      breakdownText = `${formatPrefix}${stats.activeMovementCount} ${plural(stats.activeMovementCount, 'movement')}`;
+      modalTextHtml = `${numSpan(stats.algoCount)} algo${dotSep}${numSpan(stats.benchmarkCount)} ${plural(stats.benchmarkCount, 'classic')}`;
+      tooltipText = `${stats.algoCount.toLocaleString()} algorithmic ${plural(stats.algoCount, 'workout')} (from ${stats.effectiveMovementCount} top-ladder movements) and ${stats.benchmarkCount} matching classical ${plural(stats.benchmarkCount, 'benchmark')} (from ${stats.activeMovementCount} active movements).`;
+    }
+
+    if (headlineEl) headlineEl.innerHTML = headlineHtml;
+    if (breakdownEl) breakdownEl.textContent = breakdownText;
+    if (summaryEl) summaryEl.title = tooltipText;
+    if (modalTextEl) modalTextEl.innerHTML = modalTextHtml;
+    if (modalBadgeEl) {
+      modalBadgeEl.title = tooltipText;
+      const isEmpty = stats.activeMovementCount === 0;
+      modalBadgeEl.className = `inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-[11px] ml-auto sm:ml-0 transition ${
+        isEmpty
+          ? 'bg-rose-50/80 dark:bg-rose-950/30 border-rose-300 dark:border-rose-800 text-rose-700 dark:text-rose-300'
+          : 'bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-300'
+      }`;
+    }
   },
 
   // ===========================================================================

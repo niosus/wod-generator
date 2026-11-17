@@ -419,6 +419,20 @@
             class="hidden px-1.5 py-0.2 rounded-full text-[10px] font-mono font-bold bg-zinc-950 text-white dark:bg-volt dark:text-zinc-950">0</span>
         </button>
       </div>
+
+      <!-- Current Selection Workout Pool Summary -->
+      <div id="selectionPoolSummary"
+        class="mt-1.5 px-2.5 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-[11px] text-zinc-500 dark:text-zinc-400"
+        title="Number of unique workouts matching your current equipment, movements, format, and duration">
+        <div class="flex items-center gap-1.5 min-w-0">
+          <i id="selectionPoolIcon" data-lucide="layers" class="w-3.5 h-3.5 text-zinc-400 dark:text-zinc-500 shrink-0"></i>
+          <span id="selectionPoolHeadline" class="truncate">
+            <strong class="font-mono font-bold tabular-nums text-zinc-900 dark:text-zinc-100">0</strong> algorithmic · <strong class="font-mono font-bold tabular-nums text-zinc-900 dark:text-zinc-100">0</strong> classics
+          </span>
+        </div>
+        <div id="selectionPoolBreakdown" class="font-mono text-[10px] text-zinc-500 dark:text-zinc-400 flex flex-wrap items-center gap-x-1.5">
+        </div>
+      </div>
     </section>
   </main>
 
@@ -489,7 +503,7 @@
 
       <!-- Segmented Tabs -->
       <div
-        class="px-4 sm:px-6 py-2.5 bg-zinc-50 dark:bg-zinc-950/60 border-b border-zinc-200 dark:border-zinc-800 shrink-0">
+        class="px-4 sm:px-6 py-2.5 bg-zinc-50 dark:bg-zinc-950/60 border-b border-zinc-200 dark:border-zinc-800 shrink-0 flex flex-wrap items-center justify-between gap-2">
         <div
           class="inline-flex items-center gap-1 p-1 rounded-xl bg-zinc-200/70 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 w-full sm:w-auto">
           <button type="button" data-adv-tab="equipment"
@@ -505,6 +519,15 @@
             <span>Movements</span>
             <span id="activePoolSummary" class="font-mono text-[10px] opacity-80">0/0</span>
           </button>
+        </div>
+
+        <div id="modalSelectionPoolBadge"
+          class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-[11px] text-zinc-600 dark:text-zinc-300 ml-auto sm:ml-0"
+          title="Algorithmic workouts &amp; classical benchmarks in current selection">
+          <i data-lucide="layers" class="w-3.5 h-3.5 text-volt-600 dark:text-volt shrink-0"></i>
+          <span id="modalSelectionPoolText">
+            <strong class="font-mono font-bold tabular-nums text-zinc-950 dark:text-white">0</strong> algo · <strong class="font-mono font-bold tabular-nums text-zinc-950 dark:text-white">0</strong> classics
+          </span>
         </div>
       </div>
 

@@ -681,14 +681,11 @@ const WorkoutGenerator = {
   },
 
   /**
-   * Movement Selection:
-   * 1. Filters the pool to ONLY the hardest allowed movement from each scale ladder.
-   *    (e.g., standard push-ups instead of knee push-ups, burpees instead of sprawls,
-   *    ring/bar rows instead of table rows, box jumps instead of step-ups).
-   * 2. Selects balanced movement patterns across stations.
+   * Filters a candidate movement pool using the same progression-ladder,
+   * hard-skill, and pattern-level easy rules applied during workout selection.
    */
-  selectBalancedMovements(pool, count) {
-    if (pool.length === 0) return [];
+  getSelectionSourcePool(pool, count) {
+    if (!Array.isArray(pool) || pool.length === 0) return [];
 
     // 1. Filter down to hardest allowed movement of each scale ladder
     const effectivePool = globalThis.AppState && typeof globalThis.AppState.getHardestAllowedMovementPool === 'function'
@@ -727,6 +724,21 @@ const WorkoutGenerator = {
         sourcePool = filtered;
       }
     }
+
+    return sourcePool;
+  },
+
+  /**
+   * Movement Selection:
+   * 1. Filters the pool to ONLY the hardest allowed movement from each scale ladder.
+   *    (e.g., standard push-ups instead of knee push-ups, burpees instead of sprawls,
+   *    ring/bar rows instead of table rows, box jumps instead of step-ups).
+   * 2. Selects balanced movement patterns across stations.
+   */
+  selectBalancedMovements(pool, count) {
+    if (pool.length === 0) return [];
+
+    const sourcePool = this.getSelectionSourcePool(pool, count);
 
     const byPattern = {};
     sourcePool.forEach(m => {
@@ -1160,6 +1172,176 @@ const WorkoutGenerator = {
     return `bm:${String(id).toLowerCase().replace(/[^a-z0-9]/g, '')}`;
   },
 
+  _binomial(n, k) {
+    if (k < 0 || k > n) return 0;
+    if (k === 0 || k === n) return 1;
+    let res = 1;
+    for (let i = 1; i <= k; i++) {
+      res = (res * (n - i + 1)) / i;
+    }
+    return Math.round(res);
+  },
+
+  /**
+   * Counts the exact number of unique `count`-movement combinations
+   * reachable by `selectBalancedMovements(pool, count)`.
+   */
+  countBalancedCombinations(pool, count) {
+    const sourcePool = this.getSelectionSourcePool(pool, count);
+    if (sourcePool.length === 0 || count <= 0) return 0;
+    if (sourcePool.length <= count) return 1;
+
+    const byPattern = {};
+    sourcePool.forEach(m => {
+      if (!byPattern[m.pattern]) byPattern[m.pattern] = [];
+      byPattern[m.pattern].push(m);
+    });
+    const sizes = Object.values(byPattern).map(arr => arr.length);
+
+    if (sizes.length >= count) {
+      const dp = new Array(count + 1).fill(0);
+      dp[0] = 1;
+      for (const n of sizes) {
+        for (let k = count; k >= 1; k--) {
+          dp[k] += dp[k - 1] * n;
+        }
+      }
+      return dp[count];
+    }
+
+    let dp = new Array(count + 1).fill(0);
+    dp[0] = 1;
+    for (const n of sizes) {
+      const next = new Array(count + 1).fill(0);
+      for (let prev = 0; prev <= count; prev++) {
+        if (dp[prev] === 0) continue;
+        for (let take = 1; take <= n && prev + take <= count; take++) {
+          next[prev + take] += dp[prev] * this._binomial(n, take);
+        }
+      }
+      dp = next;
+    }
+    return dp[count];
+  },
+
+  _getAlgorithmicStationCounts(poolLength, formatKey, durationCategory) {
+    if (poolLength <= 0) return [];
+    if (formatKey === 'AMRAP') {
+      return [poolLength >= 3 ? 3 : Math.min(2, poolLength)];
+    }
+    if (formatKey === 'EMOM') {
+      const raw = poolLength >= 3 ? [2, 3, 4] : [Math.min(2, poolLength)];
+      return Array.from(new Set(raw.map(c => Math.min(c, poolLength))));
+    }
+    if (formatKey === 'FOR_TIME') {
+      const sizes = new Set();
+      if (durationCategory === 'short' && poolLength >= 2) sizes.add(2);
+      sizes.add(poolLength >= 3 ? 3 : Math.min(2, poolLength));
+      return Array.from(sizes);
+    }
+    if (formatKey === 'INTERVALS') {
+      return [Math.min(poolLength, durationCategory === 'short' ? 2 : 3)];
+    }
+    return [];
+  },
+
+  getMatchingBenchmarks() {
+    const benchmarks = globalThis.CLASSICAL_BENCHMARKS || [];
+    const format = globalThis.AppState.format || 'ANY';
+    const duration = globalThis.AppState.duration || 'medium';
+
+    const broaderBenchmarks = benchmarks.filter(b => {
+      const matchesPool = globalThis.AppState.isBenchmarkEligible(b);
+      const matchesFormat = format === 'ANY' || b.format === format;
+      return matchesPool && matchesFormat;
+    });
+    const eligibleBenchmarks = broaderBenchmarks.filter(b => b.durationCategory === duration);
+
+    return { eligibleBenchmarks, broaderBenchmarks };
+  },
+
+  /**
+   * Computes the exact number of unique workouts (algorithmic combinations +
+   * eligible classical benchmarks) in the current selection pool.
+   */
+  getSelectionWorkoutStats() {
+    const activePool = globalThis.AppState.getActiveMovementPool();
+    const hardestPool = globalThis.AppState.getHardestAllowedMovementPool();
+    const effectivePool = hardestPool.length > 0 ? hardestPool : activePool;
+    const mode = globalThis.AppState.mode || 'smart';
+    const format = globalThis.AppState.format || 'ANY';
+    const duration = globalThis.AppState.duration || 'medium';
+    const totalBenchmarksCatalog = (globalThis.CLASSICAL_BENCHMARKS || []).length;
+
+    if (activePool.length === 0) {
+      return {
+        totalCount: 0,
+        algoCount: 0,
+        benchmarkCount: 0,
+        broaderBenchmarkCount: 0,
+        fallbackBenchmarkCount: 0,
+        fallbackScope: null,
+        activeMovementCount: 0,
+        effectiveMovementCount: 0,
+        mode,
+        format,
+        duration
+      };
+    }
+
+    const { eligibleBenchmarks, broaderBenchmarks } = this.getMatchingBenchmarks();
+
+    let algoCount = 0;
+    if (mode === 'smart' || mode === 'algorithmic') {
+      const formatsToCount = format === 'ANY' ? ['AMRAP', 'EMOM', 'FOR_TIME'] : [format];
+      for (const fmt of formatsToCount) {
+        const stationCounts = this._getAlgorithmicStationCounts(effectivePool.length, fmt, duration);
+        for (const k of stationCounts) {
+          algoCount += this.countBalancedCombinations(effectivePool, k);
+        }
+      }
+    }
+
+    if (mode === 'benchmark') {
+      const exactCount = eligibleBenchmarks.length;
+      const fallbackBenchmarkCount = exactCount > 0
+        ? exactCount
+        : (broaderBenchmarks.length > 0 ? broaderBenchmarks.length : totalBenchmarksCatalog);
+      const fallbackScope = exactCount > 0
+        ? null
+        : (broaderBenchmarks.length > 0 ? 'broader' : 'all');
+
+      return {
+        totalCount: exactCount,
+        algoCount: 0,
+        benchmarkCount: exactCount,
+        broaderBenchmarkCount: broaderBenchmarks.length,
+        fallbackBenchmarkCount,
+        fallbackScope,
+        activeMovementCount: activePool.length,
+        effectiveMovementCount: effectivePool.length,
+        mode,
+        format,
+        duration
+      };
+    }
+
+    const benchmarkCount = mode === 'smart' ? eligibleBenchmarks.length : 0;
+    return {
+      totalCount: algoCount + benchmarkCount,
+      algoCount,
+      benchmarkCount,
+      broaderBenchmarkCount: broaderBenchmarks.length,
+      fallbackBenchmarkCount: 0,
+      fallbackScope: null,
+      activeMovementCount: activePool.length,
+      effectiveMovementCount: effectivePool.length,
+      mode,
+      format,
+      duration
+    };
+  },
+
   /**
    * Main Generator Entrypoint:
    * Keeps track of the last workouts shown to the user and guarantees that:
@@ -1176,18 +1358,7 @@ const WorkoutGenerator = {
     const currentWodSig = this.getWodSignature(globalThis.AppState.currentWod);
     const currentMovSig = this.getWodMovementSignature(globalThis.AppState.currentWod);
 
-    const eligibleBenchmarks = globalThis.CLASSICAL_BENCHMARKS.filter(b => {
-      const matchesPool = globalThis.AppState.isBenchmarkEligible(b);
-      const matchesFormat = globalThis.AppState.format === 'ANY' || b.format === globalThis.AppState.format;
-      const matchesDuration = b.durationCategory === globalThis.AppState.duration;
-      return matchesPool && matchesFormat && matchesDuration;
-    });
-
-    const broaderBenchmarks = globalThis.CLASSICAL_BENCHMARKS.filter(b => {
-      const matchesPool = globalThis.AppState.isBenchmarkEligible(b);
-      const matchesFormat = globalThis.AppState.format === 'ANY' || b.format === globalThis.AppState.format;
-      return matchesPool && matchesFormat;
-    });
+    const { eligibleBenchmarks, broaderBenchmarks } = this.getMatchingBenchmarks();
 
     // 1. CLASSICS ONLY MODE
     if (globalThis.AppState.mode === 'benchmark') {
