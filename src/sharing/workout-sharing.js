@@ -1,3 +1,12 @@
+import {
+  EQUIPMENT_CATALOG,
+  MOVEMENTS_DB,
+  CLASSICAL_BENCHMARKS
+} from '../data/index.js';
+import { BiomechanicalStickAnimator, renderFrame } from '../animator/index.js';
+import { AppState } from '../state/app-state.js';
+import { WorkoutGenerator } from '../generator/workout-generator.js';
+
 const WOD_SHARE_FORMATS = ['AMRAP', 'EMOM', 'FOR_TIME', 'INTERVALS'];
 const WOD_SHARE_INTENSITIES = ['moderate', 'standard', 'high'];
 const WOD_SHARE_DURATIONS = ['short', 'medium', 'long'];
@@ -1112,7 +1121,7 @@ const WorkoutSharing = {
 
     const wg = globalThis.WorkoutGenerator;
     const sansFamily = 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
-    const monoFamily = '"JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace';
+    const monoFamily = '"Fira Code", ui-monospace, SFMono-Regular, Menlo, monospace';
 
     // 1. Outer frame (.bg-gym-grid) & card surface
     ctx.fillStyle = theme.outerBg;
@@ -1544,3 +1553,4 @@ const WorkoutSharing = {
 };
 
 globalThis.WorkoutSharing = WorkoutSharing;
+export { WorkoutSharing };

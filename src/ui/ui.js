@@ -1,3 +1,20 @@
+import {
+  EQUIPMENT_CATALOG,
+  PATTERNS,
+  MOVEMENTS_DB,
+  SCALE_LADDERS,
+  ProgressionEngine,
+  CLASSICAL_BENCHMARKS,
+  DEFAULT_EQUIPMENT_STATES,
+  EQUIPMENT_PRESETS,
+  BiomechanicalStickAnimator,
+  AppState,
+  WorkoutGenerator,
+  WorkoutSharing,
+  WorkoutTimer
+} from '../core/index.js';
+import { lucide } from './lucide-icons.js';
+
 const UI = {
   isOutdated: false,
   _activeModalCount: 0,
@@ -3311,3 +3328,4 @@ const UI = {
 };
 
 globalThis.UI = UI;
+export { UI };

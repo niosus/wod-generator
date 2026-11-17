@@ -281,3 +281,4 @@ const KinematicMath = {
 };
 
 globalThis.KinematicMath = KinematicMath;
+export { KinematicMath };

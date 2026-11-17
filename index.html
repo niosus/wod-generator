@@ -80,20 +80,7 @@
       }
     })();
   </script>
-  <!-- Tailwind CSS CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Tailwind Configuration -->
-  <script src="js/tailwind-config.js"></script>
-  <!-- Google Fonts: Inter & JetBrains Mono -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;600;700;800&display=swap"
-    rel="stylesheet">
-  <!-- Lucide Icons -->
-  <script src="https://unpkg.com/lucide@latest"></script>
-  <!-- Custom Styles -->
-  <link rel="stylesheet" href="css/styles.css">
+  <!-- Application Styles & Entry Module (bundled via Vite) -->
 </head>
 
 <body
@@ -1269,25 +1256,8 @@
     </div>
   </div>
 
-  <!-- Application Modules -->
-  <script src="src/data/equipment.js"></script>
-  <script src="src/data/patterns.js"></script>
-  <script src="src/data/movements.js"></script>
-  <script src="src/data/progressions.js"></script>
-  <script src="src/data/benchmarks.js"></script>
-  <script src="src/data/presets.js"></script>
-  <script src="src/animator/constants.js"></script>
-  <script src="src/animator/math.js"></script>
-  <script src="src/animator/poses.js"></script>
-  <script src="src/animator/validator.js"></script>
-  <script src="src/animator/renderer.js"></script>
-  <script src="src/animator/animator.js"></script>
-  <script src="src/state/app-state.js"></script>
-  <script src="src/generator/workout-generator.js"></script>
-  <script src="src/sharing/workout-sharing.js"></script>
-  <script src="src/timer/workout-timer.js"></script>
-  <script src="src/ui/ui.js"></script>
-  <script src="src/main.js"></script>
+  <!-- Application Entry Module -->
+  <script type="module" src="/src/main.js"></script>
 </body>
 
 </html>

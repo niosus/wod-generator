@@ -1625,3 +1625,4 @@ const MOVEMENTS_DB = [
 ];
 
 globalThis.MOVEMENTS_DB = MOVEMENTS_DB;
+export { MOVEMENTS_DB };

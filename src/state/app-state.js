@@ -1,3 +1,10 @@
+import {
+  EQUIPMENT_CATALOG,
+  MOVEMENTS_DB,
+  EQUIPMENT_PRESETS,
+  ProgressionEngine
+} from '../data/index.js';
+
 const STORAGE_KEY = 'wodroll_local_prefs_v3';
 const LEGACY_STORAGE_KEY = 'wodforge_local_prefs_v3';
 
@@ -388,3 +395,4 @@ const LEGACY_STORAGE_KEY = 'wodforge_local_prefs_v3';
 
 globalThis.STORAGE_KEY = STORAGE_KEY;
 globalThis.AppState = AppState;
+export { STORAGE_KEY, AppState };

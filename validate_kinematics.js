@@ -15,15 +15,8 @@
  *   node validate_kinematics.js
  */
 
-import './src/data/movements.js';
-import './src/animator/constants.js';
-import './src/animator/math.js';
-import './src/animator/poses.js';
-import './src/animator/validator.js';
-import './src/animator/renderer.js';
-import './src/animator/animator.js';
-
-const { MOVEMENTS_DB, BiomechanicalStickAnimator } = globalThis;
+import { MOVEMENTS_DB } from './src/data/movements.js';
+import { BiomechanicalStickAnimator } from './src/animator/index.js';
 
 const jsonMode = process.argv.includes('--json');
 const uniquePoseTypes = [...new Set(MOVEMENTS_DB.map((m) => m.poseType))];

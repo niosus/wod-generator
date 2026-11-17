@@ -11,3 +11,4 @@ const PATTERNS = {
 };
 
 globalThis.PATTERNS = PATTERNS;
+export { PATTERNS };
