@@ -11,15 +11,39 @@ import { computePose as defaultComputePose } from './poses.js';
 function validatePose(poseType, numSteps = 120, cycleMs = null) {
   const poseCompute = (this && typeof this.computePose === 'function') ? this.computePose.bind(this) : defaultComputePose;
   if (!cycleMs) {
-    if (poseType === 'man_maker') cycleMs = 4600;
+    if (poseType === 'kb_turkish_getup' || poseType === 'db_turkish_getup') cycleMs = 5600;
+    else if (poseType === 'wall_walk') cycleMs = 5200;
+    else if (poseType === 'man_maker' || poseType === 'bb_clean_and_jerk' || poseType === 'db_clean_and_jerk' || poseType === 'kb_clean_and_jerk') cycleMs = 4600;
+    else if (poseType === 'box_jump_over' || poseType === 'bar_facing_burpee') cycleMs = 4200;
     else if (
       poseType === 'stepping_lunge' ||
       poseType === 'step_back_lunge' ||
+      poseType === 'db_walking_lunge' ||
+      poseType === 'kb_rack_lunge' ||
+      poseType === 'bb_front_rack_lunge' ||
       poseType === 'bulgarian_split_squat' ||
       poseType === 'rfe_rdl' ||
-      poseType === 'box_step_up'
+      poseType === 'box_step_up' ||
+      poseType === 'cossack_squat' ||
+      poseType === 'broad_jump' ||
+      poseType === 'plank_up_down' ||
+      poseType === 'med_ball_russian_twist' ||
+      poseType === 'kb_russian_twist' ||
+      poseType === 'db_russian_twist' ||
+      poseType === 'russian_twist' ||
+      poseType === 'db_plank_renegade_row'
     ) cycleMs = 3800;
+    else if (poseType === 'plank_shoulder_tap') cycleMs = 2000;
     else if (poseType === 'burpee_6stage' || poseType === 'devil_press' || poseType === 'athletic_up_down') cycleMs = 3200;
+    else if (poseType === 'bb_power_clean') cycleMs = 2900;
+    else if (poseType === 'bb_squat_clean') cycleMs = 3000;
+    else if (poseType === 'bb_power_snatch') cycleMs = 2600;
+    else if (poseType === 'jump_squat') cycleMs = 1500;
+    else if (poseType === 'db_power_clean' || poseType === 'med_ball_slam') cycleMs = 2400;
+    else if (poseType === 'med_ball_clean') cycleMs = 2600;
+    else if (poseType === 'kb_clean') cycleMs = 2100;
+    else if (poseType === 'high_knees') cycleMs = 840;
+    else if (poseType === 'bar_facing_burpee') cycleMs = 4700;
     else cycleMs = 3800;
   }
   const violations = [];
@@ -61,7 +85,7 @@ function validatePose(poseType, numSteps = 120, cycleMs = null) {
       // Side-view knee non-hyperextension invariant:
       // In side view (both upright facing-right and inverted facing-left), anatomical knee flexion has cross >= 0.
       if (f.view === 'side' && limb.kind === 'leg') {
-        const facing = (f.torso && f.torso.facingDir === -1 && Math.sin(f.torso.spineAngle) < 0) ? -1 : 1;
+        const facing = (f.torso && f.torso.facingDir === -1) ? -1 : 1;
         const tx = limb.jx - limb.x1, ty = limb.jy - limb.y1;
         const sx = limb.x2 - limb.jx, sy = limb.y2 - limb.jy;
         const cross = (tx * sy - ty * sx) * facing;

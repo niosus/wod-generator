@@ -61,12 +61,69 @@ const lerpAngle = (a, b, t) => {
 };
 
 const drawLimb = (ctx, limb, isLight) => {
-  const { x1, y1, jx, jy, x2, y2, width, endType, footDir, surfaceY, name } = limb;
+  const { x1, y1, jx, jy, x2, y2, width, endType, footDir, surfaceY, name, jz = 0, z2 = 0 } = limb;
   const isFar = Boolean(name && name.endsWith('B'));
   const cInk = isLight ? (isFar ? '#52525b' : '#09090b') : (isFar ? '#a1a1aa' : '#fafafa');
   const cOutline = isLight ? '#ffffff' : '#09090b';
 
+  const drawJoint = () => {
+    ctx.fillStyle = cInk;
+    ctx.strokeStyle = cOutline;
+    ctx.lineWidth = 1.6;
+    ctx.beginPath();
+    ctx.arc(jx, jy, 3.0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = cOutline;
+    ctx.beginPath();
+    ctx.arc(jx, jy, 1.1, 0, Math.PI * 2);
+    ctx.fill();
+  };
+
+  const drawHand = () => {
+    ctx.fillStyle = cInk;
+    ctx.strokeStyle = cOutline;
+    ctx.lineWidth = 1.6;
+    ctx.beginPath();
+    ctx.arc(x2, y2, 3.6, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+  };
+
   ctx.lineCap = 'round';
+
+  if (endType === 'hand' && jz > z2) {
+    // Joint/elbow is closer to the camera than the fist: draw forearm + fist first, then upper arm + elbow on top
+    ctx.strokeStyle = cOutline;
+    ctx.lineWidth = (width - 0.5) + 2.6;
+    ctx.beginPath();
+    ctx.moveTo(jx, jy);
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
+    ctx.strokeStyle = cInk;
+    ctx.lineWidth = width - 0.5;
+    ctx.beginPath();
+    ctx.moveTo(jx, jy);
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
+    drawHand();
+
+    ctx.strokeStyle = cOutline;
+    ctx.lineWidth = width + 2.6;
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(jx, jy);
+    ctx.stroke();
+    ctx.strokeStyle = cInk;
+    ctx.lineWidth = width;
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(jx, jy);
+    ctx.stroke();
+    drawJoint();
+    return;
+  }
 
   // Pass 1: Background contrast outline for upper & lower limb segments
   ctx.strokeStyle = cOutline;
@@ -96,39 +153,29 @@ const drawLimb = (ctx, limb, isLight) => {
   ctx.lineTo(x2, y2);
   ctx.stroke();
 
-  // Joint: contrasting outer ring + ink body + hollow center pin
-  ctx.fillStyle = cInk;
-  ctx.strokeStyle = cOutline;
-  ctx.lineWidth = 1.6;
-  ctx.beginPath();
-  ctx.arc(jx, jy, 3.0, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.stroke();
-
-  ctx.fillStyle = cOutline;
-  ctx.beginPath();
-  ctx.arc(jx, jy, 1.1, 0, Math.PI * 2);
-  ctx.fill();
+  drawJoint();
 
   if (endType === 'hand') {
-    ctx.fillStyle = cInk;
-    ctx.strokeStyle = cOutline;
-    ctx.lineWidth = 1.6;
-    ctx.beginPath();
-    ctx.arc(x2, y2, 3.6, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.stroke();
-  } else if (endType === 'foot') {
-    const dir = footDir >= 0 ? 1 : -1;
+    drawHand();
+  } else if (endType === 'foot' || endType === 'foot_pointed') {
     const shinAngle = Math.atan2(y2 - jy, x2 - jx);
-    const flatAngle = dir > 0 ? 0 : Math.PI;
-    const perpAngle = shinAngle - dir * Math.PI * 0.48;
-    const airT = Math.max(0, Math.min(1, (surfaceY - 4 - y2) / 10));
-    const soleAngle = lerpAngle(flatAngle, perpAngle, airT);
-    const sx1 = x2 - Math.cos(soleAngle) * 2.5;
-    const sy1 = y2 - Math.sin(soleAngle) * 2.5;
-    const sx2 = x2 + Math.cos(soleAngle) * 10.5;
-    const sy2 = y2 + Math.sin(soleAngle) * 10.5;
+    const isPointed = endType === 'foot_pointed';
+    let soleAngle;
+    if (isPointed) {
+      soleAngle = shinAngle - 0.78;
+    } else {
+      const dir = footDir >= 0 ? 1 : -1;
+      const flatAngle = dir > 0 ? 0 : Math.PI;
+      const perpAngle = shinAngle - dir * Math.PI * 0.48;
+      const airT = Math.max(0, Math.min(1, (surfaceY - 4 - y2) / 10));
+      soleAngle = lerpAngle(flatAngle, perpAngle, airT);
+    }
+    const backExt = isPointed ? 1.0 : 2.5;
+    const frontExt = isPointed ? 7.5 : 10.5;
+    const sx1 = x2 - Math.cos(soleAngle) * backExt;
+    const sy1 = y2 - Math.sin(soleAngle) * backExt;
+    const sx2 = x2 + Math.cos(soleAngle) * frontExt;
+    const sy2 = y2 + Math.sin(soleAngle) * frontExt;
 
     ctx.strokeStyle = cOutline;
     ctx.lineWidth = 6.5;
@@ -269,17 +316,19 @@ const drawGymRingStrap = (ctx, strapX, strapY, cx, cy, r, isLight) => {
   ctx.fillRect(bx - 2.5, by - 2, 5, 4);
 };
 
-const drawGymRingHoop = (ctx, cx, cy, r, isLight) => {
+const drawGymRingHoop = (ctx, cx, cy, r, isLight, rx = r, tilt = 0) => {
   const cOutline = isLight ? '#ffffff' : '#09090b';
+  const radX = rx || r;
+  const slim = radX < r * 0.85;
   ctx.strokeStyle = cOutline;
-  ctx.lineWidth = 5.0;
+  ctx.lineWidth = slim ? 3.8 : 5.0;
   ctx.beginPath();
-  ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  ctx.ellipse(cx, cy, radX, r, tilt || 0, 0, Math.PI * 2);
   ctx.stroke();
   ctx.strokeStyle = resolveThemeColor('#f59e0b', isLight);
-  ctx.lineWidth = 3.2;
+  ctx.lineWidth = slim ? 2.4 : 3.2;
   ctx.beginPath();
-  ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  ctx.ellipse(cx, cy, radX, r, tilt || 0, 0, Math.PI * 2);
   ctx.stroke();
 };
 
@@ -293,6 +342,26 @@ const drawLoad = (ctx, x, y, r, isLight) => {
   ctx.stroke();
 };
 
+const drawMedBall = (ctx, pr, isLight) => {
+  const r = pr.r || 8;
+  const a = pr.angle || 0;
+  const dx = Math.cos(a) * r * 0.75;
+  const dy = Math.sin(a) * r * 0.75;
+  ctx.fillStyle = resolveThemeColor('#f59e0b', isLight);
+  ctx.strokeStyle = resolveThemeColor('#fef08a', isLight);
+  ctx.lineWidth = 1.8;
+  ctx.beginPath();
+  ctx.arc(pr.x, pr.y, r, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.stroke();
+  ctx.strokeStyle = isLight ? '#e0f2fe' : '#0c4a6e';
+  ctx.lineWidth = 1.4;
+  ctx.beginPath();
+  ctx.moveTo(pr.x - dx, pr.y - dy);
+  ctx.lineTo(pr.x + dx, pr.y + dy);
+  ctx.stroke();
+};
+
 const isKettlebellMidground = (pr, frame) => (
   Boolean(pr.midground) ||
   frame.poseType === 'kb_deadlift' ||
@@ -301,6 +370,12 @@ const isKettlebellMidground = (pr, frame) => (
 );
 
 const drawKettlebell = (ctx, pr, isLight) => {
+  ctx.save();
+  if (pr.angle) {
+    ctx.translate(pr.x, pr.y - pr.r * 1.1);
+    ctx.rotate(pr.angle);
+    ctx.translate(-pr.x, -(pr.y - pr.r * 1.1));
+  }
   ctx.fillStyle = resolveThemeColor('#f59e0b', isLight);
   ctx.strokeStyle = resolveThemeColor('#fef08a', isLight);
   ctx.lineWidth = 1.6;
@@ -313,6 +388,7 @@ const drawKettlebell = (ctx, pr, isLight) => {
   ctx.beginPath();
   ctx.arc(pr.x, pr.y - pr.r * 0.72, pr.r * 0.62, Math.PI, 0, false);
   ctx.stroke();
+  ctx.restore();
 };
 
 const drawParallettes = (ctx, pr, isLight) => {
@@ -690,7 +766,8 @@ const drawBackgroundProp = (ctx, pr, frame, isLight) => {
       ctx.lineTo(pr.wallX - 3, pr.targetY + 7);
       ctx.stroke();
       break;
-    case 'run_track': {
+    case 'run_track':
+    case 'march_track': {
       const trackOffset = (pr.timestamp * 0.22) % 40;
       ctx.strokeStyle = resolveThemeColor('rgba(56, 189, 248, 0.35)', isLight);
       ctx.lineWidth = 2;
@@ -743,6 +820,28 @@ const drawBackgroundProp = (ctx, pr, frame, isLight) => {
   }
 };
 
+const drawDumbbell = (ctx, pr, isLight, isFar) => {
+  ctx.save();
+  ctx.translate(pr.x, pr.y);
+  if (pr.angle) ctx.rotate(pr.angle);
+  const hw = isFar ? 6 : 7;
+  const pw = isFar ? 3.5 : 4;
+  const ph = isFar ? 9 : 10;
+  ctx.strokeStyle = resolveThemeColor(isFar ? '#64748b' : '#cbd5e1', isLight);
+  ctx.lineWidth = isFar ? 2 : 2.4;
+  ctx.beginPath();
+  ctx.moveTo(-hw, 0); ctx.lineTo(hw, 0);
+  ctx.stroke();
+  ctx.fillStyle = resolveThemeColor(isFar ? '#b45309' : '#f59e0b', isLight);
+  ctx.strokeStyle = resolveThemeColor(isFar ? '#92400e' : '#fef08a', isLight);
+  ctx.lineWidth = isFar ? 1.2 : 1.4;
+  ctx.fillRect(-hw - pw + 0.5, -ph / 2, pw, ph);
+  ctx.strokeRect(-hw - pw + 0.5, -ph / 2, pw, ph);
+  ctx.fillRect(hw - 0.5, -ph / 2, pw, ph);
+  ctx.strokeRect(hw - 0.5, -ph / 2, pw, ph);
+  ctx.restore();
+};
+
 const drawMidgroundProp = (ctx, pr, frame, isLight) => {
   switch (pr.type) {
     case 'bike_erg':
@@ -780,23 +879,36 @@ const drawMidgroundProp = (ctx, pr, frame, isLight) => {
       ctx.stroke();
       break;
     case 'dumbbell_far':
-      ctx.strokeStyle = resolveThemeColor('#64748b', isLight);
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(pr.x - 6, pr.y); ctx.lineTo(pr.x + 6, pr.y);
-      ctx.stroke();
-      ctx.fillStyle = resolveThemeColor('#b45309', isLight);
-      ctx.strokeStyle = resolveThemeColor('#92400e', isLight);
-      ctx.lineWidth = 1.2;
-      ctx.fillRect(pr.x - 9, pr.y - 4.5, 3.5, 9);
-      ctx.strokeRect(pr.x - 9, pr.y - 4.5, 3.5, 9);
-      ctx.fillRect(pr.x + 5.5, pr.y - 4.5, 3.5, 9);
-      ctx.strokeRect(pr.x + 5.5, pr.y - 4.5, 3.5, 9);
+      drawDumbbell(ctx, pr, isLight, true);
+      break;
+    case 'dumbbell_near':
+      if (pr.midground) {
+        drawDumbbell(ctx, pr, isLight, false);
+      }
       break;
     case 'kettlebell':
       if (isKettlebellMidground(pr, frame)) {
         drawKettlebell(ctx, pr, isLight);
       }
+      break;
+    case 'gym_ring':
+      if (pr.midground) {
+        drawGymRingHoop(ctx, pr.cx, pr.cy, pr.r, isLight, pr.rx, pr.tilt);
+      }
+      break;
+    case 'med_ball':
+      if (pr.midground) {
+        drawMedBall(ctx, pr, isLight);
+      }
+      break;
+    case 'barbell_bar':
+      ctx.strokeStyle = resolveThemeColor('#cbd5e1', isLight);
+      ctx.lineWidth = 3.2;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(pr.x1, pr.y1);
+      ctx.lineTo(pr.x2, pr.y2);
+      ctx.stroke();
       break;
   }
 };
@@ -804,7 +916,9 @@ const drawMidgroundProp = (ctx, pr, frame, isLight) => {
 const drawForegroundProp = (ctx, pr, frame, isLight) => {
   switch (pr.type) {
     case 'gym_ring':
-      drawGymRingHoop(ctx, pr.cx, pr.cy, pr.r, isLight);
+      if (!pr.midground) {
+        drawGymRingHoop(ctx, pr.cx, pr.cy, pr.r, isLight, pr.rx, pr.tilt);
+      }
       break;
     case 'parallel_bars':
       ctx.lineCap = 'round';
@@ -841,19 +955,59 @@ const drawForegroundProp = (ctx, pr, frame, isLight) => {
     case 'barbell_end':
       drawLoad(ctx, pr.x, pr.y, pr.r, isLight);
       break;
-    case 'dumbbell_near':
-      ctx.strokeStyle = resolveThemeColor('#cbd5e1', isLight);
+    case 'floor_barbell': {
+      const r = pr.r || 10;
+      ctx.fillStyle = resolveThemeColor('#18181b', isLight);
+      ctx.strokeStyle = resolveThemeColor('#f59e0b', isLight);
       ctx.lineWidth = 2.4;
       ctx.beginPath();
-      ctx.moveTo(pr.x - 7, pr.y); ctx.lineTo(pr.x + 7, pr.y);
+      ctx.arc(pr.x, pr.y, r, 0, Math.PI * 2);
+      ctx.fill();
       ctx.stroke();
-      ctx.fillStyle = resolveThemeColor('#f59e0b', isLight);
-      ctx.strokeStyle = resolveThemeColor('#fef08a', isLight);
-      ctx.lineWidth = 1.4;
-      ctx.fillRect(pr.x - 10, pr.y - 5, 4, 10);
-      ctx.strokeRect(pr.x - 10, pr.y - 5, 4, 10);
-      ctx.fillRect(pr.x + 6, pr.y - 5, 4, 10);
-      ctx.strokeRect(pr.x + 6, pr.y - 5, 4, 10);
+      ctx.strokeStyle = resolveThemeColor('#94a3b8', isLight);
+      ctx.lineWidth = 1.6;
+      ctx.beginPath();
+      ctx.arc(pr.x, pr.y, r * 0.38, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.fillStyle = resolveThemeColor('#e2e8f0', isLight);
+      ctx.beginPath();
+      ctx.arc(pr.x, pr.y, 1.8, 0, Math.PI * 2);
+      ctx.fill();
+      break;
+    }
+    case 'crossfit_barbell_front': {
+      const y = pr.y;
+      // Full 7ft steel bar shaft & sleeves
+      ctx.strokeStyle = resolveThemeColor('#cbd5e1', isLight);
+      ctx.lineWidth = 3.2;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(28, y);
+      ctx.lineTo(172, y);
+      ctx.stroke();
+      // Inner metal collars & thick bumper plates viewed edge-on
+      const drawSidePlate = (plateX, collarX) => {
+        ctx.fillStyle = resolveThemeColor('#94a3b8', isLight);
+        ctx.fillRect(collarX - 1.5, y - 5, 3, 10);
+        ctx.fillStyle = resolveThemeColor('#18181b', isLight);
+        ctx.strokeStyle = resolveThemeColor('#f59e0b', isLight);
+        ctx.lineWidth = 1.8;
+        ctx.fillRect(plateX - 3.5, y - 16, 7, 32);
+        ctx.strokeRect(plateX - 3.5, y - 16, 7, 32);
+      };
+      drawSidePlate(42, 48);
+      drawSidePlate(158, 152);
+      break;
+    }
+    case 'med_ball':
+      if (!pr.midground) {
+        drawMedBall(ctx, pr, isLight);
+      }
+      break;
+    case 'dumbbell_near':
+      if (!pr.midground) {
+        drawDumbbell(ctx, pr, isLight, false);
+      }
       break;
     case 'wall_ball_rig':
       ctx.fillStyle = resolveThemeColor('#f59e0b', isLight);
@@ -923,12 +1077,17 @@ function renderFrame(ctx, frame) {
 
   if (frame.view === 'front') {
     drawFrontTorso(ctx, frame.frontTorso, isLight, false);
-    for (const pr of frame.props) drawMidgroundProp(ctx, pr, frame, isLight);
-    for (const limb of frame.limbs) if (!limb.name.startsWith('arm')) drawLimb(ctx, limb, isLight);
-    for (const limb of frame.limbs) if (limb.name.startsWith('arm')) drawLimb(ctx, limb, isLight);
+    for (const pr of frame.props) if (!pr.behindLegs) drawMidgroundProp(ctx, pr, frame, isLight);
+    const backArms = frame.limbs.filter((l) => l.name.startsWith('arm') && (l.zOrder ?? 0) < 0).sort((a, b) => (a.zOrder ?? 0) - (b.zOrder ?? 0));
+    for (const limb of backArms) drawLimb(ctx, limb, isLight);
+    for (const pr of frame.props) if (pr.behindLegs) drawMidgroundProp(ctx, pr, frame, isLight);
+    const frontLegs = frame.limbs.filter((l) => !l.name.startsWith('arm')).sort((a, b) => (a.zOrder ?? 0) - (b.zOrder ?? 0));
+    for (const limb of frontLegs) drawLimb(ctx, limb, isLight);
+    const frontArms = frame.limbs.filter((l) => l.name.startsWith('arm') && (l.zOrder ?? 0) >= 0).sort((a, b) => (a.zOrder ?? 0) - (b.zOrder ?? 0));
+    for (const limb of frontArms) drawLimb(ctx, limb, isLight);
     drawHead(ctx, frame.frontTorso.headX, frame.frontTorso.headY, 9.8, isLight);
   } else {
-    const isFar = (l) => l.name.endsWith('B');
+    const isFar = (l) => l.name.endsWith('B') || (l.zOrder ?? 0) < 0;
     for (const limb of frame.limbs) if (isFar(limb)) drawLimb(ctx, limb, isLight);
     for (const pr of frame.props) drawMidgroundProp(ctx, pr, frame, isLight);
     drawSideTorso(ctx, frame.torso, isLight);

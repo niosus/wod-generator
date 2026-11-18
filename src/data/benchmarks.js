@@ -158,7 +158,7 @@ const CLASSICAL_BENCHMARKS = [
     minutes: 10,
     prescriptionHeader: '21 - 15 - 9 Reps For Time (10 Min Cap):',
     items: [
-      { movementId: 'bb_hang_power_clean', reps: '21-15-9', label: 'Barbell Cleans (60/42.5 kg)' },
+      { movementId: 'bb_power_clean', reps: '21-15-9', label: 'Barbell Cleans (60/42.5 kg)' },
       { movementId: 'ring_dips', reps: '21-15-9', label: 'Ring Dips' }
     ],
     stimulus: 'Olympic lifting power paired with gymnastics shoulder stability. Fight to keep dips in manageable chunks.',
@@ -173,7 +173,7 @@ const CLASSICAL_BENCHMARKS = [
     minutes: 6,
     prescriptionHeader: '30 Clean and Jerks For Time (60/42.5 kg Barbell):',
     items: [
-      { movementId: 'bb_push_jerk', reps: 30, label: '30 Clean & Jerks (60/42.5 kg)' }
+      { movementId: 'bb_clean_and_jerk', reps: 30, label: '30 Clean & Jerks (60/42.5 kg)' }
     ],
     stimulus: 'One of the fastest classic benchmark sprint tests. Cycle fast singles or quick touch-and-go doubles.',
     logic: 'Maximal ground-to-overhead power output and aerobic-anaerobic threshold capacity.'
@@ -187,7 +187,7 @@ const CLASSICAL_BENCHMARKS = [
     minutes: 6,
     prescriptionHeader: '30 Snatches For Time (60/42.5 kg Barbell):',
     items: [
-      { movementId: 'bb_squat_snatch', reps: 30, label: '30 Power / Squat Snatches (60/42.5 kg)' }
+      { movementId: 'bb_power_snatch', reps: 30, label: '30 Power / Squat Snatches (60/42.5 kg)' }
     ],
     stimulus: 'Rapid Olympic ground-to-overhead cycling. Maintain crisp hip extension on every single rep.',
     logic: 'Single-movement speed-endurance test under Olympic weightlifting barbell load.'
@@ -201,7 +201,7 @@ const CLASSICAL_BENCHMARKS = [
     minutes: 12,
     prescriptionHeader: 'For Time (12 Min Cap):',
     items: [
-      { movementId: 'row_erg_cal', reps: 50, label: '1,000m Row (or 50 Cal Erg)' },
+      { movementId: 'row_erg_meters', reps: 1000, label: '1,000m Row' },
       { movementId: 'bb_thrusters', reps: 50, label: '50 Empty Bar Thrusters (20/15 kg)' },
       { movementId: 'pullups', reps: 30, label: '30 Pull-Ups' }
     ],
@@ -264,7 +264,7 @@ const CLASSICAL_BENCHMARKS = [
     prescriptionHeader: '5 Rounds For Time (16 Min Cap):',
     items: [
       { movementId: 'run', reps: 400, label: '400m Run' },
-      { movementId: 'bb_front_squats', reps: 15, label: '15 Overhead / Front Squats (43/30 kg)' }
+      { movementId: 'bb_overhead_squat', reps: 15, label: '15 Overhead Squats (43/30 kg)' }
     ],
     stimulus: 'Breathing heavy from the run while stabilizing a barbell overhead or in the front rack.',
     logic: 'Monostructural Run paired with Core & Thoracic Squat Stabilization.'
@@ -308,11 +308,11 @@ const CLASSICAL_BENCHMARKS = [
     minutes: 8,
     prescriptionHeader: '10 Rounds For Time (8 Min Cap):',
     items: [
-      { movementId: 'bb_push_jerk', reps: 3, label: '3 Clean and Jerks (60/42.5 kg)' },
-      { movementId: 'burpees', reps: 3, label: '3 Bar-Facing Burpees' }
+      { movementId: 'bb_clean_and_jerk', reps: 3, label: '3 Clean and Jerks (60/42.5 kg)' },
+      { movementId: 'bar_facing_burpees', reps: 3, label: '3 Bar-Facing Burpees' }
     ],
     stimulus: 'Fast anaerobic sprint. Move smoothly between the barbell and deck without taking pauses.',
-    logic: '10 rapid 3+3 micro-rounds alternating Ground-to-Overhead and sprawl.'
+    logic: '10 rapid 3+3 micro-rounds alternating Ground-to-Overhead and bar-facing burpees.'
   },
   {
     id: 'ingrid',
@@ -323,8 +323,8 @@ const CLASSICAL_BENCHMARKS = [
     minutes: 8,
     prescriptionHeader: '10 Rounds For Time (8 Min Cap):',
     items: [
-      { movementId: 'bb_squat_snatch', reps: 3, label: '3 Barbell Snatches (60/42.5 kg)' },
-      { movementId: 'burpees', reps: 3, label: '3 Bar-Facing Burpees' }
+      { movementId: 'bb_power_snatch', reps: 3, label: '3 Barbell Snatches (60/42.5 kg)' },
+      { movementId: 'bar_facing_burpees', reps: 3, label: '3 Bar-Facing Burpees' }
     ],
     stimulus: 'Fast, sharp Olympic snatch couplet. Keep breathing relaxed through the burpees.',
     logic: 'Micro-interval speed power test combining Olympic Snatches and explosive Burpees.'
@@ -409,7 +409,7 @@ const CLASSICAL_BENCHMARKS = [
     prescriptionHeader: '3 Rounds For Time (22 Min Cap):',
     items: [
       { movementId: 'run', reps: 800, label: '800m Run' },
-      { movementId: 'superman_pulls', reps: 50, label: '50 Back Extensions / Superman Pulls' },
+      { movementId: 'back_extensions', reps: 50, label: '50 Back Extensions / Superman Arch-Ups' },
       { movementId: 'situps', reps: 50, label: '50 AbMat Sit-Ups' }
     ],
     stimulus: 'Honoring Lt. Michael McGreevy. Balance anterior core with posterior chain extensions after each 800m run.',
@@ -424,7 +424,7 @@ const CLASSICAL_BENCHMARKS = [
     minutes: 28,
     prescriptionHeader: '3 Rounds For Time (28 Min Cap):',
     items: [
-      { movementId: 'bb_hang_power_clean', reps: 30, label: '30 Barbell Cleans (43/30 kg)' },
+      { movementId: 'bb_squat_clean', reps: 30, label: '30 Squat Cleans (43/30 kg)' },
       { movementId: 'pullups', reps: 30, label: '30 Pull-Ups' },
       { movementId: 'run', reps: 800, label: '800m Run' }
     ],
@@ -508,7 +508,7 @@ const CLASSICAL_BENCHMARKS = [
     items: [
       { movementId: 'hspu', reps: 7, label: '7 Handstand Push-Ups' },
       { movementId: 'bb_thrusters', reps: 7, label: '7 Thrusters (60/42.5 kg)' },
-      { movementId: 'hanging_knee_raises', reps: 7, label: '7 Knees-to-Elbows / Hanging Knee Raises' },
+      { movementId: 'knees_to_elbows', reps: 7, label: '7 Knees-to-Elbows' },
       { movementId: 'bb_deadlifts', reps: 7, label: '7 Deadlifts (110/75 kg)' },
       { movementId: 'burpees', reps: 7, label: '7 Burpees' },
       { movementId: 'kb_swings', reps: 7, label: '7 Kettlebell Swings (24/16 kg)' },
@@ -526,7 +526,7 @@ const CLASSICAL_BENCHMARKS = [
     minutes: 32,
     prescriptionHeader: 'For Time (32 Min Cap):',
     items: [
-      { movementId: 'bb_push_jerk', reps: 30, label: '30 Clean and Jerks (60/42.5 kg)' },
+      { movementId: 'bb_clean_and_jerk', reps: 30, label: '30 Clean and Jerks (60/42.5 kg)' },
       { movementId: 'run', reps: 1600, label: '1-Mile Run (1,600m)' },
       { movementId: 'burpees', reps: 100, label: '100 Burpees' }
     ],
@@ -572,11 +572,11 @@ const CLASSICAL_BENCHMARKS = [
     minutes: 18,
     prescriptionHeader: '21 - 42 - 15 - 30 - 9 - 18 Reps For Time (18 Min Cap):',
     items: [
-      { movementId: 'bb_front_squats', reps: '21-15-9', label: 'Overhead / Front Squats (43/30 kg)' },
+      { movementId: 'bb_overhead_squat', reps: '21-15-9', label: 'Overhead Squats (43/30 kg)' },
       { movementId: 'pullups', reps: '42-30-18', label: 'Pull-Ups (Double Rep Count)' }
     ],
     stimulus: 'Honoring Staff Sgt. Joshua Hager. 21 squats + 42 pull-ups, 15 squats + 30 pull-ups, 9 squats + 18 pull-ups.',
-    logic: 'Anterior Quad Squat paired with double-volume Vertical Pull-Ups.'
+    logic: 'Overhead Squat stabilization paired with double-volume Vertical Pull-Ups.'
   },
   {
     id: 'holleyman',
@@ -589,7 +589,7 @@ const CLASSICAL_BENCHMARKS = [
     items: [
       { movementId: 'wall_balls', reps: 5, label: '5 Wall Ball Shots (9/6 kg)' },
       { movementId: 'hspu', reps: 3, label: '3 Handstand Push-Ups' },
-      { movementId: 'bb_hang_power_clean', reps: 1, label: '1 Power Clean (100/70 kg)' }
+      { movementId: 'bb_power_clean', reps: 1, label: '1 Power Clean (100/70 kg)' }
     ],
     stimulus: 'Honoring Staff Sgt. Aaron Holleyman. 30 fast, methodical rounds of 5-3-1.',
     logic: 'High-density micro-triplet: Squat-to-Target + Inverted Vertical Press + Heavy Olympic Clean.'
@@ -608,6 +608,39 @@ const CLASSICAL_BENCHMARKS = [
     ],
     stimulus: 'Honoring Navy SEAL Jason Workman. 100 squats + 5 muscle-ups, 75+10, 50+15, 25+20.',
     logic: 'Opposing inverse ladders: massive lower body fatigue paired with increasing high-skill gymnastics demand.'
+  },
+
+  {
+    id: 'randy',
+    title: 'RANDY',
+    category: 'Hero Benchmark',
+    format: 'FOR_TIME',
+    durationCategory: 'short',
+    minutes: 8,
+    prescriptionHeader: '75 Power Snatches For Time (35/25 kg Barbell):',
+    items: [
+      { movementId: 'bb_power_snatch', reps: 75, label: '75 Barbell Power Snatches (35/25 kg)' }
+    ],
+    stimulus: 'Honoring Randy Simmons. High-speed barbell cycling test—break into crisp sets of 10–15 with short breaths before grip fades.',
+    logic: 'Single-movement light Olympic snatch endurance sprint.'
+  },
+  {
+    id: 'fight_gone_bad',
+    title: 'FIGHT GONE BAD',
+    category: 'Classic Benchmark',
+    format: 'EMOM',
+    durationCategory: 'medium',
+    minutes: 17,
+    prescriptionHeader: '3 Rounds (1 Min Max Reps at Each Station, 1 Min Rest Between Rounds):',
+    items: [
+      { movementId: 'wall_balls', reps: 20, label: 'Min 1: Wall Ball Shots (9/6 kg)' },
+      { movementId: 'bb_sdhp', reps: 20, label: 'Min 2: Sumo Deadlift High Pull (35/25 kg)' },
+      { movementId: 'box_jumps', reps: 20, label: 'Min 3: Box Jumps (20 in)' },
+      { movementId: 'bb_push_press', reps: 20, label: 'Min 4: Push Press (35/25 kg)' },
+      { movementId: 'row_erg_cal', reps: 20, label: 'Min 5: RowErg (Calories)' }
+    ],
+    stimulus: 'Score total reps across 3 rounds. Pace transitions smoothly to keep moving for the full 60 seconds at every station.',
+    logic: '5-minute mixed-modal metabolic blitz patterned after an MMA championship bout.'
   },
 
   // ==========================================

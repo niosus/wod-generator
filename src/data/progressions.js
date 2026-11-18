@@ -10,13 +10,20 @@ const SCALE_LADDERS = [
     id: 'pushup_ladder',
     name: 'Push-Up & Upper Press Progression',
     pattern: 'PUSH',
-    description: 'Foundational knee push-ups scaling to standard deck push-ups, dips, and inverted HSPU.',
+    description: 'Foundational knee push-ups and box dips scaling to standard, hand-release, diamond, ring/parallel bar push-ups, dips, and inverted HSPU.',
     steps: [
       { movementId: 'knee_pushups', level: 1, tier: 'easy', label: 'Knee Push-Ups' },
+      { movementId: 'box_dips', level: 1, tier: 'easy', label: 'Box Tricep Dips' },
       { movementId: 'pushups', level: 2, tier: 'normal', label: 'Push-Ups' },
+      { movementId: 'hand_release_pushups', level: 2, tier: 'normal', label: 'Hand-Release Push-Ups' },
+      { movementId: 'diamond_pushups', level: 3, tier: 'normal', label: 'Diamond / Close-Grip Push-Ups' },
+      { movementId: 'pbar_pushups', level: 3, tier: 'normal', label: 'Parallel Bar / Deficit Push-Ups' },
+      { movementId: 'box_decline_pushups', level: 3, tier: 'normal', label: 'Box Decline Push-Ups' },
+      { movementId: 'ring_pushups', level: 3, tier: 'normal', label: 'Ring Push-Ups' },
       { movementId: 'parallel_bar_dips', level: 3, tier: 'normal', label: 'Parallel Bar Dips' },
       { movementId: 'pike_pushups', level: 3, tier: 'normal', label: 'Pike Push-Ups' },
       { movementId: 'ring_dips', level: 4, tier: 'normal', label: 'Ring Dips' },
+      { movementId: 'box_pike_pushups', level: 4, tier: 'hard', label: 'Box Pike Push-Ups' },
       { movementId: 'hspu', level: 5, tier: 'hard', label: 'Handstand Push-Ups (HSPU)' }
     ]
   },
@@ -33,6 +40,7 @@ const SCALE_LADDERS = [
       { movementId: 'ring_rows', level: 2, tier: 'normal', label: 'Ring Inverted Rows' },
       { movementId: 'pullups', level: 3, tier: 'normal', label: 'Pull-Ups' },
       { movementId: 'chin_ups', level: 3, tier: 'normal', label: 'Chin-Ups' },
+      { movementId: 'ring_pullups', level: 3, tier: 'normal', label: 'Ring Pull-Ups' },
       { movementId: 'chest_to_bar', level: 4, tier: 'hard', label: 'Chest-to-Bar Pull-Ups' },
       { movementId: 'bar_muscle_up', level: 5, tier: 'hard', label: 'Bar Muscle-Ups' },
       { movementId: 'ring_muscle_up', level: 5, tier: 'hard', label: 'Ring Muscle-Ups' }
@@ -42,10 +50,11 @@ const SCALE_LADDERS = [
     id: 'burpee_ladder',
     name: 'Burpee & Ground-to-Overhead Progression',
     pattern: 'FULL_BODY',
-    description: 'Straight-arm sprawls scaling to burpees, devil presses, and man makers.',
+    description: 'Straight-arm sprawls scaling to burpees, bar-facing burpees, devil presses, and man makers.',
     steps: [
       { movementId: 'athletic_up_downs', level: 1, tier: 'easy', label: 'Athletic Up-Downs (Sprawls)' },
       { movementId: 'burpees', level: 2, tier: 'normal', label: 'Standard Burpees' },
+      { movementId: 'bar_facing_burpees', level: 2, tier: 'normal', label: 'Bar-Facing Burpees' },
       { movementId: 'devil_press', level: 3, tier: 'hard', label: 'Dual Dumbbell Devil Press' },
       { movementId: 'man_makers', level: 4, tier: 'hard', label: 'Dumbbell Man Makers' }
     ]
@@ -54,11 +63,13 @@ const SCALE_LADDERS = [
     id: 'squat_lunge_ladder',
     name: 'Squat & Unilateral Leg Progression',
     pattern: 'SQUAT',
-    description: 'Bilateral air squats advancing through step-back lunges, step-forward lunges, Bulgarian split squats, jumping lunges, and single-leg pistols.',
+    description: 'Wall sits and bilateral air squats advancing through lunges, Cossack squats, Bulgarian split squats, jumping lunges, and single-leg pistols.',
     steps: [
+      { movementId: 'wall_sit', level: 1, tier: 'easy', label: 'Wall Sit Hold' },
       { movementId: 'air_squats', level: 1, tier: 'normal', label: 'Air Squats' },
       { movementId: 'step_back_lunges', level: 2, tier: 'normal', label: 'Alternating Step-Back Lunges' },
       { movementId: 'walking_lunges', level: 3, tier: 'normal', label: 'Alternating Step-Forward Lunges' },
+      { movementId: 'cossack_squats', level: 3, tier: 'normal', label: 'Alternating Cossack Squats' },
       { movementId: 'bulgarian_split_squats', level: 4, tier: 'normal', label: 'Bulgarian Split Squats (Rear-Foot Elevated)' },
       { movementId: 'jumping_lunges', level: 5, tier: 'hard', label: 'Alternating Jumping Lunges' },
       { movementId: 'pistol_squats', level: 6, tier: 'hard', label: 'Alternating Pistol Squats (Single-Leg)' }
@@ -68,37 +79,72 @@ const SCALE_LADDERS = [
     id: 'plank_ladder',
     name: 'Plank & Isometric Core Progression',
     pattern: 'HINGE_CORE',
-    description: 'Foundational knee plank advancing to standard forearm plank, straight-arm plank, and rotational side plank hold.',
+    description: 'Foundational knee plank advancing through forearm, straight-arm, side plank, shoulder taps, plank up-downs, and ring fallouts.',
     steps: [
       { movementId: 'knee_plank', level: 1, tier: 'easy', label: 'Knee Plank' },
       { movementId: 'plank', level: 2, tier: 'normal', label: 'Forearm Plank' },
       { movementId: 'straight_arm_plank', level: 3, tier: 'normal', label: 'Straight-Arm Plank' },
-      { movementId: 'side_plank', level: 3, tier: 'normal', label: 'Side Plank' }
+      { movementId: 'side_plank', level: 3, tier: 'normal', label: 'Side Plank' },
+      { movementId: 'plank_shoulder_taps', level: 3, tier: 'normal', label: 'Plank Shoulder Taps' },
+      { movementId: 'plank_up_downs', level: 4, tier: 'normal', label: 'Plank Up-Downs (Commandos)' },
+      { movementId: 'ring_fallouts', level: 5, tier: 'hard', label: 'Ring Ab Rollouts / Fallouts' }
     ]
   },
   {
     id: 'midline_core_ladder',
     name: 'Midline & Dynamic Core Progression',
     pattern: 'HINGE_CORE',
-    description: 'Floor sit-ups progressing through tuck V-ups, hanging knee raises, strict toes-to-bar, and L-sits.',
+    description: 'Floor sit-ups and hollow holds progressing through V-ups, hanging knee raises, strict toes-to-bar, and L-sits.',
     steps: [
       { movementId: 'situps', level: 1, tier: 'normal', label: 'AbMat / Butterfly Sit-Ups' },
+      { movementId: 'hollow_hold', level: 1, tier: 'normal', label: 'Hollow Body Hold' },
+      { movementId: 'russian_twists', level: 1, tier: 'normal', label: 'Russian Twists' },
+      { movementId: 'hollow_rocks', level: 2, tier: 'normal', label: 'Hollow Rocks' },
       { movementId: 'tuck_ups', level: 2, tier: 'normal', label: 'Tuck-Ups' },
       { movementId: 'v_ups', level: 2, tier: 'normal', label: 'V-Ups' },
       { movementId: 'hanging_knee_raises', level: 3, tier: 'normal', label: 'Hanging Knee Raises' },
+      { movementId: 'ring_knee_raises', level: 3, tier: 'normal', label: 'Ring Hanging Knee Raises' },
+      { movementId: 'pbar_knee_raises', level: 3, tier: 'normal', label: 'Parallel Bar Knee Raises' },
+      { movementId: 'pbar_leg_raises', level: 4, tier: 'normal', label: 'Parallel Bar Leg Raises' },
       { movementId: 'knees_to_elbows', level: 4, tier: 'normal', label: 'Knees-to-Elbows' },
       { movementId: 'l_sit', level: 5, tier: 'hard', label: 'L-Sit Hold' },
+      { movementId: 'pbar_l_sit', level: 5, tier: 'hard', label: 'Parallel Bar L-Sit Hold' },
       { movementId: 'toes_to_bar', level: 5, tier: 'hard', label: 'Toes-to-Bar (T2B)' }
+    ]
+  },
+  {
+    id: 'posterior_hinge_ladder',
+    name: 'Posterior Chain & Glute-Ham Progression',
+    pattern: 'HINGE_CORE',
+    description: 'Bodyweight glute bridges and arch-ups scaling to barbell good mornings, hip thrusts, and deadlifts.',
+    steps: [
+      { movementId: 'glute_bridges', level: 1, tier: 'easy', label: 'Glute Bridges' },
+      { movementId: 'back_extensions', level: 2, tier: 'normal', label: 'Back Extensions / Superman Arch-Ups' },
+      { movementId: 'bb_good_morning', level: 3, tier: 'normal', label: 'Barbell Good Mornings' },
+      { movementId: 'bb_hip_thrust', level: 3, tier: 'normal', label: 'Barbell Hip Thrusts / Glute Bridges' }
+    ]
+  },
+  {
+    id: 'olympic_clean_ladder',
+    name: 'Olympic Clean & Ground-to-Overhead Ladder',
+    pattern: 'FULL_BODY',
+    description: 'Barbell hang power cleans scaling to floor power cleans, squat cleans, and full clean & jerks.',
+    steps: [
+      { movementId: 'bb_hang_power_clean', level: 1, tier: 'normal', label: 'Barbell Hang Power Cleans' },
+      { movementId: 'bb_power_clean', level: 2, tier: 'normal', label: 'Barbell Power Cleans (From Floor)' },
+      { movementId: 'bb_squat_clean', level: 3, tier: 'hard', label: 'Barbell Squat Cleans' },
+      { movementId: 'bb_clean_and_jerk', level: 4, tier: 'hard', label: 'Barbell Clean & Jerks' }
     ]
   },
   {
     id: 'plyo_box_ladder',
     name: 'Plyometric Box Progression',
     pattern: 'FULL_BODY',
-    description: 'Low-impact stepping progressing to explosive two-foot box jumps.',
+    description: 'Low-impact stepping progressing to explosive two-foot box jumps and box jump-overs.',
     steps: [
       { movementId: 'box_step_ups', level: 1, tier: 'easy', label: 'Box Step-Ups' },
-      { movementId: 'box_jumps', level: 2, tier: 'normal', label: 'Box Jumps (24/20 in)' }
+      { movementId: 'box_jumps', level: 2, tier: 'normal', label: 'Box Jumps (24/20 in)' },
+      { movementId: 'box_jump_overs', level: 3, tier: 'normal', label: 'Box Jump-Overs' }
     ]
   },
   {

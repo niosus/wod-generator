@@ -133,6 +133,43 @@ function solveIK(rx, ry, tx, ty, L1, L2, bendSide = 1) {
 }
 
 /**
+ * 3D 2-bone IK solver preserving exact 3D segment lengths (L1, L2).
+ * bendDir (bx, by, bz) steers the joint plane perpendicular to root -> target.
+ */
+function solveIK3D(sx, sy, sz, tx, ty, tz, L1, L2, bendX = 0, bendY = 1, bendZ = 0) {
+  let dx = tx - sx, dy = ty - sy, dz = tz - sz;
+  let d = Math.hypot(dx, dy, dz);
+  const minD = Math.abs(L1 - L2) + 1.0;
+  const maxD = (L1 + L2) - 0.08;
+  if (d < 0.001) {
+    dx = maxD; dy = 0; dz = 0; d = maxD;
+  } else if (d > maxD) {
+    dx = (dx / d) * maxD; dy = (dy / d) * maxD; dz = (dz / d) * maxD; d = maxD;
+  } else if (d < minD) {
+    dx = (dx / d) * minD; dy = (dy / d) * minD; dz = (dz / d) * minD; d = minD;
+  }
+  const ux = dx / d, uy = dy / d, uz = dz / d;
+  const a = (L1 * L1 - L2 * L2 + d * d) / (2 * d);
+  const h = Math.sqrt(Math.max(0, L1 * L1 - a * a));
+  const dot = bendX * ux + bendY * uy + bendZ * uz;
+  let px = bendX - dot * ux, py = bendY - dot * uy, pz = bendZ - dot * uz;
+  let pl = Math.hypot(px, py, pz);
+  if (pl < 1e-5) {
+    px = -uy; py = ux; pz = 0;
+    pl = Math.hypot(px, py, pz) || 1;
+  }
+  px /= pl; py /= pl; pz /= pl;
+  return {
+    jx: sx + a * ux + h * px,
+    jy: sy + a * uy + h * py,
+    jz: sz + a * uz + h * pz,
+    ex: sx + dx,
+    ey: sy + dy,
+    ez: sz + dz
+  };
+}
+
+/**
  * Solves 2-bone leg IK so that the foot's toe tip (rendered with surfaceY=200 / airT=1)
  * remains anchored at (toeX, toeY) while the ankle and heel pivot around the toe.
  */
@@ -272,6 +309,7 @@ const KinematicMath = {
   sampleTimedKeyframes,
   sampleKeyframes,
   solveIK,
+  solveIK3D,
   solveLegToePivot,
   solveFK,
   solveFrontArm,

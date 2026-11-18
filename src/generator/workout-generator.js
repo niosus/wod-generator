@@ -92,7 +92,83 @@ const MOVEMENT_NAME_TOKENS = {
   mountain_climbers: ['FAST FEET', 'HIGH STEP', 'FLOOR PACE', 'HIGH TURNOVER'],
   table_rows: ['LOW PULL', 'BACK LINE', 'CLEAN PULL', 'FLOOR PULL'],
   doorway_towel_rows: ['LOW PULL', 'BACK LINE', 'CLEAN PULL', 'TOWEL GRIP'],
-  superman_pulls: ['LOW PULL', 'BACK LINE', 'CLEAN PULL', 'FLOOR PULL']
+  superman_pulls: ['LOW PULL', 'BACK LINE', 'CLEAN PULL', 'FLOOR PULL'],
+  hand_release_pushups: ['CHEST TO DECK', 'HAND RELEASE', 'PLANK LINE', 'LOCKOUT'],
+  diamond_pushups: ['CLOSE GRIP', 'DIAMOND PRESS', 'TRICEP LOCKOUT', 'CHEST TO DECK'],
+  ring_pushups: ['STILL RINGS', 'RING PRESS', 'DEEP SUPPORT', 'PLANK LINE'],
+  ring_support_hold: ['STILL RINGS', 'RING SUPPORT', 'STRAIGHT ARMS', 'ISOMETRIC'],
+  pbar_pushups: ['PARALLEL BARS', 'DEEP DEFICIT', 'BAR PRESS', 'LOCKOUT'],
+  pbar_support_hold: ['PARALLEL BARS', 'BAR SUPPORT', 'STRAIGHT ARMS', 'ISOMETRIC'],
+  box_decline_pushups: ['PLYO BOX', 'DECLINE PRESS', 'FEET ELEVATED', 'LOCKOUT'],
+  box_pike_pushups: ['PLYO BOX', 'PIKE PRESS', 'SHOULDER STACK', 'INVERTED'],
+  box_dips: ['PLYO BOX', 'BENCH DIP', 'TRICEP LOCKOUT', 'BAR SUPPORT'],
+  ring_pullups: ['STILL RINGS', 'FALSE GRIP', 'RING PULL', 'STRICT PULL'],
+  db_plank_renegade_row: ['HEX HEAD', 'PLANK ROW', 'ANTI-ROTATION', 'HEAVY HANDLES'],
+  kb_clean: ['CAST IRON', 'BELL CLEAN', 'FRONT RACK', 'HIP DRIVE'],
+  db_power_clean: ['HEX HEAD', 'POWER CLEAN', 'FRONT RACK', 'HIP DRIVE'],
+  bb_power_clean: ['IRON BAR', 'POWER CLEAN', 'COLLAR TO COLLAR', 'FRONT RACK'],
+  kb_sdhp: ['CAST IRON', 'HIGH PULL', 'SUMO STANCE', 'BELL PULL'],
+  bb_sdhp: ['IRON BAR', 'HIGH PULL', 'SUMO STANCE', 'COLLAR TO COLLAR'],
+  bb_back_squat: ['IRON BAR', 'BACK RACK', 'BELOW PARALLEL', 'HEAVY SQUAT'],
+  bb_overhead_squat: ['IRON BAR', 'OVERHEAD LOCK', 'WIDE GRIP', 'DEEP SQUAT'],
+  db_overhead_squat: ['HEX HEAD', 'OVERHEAD LOCK', 'SINGLE ARM', 'DEEP SQUAT'],
+  kb_overhead_squat: ['CAST IRON', 'OVERHEAD BELL', 'LOCKED OUT', 'DEEP SQUAT'],
+  db_walking_lunges: ['HEX HEAD', 'WALKING STRIDE', 'SINGLE LEG', 'DEEP LUNGE'],
+  kb_rack_lunges: ['FRONT RACK', 'IRON BELL', 'SINGLE LEG', 'DEEP LUNGE'],
+  bb_front_rack_lunges: ['IRON BAR', 'FRONT RACK', 'SPLIT STANCE', 'DEEP LUNGE'],
+  cossack_squats: ['LATERAL SQUAT', 'DEEP HIP', 'SIDE SHIFT', 'MOBILITY GRIND'],
+  wall_sit: ['STATIC WALL', 'NINETY DEGREE', 'QUAD BURN', 'ISOMETRIC'],
+  bb_good_morning: ['IRON BAR', 'HIP HINGE', 'HAMSTRING LINE', 'FLAT BACK'],
+  glute_bridges: ['FLOOR BRIDGE', 'HIP EXTENSION', 'GLUTE LOCK', 'POSTERIOR LINE'],
+  bb_hip_thrust: ['IRON BAR', 'HIP THRUST', 'HEAVY HINGE', 'GLUTE LOCK'],
+  back_extensions: ['SUPERMAN ARCH', 'FLOOR EXTEND', 'POSTERIOR LINE', 'SPINE LIFT'],
+  hollow_hold: ['HOLLOW BODY', 'STATIC CORE', 'BANANA HOLD', 'IRON MIDLINE'],
+  hollow_rocks: ['HOLLOW ROCK', 'ROCKING CHAIR', 'MIDLINE', 'CORE LINE'],
+  russian_twists: ['RUSSIAN TWIST', 'OBLIQUE TURN', 'HEELS UP', 'MIDLINE'],
+  med_ball_russian_twists: ['MEDICINE BALL', 'OBLIQUE TWIST', 'WALL BALL', 'MIDLINE'],
+  kb_russian_twists: ['CAST IRON', 'KETTLE TWIST', 'OBLIQUE TURN', 'IRON BELL'],
+  db_russian_twists: ['HEX HEAD', 'SINGLE DUMBBELL', 'OBLIQUE TWIST', 'MIDLINE'],
+  med_ball_situps: ['MEDICINE BALL', 'ABMAT PRESS', 'CORE LINE', 'OVERHEAD TOUCH'],
+  plank_shoulder_taps: ['HIGH PLANK', 'SHOULDER TAP', 'ANTI-ROTATION', 'SQUARE HIPS'],
+  plank_up_downs: ['COMMANDO', 'PLANK PRESS', 'ELBOW TO PALM', 'CORE LINE'],
+  ring_knee_raises: ['STILL RINGS', 'RING TUCK', 'HANGING CORE', 'MIDLINE'],
+  ring_fallouts: ['STILL RINGS', 'RING ROLLOUT', 'HOLLOW PLANK', 'IRON MIDLINE'],
+  pbar_knee_raises: ['PARALLEL BARS', 'KNEE TUCK', 'BAR SUPPORT', 'MIDLINE'],
+  pbar_leg_raises: ['PARALLEL BARS', 'STRAIGHT LEG', 'TOE LIFT', 'MIDLINE'],
+  pbar_l_sit: ['PARALLEL BARS', 'L-SIT HOLD', 'STRAIGHT LEGS', 'ISOMETRIC'],
+  db_farmers_carry: ['HEX HEAD', 'FARMERS WALK', 'PACKED LATS', 'IRON GRIP'],
+  kb_suitcase_carry: ['CAST IRON', 'SUITCASE HOLD', 'ANTI-TILT', 'IRON BELL'],
+  kb_overhead_carry: ['CAST IRON', 'WAITER WALK', 'OVERHEAD LOCK', 'IRON BELL'],
+  high_knees: ['FAST FEET', 'HIGH KNEES', 'SPRINTER DRIVE', 'FLOOR PACE'],
+  row_erg_meters: ['FLYWHEEL', 'METER SPLIT', 'ERG CHAIN', 'LONG STROKE'],
+  ski_erg_meters: ['NORDIC PULL', 'METER SPLIT', 'SKI CORDS', 'DOUBLE POLE'],
+  bike_erg_meters: ['AIR BIKE', 'METER SPLIT', 'HEADWIND', 'PEDAL STROKE'],
+  bar_facing_burpees: ['BAR FACING', 'DECK & HOP', 'CLEAR THE BAR', 'REDLINE'],
+  box_jump_overs: ['PLYO BOX', 'UP & OVER', 'TWO-FOOT HOP', 'BOX TOP'],
+  jump_squats: ['PLYO SQUAT', 'AIR TIME', 'BELOW PARALLEL', 'EXPLOSIVE'],
+  broad_jumps: ['BROAD JUMP', 'LONG BOUND', 'FLOOR FLIGHT', 'POWER HOP'],
+  bear_crawls: ['BEAR CRAWL', 'QUADRUPED', 'FLOOR WALK', 'LOW HIPS'],
+  wall_walks: ['WALL WALK', 'INVERTED CLIMB', 'NOSE TO WALL', 'CHALK HANDS'],
+  bb_squat_clean: ['IRON BAR', 'SQUAT CLEAN', 'FAST ELBOWS', 'FRONT RACK'],
+  bb_clean_and_jerk: ['IRON BAR', 'CLEAN & JERK', 'SPLIT LOCK', 'HEAVY BAR'],
+  db_clean_and_jerk: ['HEX HEAD', 'DUMBBELL', 'CLEAN & JERK', 'HEAVY HANDLES'],
+  kb_clean_and_jerk: ['CAST IRON', 'LONG CYCLE', 'RACK TO LOCK', 'IRON BELL'],
+  bb_power_snatch: ['IRON BAR', 'POWER SNATCH', 'WIDE GRIP', 'OVERHEAD PUNCH'],
+  kb_turkish_getup: ['CAST IRON', 'GET-UP', 'EYE ON BELL', 'OVERHEAD LOCK'],
+  db_turkish_getup: ['HEX HEAD', 'GET-UP', 'VERTICAL ARM', 'FLOOR TO STAND'],
+  med_ball_cleans: ['MEDICINE BALL', 'BALL CLEAN', 'FAST DROP', 'WALL BALL'],
+  med_ball_slams: ['MEDICINE BALL', 'BALL SLAM', 'OVERHEAD SPIKE', 'FLOOR IMPACT']
+};
+
+const MOVEMENT_FAMILY_MAP = {
+  russian_twists: 'russian_twist',
+  med_ball_russian_twists: 'russian_twist',
+  kb_russian_twists: 'russian_twist',
+  db_russian_twists: 'russian_twist',
+  pbar_knee_raises: 'pbar_raise',
+  pbar_leg_raises: 'pbar_raise',
+  situps: 'situp',
+  med_ball_situps: 'situp'
 };
 
 const FORMAT_NAME_SUFFIXES = {
@@ -671,30 +747,31 @@ const WorkoutGenerator = {
       return this.ensureEvenUnilateralValue(mov, Math.round((baseSec * intensityFactor * durFactor) / 5) * 5);
     }
     if (unit === 'm') {
+      const distMult = mov.id === 'bike_erg_meters' ? 2 : 1;
       if (formatKey === 'EMOM') {
-        if (isEveryMinEmom) return intensityLevel === 'high' ? 150 : 100;
-        if (intensityLevel === 'moderate') return 150;
-        if (intensityLevel === 'high') return 250;
-        return 200;
+        if (isEveryMinEmom) return (intensityLevel === 'high' ? 150 : 100) * distMult;
+        if (intensityLevel === 'moderate') return 150 * distMult;
+        if (intensityLevel === 'high') return 250 * distMult;
+        return 200 * distMult;
       }
       if (isChipper) {
         if (duration === 'long') {
-          if (intensityLevel === 'moderate') return 400;
-          if (intensityLevel === 'high') return 800;
-          return 600;
+          if (intensityLevel === 'moderate') return 400 * distMult;
+          if (intensityLevel === 'high') return 800 * distMult;
+          return 600 * distMult;
         }
-        if (intensityLevel === 'moderate') return 300;
-        if (intensityLevel === 'high') return 600;
-        return 400;
+        if (intensityLevel === 'moderate') return 300 * distMult;
+        if (intensityLevel === 'high') return 600 * distMult;
+        return 400 * distMult;
       }
       if (duration === 'long') {
-        if (intensityLevel === 'moderate') return 300;
-        if (intensityLevel === 'high') return 500;
-        return 400;
+        if (intensityLevel === 'moderate') return 300 * distMult;
+        if (intensityLevel === 'high') return 500 * distMult;
+        return 400 * distMult;
       }
-      if (intensityLevel === 'moderate') return 150;
-      if (intensityLevel === 'high') return 250;
-      return 200;
+      if (intensityLevel === 'moderate') return 150 * distMult;
+      if (intensityLevel === 'high') return 250 * distMult;
+      return 200 * distMult;
     }
     if (unit === 'cal') {
       if (formatKey === 'EMOM') {
@@ -866,17 +943,34 @@ const WorkoutGenerator = {
     const availablePatterns = this.shuffle(Object.keys(byPattern));
     const selected = [];
     const usedIds = new Set();
+    const usedPoseTypes = new Set();
+    const usedFamilies = new Set();
+    const isFreshChoice = (m) => {
+      const fam = MOVEMENT_FAMILY_MAP[m.id];
+      return !usedPoseTypes.has(m.poseType) && (!fam || !usedFamilies.has(fam));
+    };
+    const markSelected = (m) => {
+      selected.push(m);
+      usedIds.add(m.id);
+      if (m.poseType) usedPoseTypes.add(m.poseType);
+      const fam = MOVEMENT_FAMILY_MAP[m.id];
+      if (fam) usedFamilies.add(fam);
+    };
 
     for (const pat of availablePatterns) {
       if (selected.length >= count) break;
-      const candidate = this.pickRandom(byPattern[pat]);
-      selected.push(candidate);
-      usedIds.add(candidate.id);
+      const famFiltered = byPattern[pat].filter(isFreshChoice);
+      const poseFiltered = famFiltered.length > 0 ? famFiltered : byPattern[pat].filter(m => !usedPoseTypes.has(m.poseType));
+      const candidate = this.pickRandom(poseFiltered.length > 0 ? poseFiltered : byPattern[pat]);
+      markSelected(candidate);
     }
 
     const remaining = this.shuffle(sourcePool.filter(m => !usedIds.has(m.id)));
     while (selected.length < count && remaining.length > 0) {
-      selected.push(remaining.pop());
+      let pickIdx = remaining.findIndex(isFreshChoice);
+      if (pickIdx < 0) pickIdx = remaining.findIndex(m => !usedPoseTypes.has(m.poseType));
+      const next = pickIdx >= 0 ? remaining.splice(pickIdx, 1)[0] : remaining.pop();
+      markSelected(next);
     }
 
     return selected;
