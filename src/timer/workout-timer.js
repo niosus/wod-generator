@@ -16,8 +16,8 @@ const MUTE_STORAGE_KEY = 'wodroll_timer_muted_v1';
     _countdownMs: 3000,
     _elapsedMs: 0,
     _lastTickTs: 0,
-    _rafId: null,
-    _intervalId: null,
+    _timeoutId: null,
+    _audioSuspendTimer: null,
     _rounds: 0,
     _lastCueKey: null,
 
@@ -44,6 +44,9 @@ const MUTE_STORAGE_KEY = 'wodroll_timer_muted_v1';
           if (document.visibilityState === 'visible' && this.isActive()) {
             this._requestWakeLock();
             this._stepClock(performance.now());
+            this._scheduleNextTick();
+          } else if (document.visibilityState === 'hidden' && !this.isActive()) {
+            this.suspendAudio(0);
           }
         });
       }
@@ -58,7 +61,9 @@ const MUTE_STORAGE_KEY = 'wodroll_timer_muted_v1';
       try {
         localStorage.setItem(MUTE_STORAGE_KEY, this._isMuted ? '1' : '0');
       } catch (e) { }
-      if (!this._isMuted) {
+      if (this._isMuted) {
+        this.suspendAudio(0);
+      } else {
         this._prepareAudio();
         this._playCueWithFallback('countdown_pip', () => this._playTone(784, 0.06, 0.08, 'sine'));
       }
@@ -168,6 +173,7 @@ const MUTE_STORAGE_KEY = 'wodroll_timer_muted_v1';
       }
       this.stopLoop();
       this._releaseWakeLock();
+      this.suspendAudio(0);
       this._plan = nextPlan;
       this._status = 'idle';
       this._finishReason = null;
@@ -215,6 +221,7 @@ const MUTE_STORAGE_KEY = 'wodroll_timer_muted_v1';
         this._status = 'paused';
         this.stopLoop();
         this._releaseWakeLock();
+        this.suspendAudio(0);
         this._emitTick();
         return;
       }
@@ -230,6 +237,7 @@ const MUTE_STORAGE_KEY = 'wodroll_timer_muted_v1';
     reset() {
       this.stopLoop();
       this._releaseWakeLock();
+      this.suspendAudio(0);
       this._status = 'idle';
       this._finishReason = null;
       this._countdownMs = this.COUNTDOWN_SECONDS * 1000;
@@ -249,6 +257,7 @@ const MUTE_STORAGE_KEY = 'wodroll_timer_muted_v1';
       this._status = 'finished';
       this._finishReason = 'completed';
       this._playComplete();
+      this.suspendAudio(1400);
       this._emitCue({ type: 'complete' });
       this._emitTick();
     },
@@ -262,32 +271,41 @@ const MUTE_STORAGE_KEY = 'wodroll_timer_muted_v1';
     _startLoop() {
       this.stopLoop();
       this._lastTickTs = performance.now();
+      this._scheduleNextTick();
+    },
 
-      const tick = () => {
-        const now = performance.now();
-        this._stepClock(now);
-        if (this.isActive()) {
-          this._rafId = requestAnimationFrame(tick);
-        }
-      };
-      this._rafId = requestAnimationFrame(tick);
+    _scheduleNextTick() {
+      if (this._timeoutId !== null) {
+        clearTimeout(this._timeoutId);
+        this._timeoutId = null;
+      }
+      if (!this.isActive() || !this._plan) return;
 
-      // Backup interval in case rAF is throttled in background tabs
-      this._intervalId = setInterval(() => {
+      let delayMs = 250;
+      if (this._status === 'countdown') {
+        const msToSecBoundary = ((Math.max(1, this._countdownMs) - 1) % 1000) + 1;
+        delayMs = Math.min(100, msToSecBoundary) + 4;
+      } else if (this._status === 'running') {
+        const totalMs = this._plan.totalSeconds * 1000;
+        const remainingMs = Math.max(0, totalMs - this._elapsedMs);
+        const msToNextSec = 1000 - (this._elapsedMs % 1000);
+        delayMs = Math.min(remainingMs, msToNextSec) + 5;
+      }
+
+      this._timeoutId = setTimeout(() => {
+        this._timeoutId = null;
+        if (!this.isActive()) return;
+        this._stepClock(performance.now());
         if (this.isActive()) {
-          this._stepClock(performance.now());
+          this._scheduleNextTick();
         }
-      }, 250);
+      }, delayMs);
     },
 
     stopLoop() {
-      if (this._rafId !== null) {
-        cancelAnimationFrame(this._rafId);
-        this._rafId = null;
-      }
-      if (this._intervalId !== null) {
-        clearInterval(this._intervalId);
-        this._intervalId = null;
+      if (this._timeoutId !== null) {
+        clearTimeout(this._timeoutId);
+        this._timeoutId = null;
       }
     },
 
@@ -330,6 +348,7 @@ const MUTE_STORAGE_KEY = 'wodroll_timer_muted_v1';
         this.stopLoop();
         this._releaseWakeLock();
         this._playComplete();
+        this.suspendAudio(1400);
         this._emitCue({
           type: this._finishReason === 'time_cap' ? 'time_cap' : 'complete'
         });
@@ -702,17 +721,53 @@ const MUTE_STORAGE_KEY = 'wodroll_timer_muted_v1';
       return null;
     },
 
-    _prepareAudio() {
-      const plugin = this._getNativeAudioPlugin();
-      if (plugin && typeof plugin.prepare === 'function') {
-        try {
-          Promise.resolve(plugin.prepare()).catch(() => { });
-        } catch (e) { }
+    _isIOSWeb() {
+      return typeof navigator !== 'undefined' && /iPad|iPhone|iPod/.test(navigator.userAgent || '');
+    },
+
+    _cancelAudioSuspend() {
+      if (this._audioSuspendTimer !== null) {
+        clearTimeout(this._audioSuspendTimer);
+        this._audioSuspendTimer = null;
       }
-      this._ensureAudioContext();
+    },
+
+    suspendAudio(delayMs = 0) {
+      this._cancelAudioSuspend();
+      if (!this._audioCtx || this._audioCtx.state === 'closed') return;
+      const doSuspend = () => {
+        this._audioSuspendTimer = null;
+        if (this._audioCtx && this._audioCtx.state === 'running' && typeof this._audioCtx.suspend === 'function') {
+          try {
+            Promise.resolve(this._audioCtx.suspend()).catch(() => { });
+          } catch (e) { }
+        }
+      };
+      if (delayMs <= 0) {
+        doSuspend();
+      } else {
+        this._audioSuspendTimer = setTimeout(doSuspend, delayMs);
+      }
+    },
+
+    _prepareAudio() {
+      this._cancelAudioSuspend();
+      const plugin = this._getNativeAudioPlugin();
+      if (plugin) {
+        if (typeof plugin.prepare === 'function') {
+          try {
+            Promise.resolve(plugin.prepare()).catch(() => { });
+          } catch (e) { }
+        }
+        return;
+      }
+      if (!this._isMuted) {
+        this._ensureAudioContext();
+      }
     },
 
     _ensureAudioContext() {
+      this._cancelAudioSuspend();
       if (typeof window === 'undefined') return null;
       const AudioCtx = window.AudioContext || window.webkitAudioContext;
       if (!AudioCtx) return null;
@@ -733,6 +788,7 @@ const MUTE_STORAGE_KEY = 'wodroll_timer_muted_v1';
 
     _playTone(freq, durationSec = 0.12, volume = 0.18, type = 'triangle', startOffset = 0) {
       if (this._isMuted) return;
+      this._cancelAudioSuspend();
       const ctx = this._ensureAudioContext();
       if (!ctx) return;
 
@@ -767,6 +823,10 @@ const MUTE_STORAGE_KEY = 'wodroll_timer_muted_v1';
             })
             .catch(() => { });
         } catch (e) { }
+      }
+
+      if (!this._isIOSWeb()) {
+        this.suspendAudio(Math.ceil((startOffset + durationSec) * 1000) + 2000);
       }
     },
 

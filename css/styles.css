@@ -580,6 +580,15 @@ html.dark .wod-row-active {
   opacity: 0.92;
 }
 
+canvas[data-ik-pose],
+canvas[data-matrix-pose],
+canvas[data-scale-pose],
+canvas[data-demo-ladder-pose],
+#demoModalCanvas,
+#timerFocusCanvas {
+  contain: layout paint style;
+}
+
 /* Safe-area support for edge-to-edge native WebViews (iOS notch / home indicator) */
 @supports (padding: env(safe-area-inset-top)) {
   #appHeader,

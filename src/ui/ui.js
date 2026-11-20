@@ -32,6 +32,10 @@ const UI = {
   _lastFocusKey: null,
   _initialPlaceholderState: 'visible',
   _initialRevealTimer: null,
+  _isAdvancedModalOpen: false,
+  _movementGridDirty: true,
+  _lastTimeCapKey: null,
+  _lastTimerHighlightKey: null,
 
   async init() {
     AppState.loadFromStorage();
@@ -60,7 +64,7 @@ const UI = {
       const rawWodPayload = WorkoutSharing.getPayloadFromUrl();
       const sharedWod = await WorkoutSharing.loadWodFromUrl();
       if (sharedWod) {
-        this.displayWod(sharedWod, { animate: false });
+        this.displayWod(sharedWod, { animate: false, playPreview: false });
         this.showSharedNotice(sharedWod);
         if (rawWodPayload && WorkoutSharing.isLegacyWodPayload(rawWodPayload) && window.history && window.history.replaceState) {
           try {
@@ -71,7 +75,7 @@ const UI = {
       } else {
         this.clearSharedUrl();
         const initialWod = WorkoutGenerator.generate();
-        this.displayWod(initialWod, { animate: false });
+        this.displayWod(initialWod, { animate: false, playPreview: false });
       }
 
       await this.waitForInitialPlaceholder();
@@ -133,9 +137,14 @@ const UI = {
         this._initialRevealTimer = null;
       }
       this._initialPlaceholderState = 'hidden';
-      placeholder.hidden = true;
-      placeholder.classList.add('hidden');
-      placeholder.classList.remove('app-placeholder-fade-out');
+      placeholder.remove();
+    };
+
+    const startInitialPreview = () => {
+      const listEl = document.getElementById('wodMovementsList');
+      if (listEl && globalThis.BiomechanicalStickAnimator && typeof BiomechanicalStickAnimator.playPreview === 'function') {
+        BiomechanicalStickAnimator.playPreview(listEl);
+      }
     };
 
     const reducedMotion = typeof window !== 'undefined' &&
@@ -144,12 +153,14 @@ const UI = {
 
     if (immediate || reducedMotion) {
       finishHide();
+      startInitialPreview();
       return;
     }
 
     if (this._initialPlaceholderState === 'hiding') return;
     this._initialPlaceholderState = 'hiding';
     placeholder.classList.add('app-placeholder-fade-out');
+    startInitialPreview();
     this._initialRevealTimer = setTimeout(finishHide, 290);
   },
 
@@ -215,6 +226,9 @@ const UI = {
     }
 
     this.syncNativeStatusBar(isDark);
+    if (globalThis.BiomechanicalStickAnimator && typeof BiomechanicalStickAnimator.notifyStateChange === 'function') {
+      BiomechanicalStickAnimator.notifyStateChange({ redraw: true });
+    }
   },
 
   syncNativeStatusBar(isDark) {
@@ -303,7 +317,7 @@ const UI = {
     }
     const isOk = type === 'success';
     toastEl.innerHTML = `
-      <div class="px-4 py-2.5 rounded-xl bg-zinc-950 dark:bg-zinc-900 border ${isOk ? 'border-zinc-800 dark:border-volt/40 text-white' : 'border-rose-500/40 text-rose-200'} shadow-xl backdrop-blur-md flex items-center gap-2.5">
+      <div class="px-4 py-2.5 rounded-xl bg-zinc-950 dark:bg-zinc-900 border ${isOk ? 'border-zinc-800 dark:border-volt/40 text-white' : 'border-rose-500/40 text-rose-200'} shadow-xl flex items-center gap-2.5">
         <div class="w-2 h-2 rounded-full ${isOk ? 'bg-volt' : 'bg-rose-500'} shrink-0"></div>
         <p class="text-xs font-medium leading-relaxed">${message}</p>
       </div>
@@ -444,6 +458,9 @@ const UI = {
       actionButtons.forEach(btn => btn.classList.remove('btn-bump'));
     }
     lucide.createIcons();
+    if (globalThis.BiomechanicalStickAnimator && typeof BiomechanicalStickAnimator.notifyStateChange === 'function') {
+      BiomechanicalStickAnimator.notifyStateChange();
+    }
   },
 
   updateFloatingRerollVisibility() {
@@ -464,6 +481,7 @@ const UI = {
     floatingBar.classList.toggle('opacity-0', !shouldShow);
     floatingBar.classList.toggle('translate-y-10', !shouldShow);
     floatingBar.classList.toggle('pointer-events-none', !shouldShow);
+    floatingBar.classList.toggle('invisible', !shouldShow);
   },
 
   syncQuickBar() {
@@ -788,102 +806,111 @@ const UI = {
 
     const gridEl = document.getElementById('movementAnimatedGrid');
     if (gridEl) {
-      const filteredMovements = sourceMovements.filter(m => {
-        const catMatch = AppState.activeMatrixCategory === 'ALL' || m.pattern === AppState.activeMatrixCategory;
-        const diffMatch = AppState.activeDiffFilter === 'ALL' || m.difficulty === AppState.activeDiffFilter;
-        return catMatch && diffMatch;
-      });
+      BiomechanicalStickAnimator.unregisterCanvasesIn(gridEl);
+      if (this._isAdvancedModalOpen && this._activeAdvTab === 'movements') {
+        const filteredMovements = sourceMovements.filter(m => {
+          const catMatch = AppState.activeMatrixCategory === 'ALL' || m.pattern === AppState.activeMatrixCategory;
+          const diffMatch = AppState.activeDiffFilter === 'ALL' || m.difficulty === AppState.activeDiffFilter;
+          return catMatch && diffMatch;
+        });
 
-      if (filteredMovements.length === 0) {
-        gridEl.innerHTML = `
-          <div class="col-span-full text-center py-8 text-xs text-zinc-500 dark:text-zinc-400 bg-zinc-50 dark:bg-zinc-950/60 rounded-xl border border-zinc-200 dark:border-zinc-800 p-6">
-            No movements match this filter${this._matrixShowAllEquipment ? '' : ' with your currently enabled equipment'}.
-          </div>
-        `;
-      } else {
-        gridEl.innerHTML = filteredMovements.map(mov => {
-          const isIncluded = !AppState.excludedMovements.has(mov.id);
-          const isGearOff = AppState.equipmentStates[mov.equipment] === 'off';
-          const isAvailableInPool = availableIdSet.has(mov.id);
-          const patInfo = PATTERNS[mov.pattern];
-          const eqName = EQUIPMENT_CATALOG.find(e => e.id === mov.equipment)?.name || 'Bodyweight';
-          const isOptionalEq = AppState.isEquipmentOptional(mov.equipment);
-
-          return `
-            <div
-              data-mov-card="${mov.id}"
-              class="relative group rounded-xl border p-2.5 flex flex-col justify-between gap-2 transition cursor-pointer select-none ${isIncluded && isAvailableInPool
-                ? 'bg-white dark:bg-zinc-950/80 border-zinc-200 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-volt/60 shadow-sm'
-                : 'bg-zinc-100/70 dark:bg-zinc-950/30 border-zinc-200/70 dark:border-zinc-800/60 opacity-60 hover:opacity-85 grayscale hover:grayscale-0'
-              }"
-            >
-              <div class="flex items-center justify-between gap-1">
-                <span class="text-[9px] font-mono font-bold uppercase px-1.5 py-0.5 rounded border ${
-                  this._getDifficultyBadgeClass(mov.difficulty)
-                }">${mov.difficulty.toUpperCase()}</span>
-
-                <div class="flex items-center gap-1">
-                  ${isGearOff
-                    ? `<span class="text-[8px] font-mono font-bold uppercase px-1 rounded bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 border border-zinc-300 dark:border-zinc-700">Gear Off</span>`
-                    : (isOptionalEq ? `<span class="text-[8px] font-mono font-bold uppercase px-1 rounded bg-amber-600/15 dark:bg-amber-500/15 text-amber-800 dark:text-amber-300 border border-amber-600/35 dark:border-amber-500/30">OPT</span>` : '')
-                  }
-                  <input
-                    type="checkbox"
-                    data-mov-toggle="${mov.id}"
-                    ${isIncluded ? 'checked' : ''}
-                    class="w-3.5 h-3.5 rounded accent-zinc-950 dark:accent-sky-400 cursor-pointer pointer-events-none"
-                  />
-                </div>
-              </div>
-
-              <div class="w-full aspect-square rounded-lg bg-zinc-100 dark:bg-zinc-900 border border-zinc-200/80 dark:border-zinc-800 flex items-center justify-center overflow-hidden relative">
-                <canvas
-                  data-matrix-pose="${mov.poseType}"
-                  width="220"
-                  height="220"
-                  class="w-full h-full block"
-                ></canvas>
-              </div>
-
-              <div class="min-w-0 space-y-1">
-                <div class="text-xs font-bold text-zinc-950 dark:text-white break-words leading-snug min-h-[2rem]" title="${mov.name}">
-                  ${mov.name}
-                </div>
-                <div class="text-[10px] font-mono text-zinc-500 dark:text-zinc-400 break-words leading-tight">
-                  ${eqName}${mov.load ? ' · ' + mov.load : ''}
-                </div>
-                <div class="flex items-center justify-between gap-1 text-[10px]">
-                  <div class="flex items-center gap-1 min-w-0">
-                    <span class="text-[9px] font-mono px-1.5 py-0.5 rounded border whitespace-nowrap truncate ${patInfo.color}">
-                      ${patInfo.label}
-                    </span>
-                    ${mov.unilateral ? `<span class="text-[8px] font-mono font-bold uppercase px-1 py-0.5 rounded bg-sky-500/10 text-sky-700 dark:text-sky-300 border border-sky-500/30 whitespace-nowrap shrink-0" title="${mov.unilateral === 'split' ? 'Split evenly Left & Right' : 'Alternate Left & Right'}">${mov.unilateral === 'split' ? 'L/R Split' : 'Alt L/R'}</span>` : ''}
-                  </div>
-                  <button
-                    data-demo-mov="${mov.id}"
-                    class="text-[10px] font-mono font-semibold text-zinc-600 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-volt flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 transition shrink-0"
-                    title="View form cues & scaling progression"
-                  >
-                    <span>Cues</span>
-                    <i data-lucide="chevron-right" class="w-3 h-3"></i>
-                  </button>
-                </div>
-              </div>
+        if (filteredMovements.length === 0) {
+          gridEl.innerHTML = `
+            <div class="col-span-full text-center py-8 text-xs text-zinc-500 dark:text-zinc-400 bg-zinc-50 dark:bg-zinc-950/60 rounded-xl border border-zinc-200 dark:border-zinc-800 p-6">
+              No movements match this filter${this._matrixShowAllEquipment ? '' : ' with your currently enabled equipment'}.
             </div>
           `;
-        }).join('') + ((!this._matrixShowAllEquipment && availableByEq.length < MOVEMENTS_DB.length) ? `
-          <div class="col-span-full flex flex-wrap items-center justify-between gap-2 bg-zinc-50 dark:bg-zinc-950/60 border border-dashed border-zinc-300 dark:border-zinc-700 rounded-xl px-3.5 py-2.5 text-xs text-zinc-600 dark:text-zinc-400">
-            <span>${MOVEMENTS_DB.length - availableByEq.length} movements with disabled equipment (e.g. Dumbbell / Barbell / Kettlebell) are hidden.</span>
-            <button type="button" data-show-all-matrix-btn
-              class="px-2.5 py-1 rounded-lg bg-zinc-950 dark:bg-volt text-white dark:text-zinc-950 font-mono font-bold text-[11px] hover:opacity-90 transition shrink-0">
-              Show All ${MOVEMENTS_DB.length} Movements
-            </button>
-          </div>
-        ` : '');
+        } else {
+          gridEl.innerHTML = filteredMovements.map(mov => {
+            const isIncluded = !AppState.excludedMovements.has(mov.id);
+            const isGearOff = AppState.equipmentStates[mov.equipment] === 'off';
+            const isAvailableInPool = availableIdSet.has(mov.id);
+            const patInfo = PATTERNS[mov.pattern];
+            const eqName = EQUIPMENT_CATALOG.find(e => e.id === mov.equipment)?.name || 'Bodyweight';
+            const isOptionalEq = AppState.isEquipmentOptional(mov.equipment);
 
-        gridEl.querySelectorAll('canvas[data-matrix-pose]').forEach(canvas => {
-          BiomechanicalStickAnimator.registerCanvas(canvas, canvas.dataset.matrixPose);
-        });
+            return `
+              <div
+                data-mov-card="${mov.id}"
+                class="relative group rounded-xl border p-2.5 flex flex-col justify-between gap-2 transition cursor-pointer select-none ${isIncluded && isAvailableInPool
+                  ? 'bg-white dark:bg-zinc-950/80 border-zinc-200 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-volt/60 shadow-sm'
+                  : 'bg-zinc-100/70 dark:bg-zinc-950/30 border-zinc-200/70 dark:border-zinc-800/60 opacity-60 hover:opacity-85 grayscale hover:grayscale-0'
+                }"
+              >
+                <div class="flex items-center justify-between gap-1">
+                  <span class="text-[9px] font-mono font-bold uppercase px-1.5 py-0.5 rounded border ${
+                    this._getDifficultyBadgeClass(mov.difficulty)
+                  }">${mov.difficulty.toUpperCase()}</span>
+
+                  <div class="flex items-center gap-1">
+                    ${isGearOff
+                      ? `<span class="text-[8px] font-mono font-bold uppercase px-1 rounded bg-zinc-200 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 border border-zinc-300 dark:border-zinc-700">Gear Off</span>`
+                      : (isOptionalEq ? `<span class="text-[8px] font-mono font-bold uppercase px-1 rounded bg-amber-600/15 dark:bg-amber-500/15 text-amber-800 dark:text-amber-300 border border-amber-600/35 dark:border-amber-500/30">OPT</span>` : '')
+                    }
+                    <input
+                      type="checkbox"
+                      data-mov-toggle="${mov.id}"
+                      ${isIncluded ? 'checked' : ''}
+                      class="w-3.5 h-3.5 rounded accent-zinc-950 dark:accent-sky-400 cursor-pointer pointer-events-none"
+                    />
+                  </div>
+                </div>
+
+                <div class="w-full aspect-square rounded-lg bg-zinc-100 dark:bg-zinc-900 border border-zinc-200/80 dark:border-zinc-800 flex items-center justify-center overflow-hidden relative">
+                  <canvas
+                    data-matrix-pose="${mov.poseType}"
+                    width="220"
+                    height="220"
+                    class="w-full h-full block"
+                  ></canvas>
+                </div>
+
+                <div class="min-w-0 space-y-1">
+                  <div class="text-xs font-bold text-zinc-950 dark:text-white break-words leading-snug min-h-[2rem]" title="${mov.name}">
+                    ${mov.name}
+                  </div>
+                  <div class="text-[10px] font-mono text-zinc-500 dark:text-zinc-400 break-words leading-tight">
+                    ${eqName}${mov.load ? ' · ' + mov.load : ''}
+                  </div>
+                  <div class="flex items-center justify-between gap-1 text-[10px]">
+                    <div class="flex items-center gap-1 min-w-0">
+                      <span class="text-[9px] font-mono px-1.5 py-0.5 rounded border whitespace-nowrap truncate ${patInfo.color}">
+                        ${patInfo.label}
+                      </span>
+                      ${mov.unilateral ? `<span class="text-[8px] font-mono font-bold uppercase px-1 py-0.5 rounded bg-sky-500/10 text-sky-700 dark:text-sky-300 border border-sky-500/30 whitespace-nowrap shrink-0" title="${mov.unilateral === 'split' ? 'Split evenly Left & Right' : 'Alternate Left & Right'}">${mov.unilateral === 'split' ? 'L/R Split' : 'Alt L/R'}</span>` : ''}
+                    </div>
+                    <button
+                      data-demo-mov="${mov.id}"
+                      class="text-[10px] font-mono font-semibold text-zinc-600 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-volt flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 transition shrink-0"
+                      title="View form cues & scaling progression"
+                    >
+                      <span>Cues</span>
+                      <i data-lucide="chevron-right" class="w-3 h-3"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            `;
+          }).join('') + ((!this._matrixShowAllEquipment && availableByEq.length < MOVEMENTS_DB.length) ? `
+            <div class="col-span-full flex flex-wrap items-center justify-between gap-2 bg-zinc-50 dark:bg-zinc-950/60 border border-dashed border-zinc-300 dark:border-zinc-700 rounded-xl px-3.5 py-2.5 text-xs text-zinc-600 dark:text-zinc-400">
+              <span>${MOVEMENTS_DB.length - availableByEq.length} movements with disabled equipment (e.g. Dumbbell / Barbell / Kettlebell) are hidden.</span>
+              <button type="button" data-show-all-matrix-btn
+                class="px-2.5 py-1 rounded-lg bg-zinc-950 dark:bg-volt text-white dark:text-zinc-950 font-mono font-bold text-[11px] hover:opacity-90 transition shrink-0">
+                Show All ${MOVEMENTS_DB.length} Movements
+              </button>
+            </div>
+          ` : '');
+
+          gridEl.querySelectorAll('canvas[data-matrix-pose]').forEach(canvas => {
+            BiomechanicalStickAnimator.registerCanvas(canvas, canvas.dataset.matrixPose, { mode: 'static' });
+          });
+        }
+        this._movementGridDirty = false;
+      } else {
+        if (gridEl.innerHTML !== '') {
+          gridEl.innerHTML = '';
+        }
+        this._movementGridDirty = true;
       }
     }
 
@@ -1042,7 +1069,7 @@ const UI = {
     this.displayWod(wod);
   },
 
-  displayWod(wod, { animate = true } = {}) {
+  displayWod(wod, { animate = true, playPreview = true } = {}) {
     AppState.currentWod = wod;
     if (wod && typeof WorkoutGenerator.getWodSignature === 'function') {
       const sig = WorkoutGenerator.getWodSignature(wod);
@@ -1095,6 +1122,7 @@ const UI = {
     this.renderWodIntensityControl(wod);
 
     const listEl = document.getElementById('wodMovementsList');
+    BiomechanicalStickAnimator.unregisterCanvasesIn(listEl);
     if (wod.items.length === 0) {
       listEl.innerHTML = `
         <div class="p-6 rounded-xl bg-zinc-50 dark:bg-zinc-950/60 border border-zinc-200 dark:border-zinc-800 text-center text-sm text-zinc-500 dark:text-zinc-400">
@@ -1110,7 +1138,9 @@ const UI = {
     }
 
     listEl.querySelectorAll('canvas[data-ik-pose]').forEach(canvas => {
-      BiomechanicalStickAnimator.registerCanvas(canvas, canvas.dataset.ikPose);
+      BiomechanicalStickAnimator.registerCanvas(canvas, canvas.dataset.ikPose, {
+        mode: playPreview ? 'preview' : 'static'
+      });
     });
 
     const uniquePatterns = Array.from(new Set(wod.items.map(i => i.movement.pattern)));
@@ -1124,6 +1154,8 @@ const UI = {
     if (globalThis.WorkoutTimer) {
       this._lastTimerActiveRow = null;
       this._lastFocusKey = null;
+      this._lastTimeCapKey = null;
+      this._lastTimerHighlightKey = null;
       WorkoutTimer.setWorkout(wod);
       if (!wod.items || wod.items.length === 0) {
         this.closeWorkoutTimer();
@@ -1155,7 +1187,7 @@ const UI = {
     return `
       <div
         data-wod-row-index="${index}"
-        class="${animClass} bg-zinc-50/75 dark:bg-zinc-950/60 border ${rowBorderClass} rounded-xl p-3 sm:p-3.5 transition space-y-2.5"
+        class="${animClass} bg-zinc-50/75 dark:bg-zinc-950/60 border ${rowBorderClass} rounded-xl p-3 sm:p-3.5 transition-[opacity,border-color,background-color] space-y-2.5"
         ${styleAttr}
       >
         <div class="flex items-center justify-between gap-3">
@@ -1334,6 +1366,7 @@ const UI = {
         firstTops.set(el, top);
       });
 
+      BiomechanicalStickAnimator.unregisterCanvasesIn(rowEl);
       rowEl.innerHTML = newRowEl.innerHTML;
       rowEl.className = newRowEl.className;
       rowEl.classList.remove('wod-item-animated');
@@ -1383,7 +1416,7 @@ const UI = {
 
       const canvas = rowEl.querySelector('canvas[data-ik-pose]');
       if (canvas) {
-        BiomechanicalStickAnimator.registerCanvas(canvas, canvas.dataset.ikPose);
+        BiomechanicalStickAnimator.registerCanvas(canvas, canvas.dataset.ikPose, { mode: 'preview' });
       }
 
       const uniquePatterns = Array.from(new Set(wod.items.map(i => i.movement.pattern)));
@@ -1401,6 +1434,8 @@ const UI = {
 
       if (globalThis.WorkoutTimer) {
         this._lastFocusKey = null;
+        this._lastTimeCapKey = null;
+        this._lastTimerHighlightKey = null;
         WorkoutTimer.setWorkout(wod, { preserveIfSame: true });
         if (this._isTimerOpen) {
           this.animateTimerRefresh();
@@ -1481,6 +1516,10 @@ const UI = {
       card.classList.add('modal-open-anim');
     }
 
+    if (globalThis.BiomechanicalStickAnimator && typeof BiomechanicalStickAnimator.pushActiveRoot === 'function') {
+      BiomechanicalStickAnimator.pushActiveRoot(modal);
+    }
+
     if (wasHiddenOrClosing) {
       this.lockBodyScroll();
     }
@@ -1508,6 +1547,9 @@ const UI = {
       this.unlockBodyScroll();
       modal._isClosing = false;
       modal._closeTimer = null;
+      if (globalThis.BiomechanicalStickAnimator && typeof BiomechanicalStickAnimator.removeActiveRoot === 'function') {
+        BiomechanicalStickAnimator.removeActiveRoot(modal);
+      }
       if (onAfterClose) onAfterClose();
     }, 240);
   },
@@ -1520,15 +1562,24 @@ const UI = {
     const card = document.getElementById('advancedModalCard');
     if (!modal) return;
 
-    this.switchAdvancedTab(initialTab);
+    this._isAdvancedModalOpen = true;
     this._openModalEl(modal, card);
+    this.switchAdvancedTab(initialTab);
     lucide.createIcons();
   },
 
   closeAdvancedModal() {
     const modal = document.getElementById('advancedModal');
     const card = document.getElementById('advancedModalCard');
-    this._closeModalEl(modal, card);
+    this._isAdvancedModalOpen = false;
+    this._closeModalEl(modal, card, () => {
+      const gridEl = document.getElementById('movementAnimatedGrid');
+      if (gridEl) {
+        BiomechanicalStickAnimator.unregisterCanvasesIn(gridEl);
+        gridEl.innerHTML = '';
+      }
+      this._movementGridDirty = true;
+    });
   },
 
   switchAdvancedTab(tabId) {
@@ -1549,6 +1600,19 @@ const UI = {
     if (eqPanel) eqPanel.classList.toggle('hidden', tabId !== 'equipment');
     if (rulesPanel) rulesPanel.classList.toggle('hidden', tabId !== 'rules');
     if (movPanel) movPanel.classList.toggle('hidden', tabId !== 'movements');
+
+    if (tabId === 'movements' && this._isAdvancedModalOpen) {
+      this.renderMovementMatrix();
+    } else {
+      const gridEl = document.getElementById('movementAnimatedGrid');
+      if (gridEl) {
+        BiomechanicalStickAnimator.unregisterCanvasesIn(gridEl);
+        if (gridEl.innerHTML !== '') {
+          gridEl.innerHTML = '';
+        }
+      }
+      this._movementGridDirty = true;
+    }
 
     const body = document.getElementById('advancedModalBody');
     if (body) body.scrollTop = 0;
@@ -1591,7 +1655,7 @@ const UI = {
     document.getElementById('demoModalScaling').textContent = mov.scaling;
 
     const modalCanvas = document.getElementById('demoModalCanvas');
-    BiomechanicalStickAnimator.registerCanvas(modalCanvas, mov.poseType);
+    BiomechanicalStickAnimator.registerCanvas(modalCanvas, mov.poseType, { mode: 'continuous' });
 
     this.renderMovementProgressionInDemo(mov, this._demoContext.wodRowIndex);
 
@@ -1632,6 +1696,7 @@ const UI = {
     if (ladders.length === 0) {
       if (titleEl) titleEl.textContent = 'Standalone Movement';
       if (subEl) subEl.textContent = 'Not part of a multi-step ladder. Browse all progressions below.';
+      BiomechanicalStickAnimator.unregisterCanvasesIn(stepsContainer);
       stepsContainer.innerHTML = '';
       return;
     }
@@ -1643,6 +1708,7 @@ const UI = {
     const canApplyToWorkout = wodRowIndex !== null && wodRowIndex !== undefined &&
       AppState.currentWod && Array.isArray(AppState.currentWod.items) && AppState.currentWod.items[wodRowIndex];
 
+    BiomechanicalStickAnimator.unregisterCanvasesIn(stepsContainer);
     stepsContainer.innerHTML = ladders.map((ladder, lIdx) => {
       const headerHtml = lIdx > 0
         ? `<div class="pt-2 pb-1 text-xs font-bold text-zinc-900 dark:text-white">${ladder.name}</div>`
@@ -1709,14 +1775,24 @@ const UI = {
     }).join('');
 
     stepsContainer.querySelectorAll('canvas[data-demo-ladder-pose]').forEach(canvas => {
-      BiomechanicalStickAnimator.registerCanvas(canvas, canvas.dataset.demoLadderPose);
+      BiomechanicalStickAnimator.registerCanvas(canvas, canvas.dataset.demoLadderPose, { mode: 'static' });
     });
   },
 
   closeMovementDemoModal() {
     const modal = document.getElementById('movementDemoModal');
     const card = document.getElementById('movementDemoCard');
-    this._closeModalEl(modal, card);
+    this._closeModalEl(modal, card, () => {
+      const modalCanvas = document.getElementById('demoModalCanvas');
+      if (modalCanvas) {
+        BiomechanicalStickAnimator.unregisterCanvas(modalCanvas);
+      }
+      const stepsContainer = document.getElementById('demoModalProgressionSteps');
+      if (stepsContainer) {
+        BiomechanicalStickAnimator.unregisterCanvasesIn(stepsContainer);
+        stepsContainer.innerHTML = '';
+      }
+    });
   },
 
   // ===========================================================================
@@ -1889,10 +1965,17 @@ const UI = {
     if (!preserveReturnState) {
       this._returnToDemoState = null;
     }
-    this._closeModalEl(modal, card);
+    this._closeModalEl(modal, card, () => {
+      const container = document.getElementById('scaleLaddersContainer');
+      if (container) {
+        BiomechanicalStickAnimator.unregisterCanvasesIn(container);
+        container.innerHTML = '';
+      }
+    });
   },
 
   renderAllMovementsLibrary(container, patternFilter = 'ALL', searchQuery = '') {
+    BiomechanicalStickAnimator.unregisterCanvasesIn(container);
     const q = (searchQuery || '').trim().toLowerCase();
     const filtered = MOVEMENTS_DB.filter(mov => {
       if (patternFilter !== 'ALL' && mov.pattern !== patternFilter) return false;
@@ -1975,7 +2058,7 @@ const UI = {
     `;
 
     container.querySelectorAll('canvas[data-scale-pose]').forEach(canvas => {
-      BiomechanicalStickAnimator.registerCanvas(canvas, canvas.dataset.scalePose);
+      BiomechanicalStickAnimator.registerCanvas(canvas, canvas.dataset.scalePose, { mode: 'static' });
     });
     lucide.createIcons();
   },
@@ -1989,6 +2072,7 @@ const UI = {
       return;
     }
 
+    BiomechanicalStickAnimator.unregisterCanvasesIn(container);
     let ladders = globalThis.SCALE_LADDERS || [];
     if (patternFilter !== 'ALL') {
       ladders = ladders.filter(l => l.pattern === patternFilter);
@@ -2090,7 +2174,7 @@ const UI = {
     }).join('');
 
     container.querySelectorAll('canvas[data-scale-pose]').forEach(canvas => {
-      BiomechanicalStickAnimator.registerCanvas(canvas, canvas.dataset.scalePose);
+      BiomechanicalStickAnimator.registerCanvas(canvas, canvas.dataset.scalePose, { mode: 'static' });
     });
     lucide.createIcons();
   },
@@ -2098,7 +2182,63 @@ const UI = {
   // ===========================================================================
   // EVENT BINDINGS
   // ===========================================================================
+  _bindCanvasHoverDelegation() {
+    if (typeof document === 'undefined' || this._hoverDelegationBound) return;
+    this._hoverDelegationBound = true;
+
+    let activeCard = null;
+    const clearActiveHover = () => {
+      if (!activeCard) return;
+      activeCard = null;
+      BiomechanicalStickAnimator.setHoveredCanvas(null);
+    };
+
+    const findHoverCard = (el) => {
+      if (!el || typeof el.closest !== 'function') return null;
+      const card = el.closest('[data-wod-row-index], [data-mov-card], [data-preview-ladder-mov], #timerFocusMovementsArea') ||
+        el.closest('[data-demo-mov]');
+      if (!card) return null;
+      const canvas = card.querySelector('canvas');
+      if (!canvas || canvas.id === 'demoModalCanvas') return null;
+      return { card, canvas };
+    };
+
+    const onOver = e => {
+      if (e.pointerType === 'touch') return;
+      if (activeCard && activeCard.contains(e.target)) return;
+      const hit = findHoverCard(e.target);
+      if (hit) {
+        activeCard = hit.card;
+        BiomechanicalStickAnimator.setHoveredCanvas(hit.canvas);
+      } else {
+        clearActiveHover();
+      }
+    };
+
+    const onOut = e => {
+      if (e.pointerType === 'touch' || !activeCard) return;
+      if (e.relatedTarget && activeCard.contains(e.relatedTarget)) return;
+      clearActiveHover();
+    };
+
+    const containerIds = [
+      'wodMovementsList',
+      'movementAnimatedGrid',
+      'demoModalProgressionSteps',
+      'scaleLaddersContainer',
+      'timerFocusMovementsArea'
+    ];
+    for (const id of containerIds) {
+      const el = document.getElementById(id);
+      if (!el) continue;
+      el.addEventListener('pointerover', onOver, { passive: true });
+      el.addEventListener('pointerout', onOut, { passive: true });
+      el.addEventListener('pointerleave', clearActiveHover, { passive: true });
+    }
+  },
+
   bindEvents() {
+    this._bindCanvasHoverDelegation();
     // Theme Toggle & Auto Reset
     const themeBtn = document.getElementById('themeToggleBtn');
     if (themeBtn) {
@@ -2905,6 +3045,9 @@ const UI = {
       badge.setAttribute('aria-expanded', 'true');
     }
 
+    if (timerSection) timerSection._lastSnapKey = null;
+    this._lastTimeCapKey = null;
+    this._lastTimerHighlightKey = null;
     this.renderTimerSnapshot(WorkoutTimer.getSnapshot());
   },
 
@@ -2916,8 +3059,14 @@ const UI = {
     if (globalThis.WorkoutTimer && WorkoutTimer.isActive()) {
       WorkoutTimer.startOrPause();
     }
+    if (globalThis.WorkoutTimer && typeof WorkoutTimer.suspendAudio === 'function') {
+      WorkoutTimer.suspendAudio(0);
+    }
 
     const timerSection = document.getElementById('wodTimerSection');
+    if (timerSection) timerSection._lastSnapKey = null;
+    this._lastTimeCapKey = null;
+    this._lastTimerHighlightKey = null;
     const grid = document.getElementById('wodWorkspaceGrid');
     const main = document.getElementById('appMain');
     const headerInner = document.getElementById('headerInner');
@@ -2991,6 +3140,7 @@ const UI = {
     }
     this._isTimerFocusOpen = true;
     this._lastFocusKey = null;
+    if (modal) modal._lastSnapKey = null;
     this._openModalEl(modal, card);
     this.renderTimerSnapshot(WorkoutTimer.getSnapshot());
   },
@@ -2999,7 +3149,15 @@ const UI = {
     const modal = document.getElementById('timerFocusModal');
     const card = document.getElementById('timerFocusCard');
     this._isTimerFocusOpen = false;
-    this._closeModalEl(modal, card);
+    this._closeModalEl(modal, card, () => {
+      const area = document.getElementById('timerFocusMovementsArea');
+      if (area) {
+        BiomechanicalStickAnimator.unregisterCanvasesIn(area);
+        area.innerHTML = '';
+      }
+      this._lastFocusKey = null;
+      if (modal) modal._lastSnapKey = null;
+    });
   },
 
   handleTimerAction(action) {
@@ -3052,13 +3210,30 @@ const UI = {
     }
   },
 
+  _setText(el, val) {
+    const str = val == null ? '' : String(val);
+    if (el && el.textContent !== str) {
+      el.textContent = str;
+    }
+  },
+
+  _setClass(el, cls) {
+    if (el && el.className !== cls) {
+      el.className = cls;
+    }
+  },
+
   _setIconState(root, selector, activeKey) {
     if (!root) return;
     root.querySelectorAll(selector).forEach(el => {
       const key = el.getAttribute(selector.slice(1, -1));
       const isMatch = key === activeKey;
-      el.classList.toggle('hidden', !isMatch);
-      el.classList.toggle('inline-flex', isMatch);
+      if (el.classList.contains('hidden') === isMatch) {
+        el.classList.toggle('hidden', !isMatch);
+      }
+      if (el.classList.contains('inline-flex') !== isMatch) {
+        el.classList.toggle('inline-flex', isMatch);
+      }
     });
   },
 
@@ -3067,19 +3242,24 @@ const UI = {
     const textEl = document.getElementById('wodTimeCapText');
     if (!badge) return;
 
+    const nextText = (isOpen && status !== 'idle' && liveClockText)
+      ? liveClockText
+      : (AppState.currentWod ? WorkoutGenerator.getClockBadgeLabel(AppState.currentWod) : '');
+    const stateKey = `${isOpen}:${status}:${nextText}`;
+    if (this._lastTimeCapKey === stateKey) return;
+    this._lastTimeCapKey = stateKey;
+
     const isRunning = status === 'running' || status === 'countdown';
     if (isOpen) {
-      badge.className = 'inline-flex items-center gap-1.5 text-xs sm:text-sm font-mono font-bold tabular-nums text-zinc-950 dark:text-volt bg-sky-50 dark:bg-volt/15 border border-volt-600/50 dark:border-volt/60 px-2.5 py-1 rounded-lg whitespace-nowrap shrink-0 transition cursor-pointer';
+      this._setClass(badge, 'inline-flex items-center gap-1.5 text-xs sm:text-sm font-mono font-bold tabular-nums text-zinc-950 dark:text-volt bg-sky-50 dark:bg-volt/15 border border-volt-600/50 dark:border-volt/60 px-2.5 py-1 rounded-lg whitespace-nowrap shrink-0 transition cursor-pointer');
       this._setIconState(badge, '[data-cap-icon]', isRunning ? 'pause' : 'timer');
     } else {
-      badge.className = 'inline-flex items-center gap-1.5 text-xs sm:text-sm font-mono font-bold tabular-nums text-zinc-800 dark:text-zinc-200 bg-white dark:bg-zinc-900 hover:bg-zinc-100 dark:hover:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-volt px-2.5 py-1 rounded-lg whitespace-nowrap shrink-0 transition cursor-pointer';
+      this._setClass(badge, 'inline-flex items-center gap-1.5 text-xs sm:text-sm font-mono font-bold tabular-nums text-zinc-800 dark:text-zinc-200 bg-white dark:bg-zinc-900 hover:bg-zinc-100 dark:hover:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-volt px-2.5 py-1 rounded-lg whitespace-nowrap shrink-0 transition cursor-pointer');
       this._setIconState(badge, '[data-cap-icon]', 'play');
     }
 
     if (textEl && AppState.currentWod) {
-      textEl.textContent = (isOpen && status !== 'idle' && liveClockText)
-        ? liveClockText
-        : WorkoutGenerator.getClockBadgeLabel(AppState.currentWod);
+      this._setText(textEl, nextText);
     }
   },
 
@@ -3090,16 +3270,16 @@ const UI = {
     if (!this._isTimerOpen && !this._isTimerFocusOpen) return;
 
     const roots = [
-      document.getElementById('wodTimerSection'),
+      this._isTimerOpen ? document.getElementById('wodTimerSection') : null,
       this._isTimerFocusOpen ? document.getElementById('timerFocusModal') : null
     ].filter(Boolean);
 
     const toneDotClasses = {
       idle: 'bg-zinc-400 dark:bg-zinc-500',
-      countdown: 'bg-amber-500 animate-pulse',
-      work: 'bg-volt-600 dark:bg-volt animate-pulse',
+      countdown: 'bg-amber-500',
+      work: 'bg-volt-600 dark:bg-volt',
       rest: 'bg-amber-500 dark:bg-amber-400',
-      warning: 'bg-rose-500 animate-ping',
+      warning: 'bg-rose-500',
       done: 'bg-emerald-500'
     };
 
@@ -3127,37 +3307,59 @@ const UI = {
       ? 'Pause'
       : (snap.status === 'paused' ? 'Resume' : (snap.status === 'finished' ? 'Restart' : 'Start'));
     const muteIconKey = snap.isMuted ? 'off' : 'on';
+    const ratio = Math.round(Math.max(0, Math.min(1, (snap.progressPct || 0) / 100)) * 1000) / 1000;
+    const nextTransform = `scaleX(${ratio})`;
+    const progressClass = `h-full w-full origin-left transition-transform duration-150 ${toneProgressClasses[snap.phaseTone] || toneProgressClasses.work}`;
+    const snapKey = [
+      snap.status,
+      snap.format,
+      snap.primaryDisplay,
+      snap.secondaryDisplay || '',
+      snap.phaseLabel,
+      snap.phaseTone,
+      snap.subPhaseLabel || '',
+      ratio,
+      snap.liveTargetText || '',
+      snap.nextTargetText || '',
+      snap.rounds || 0,
+      snap.isMuted ? 1 : 0
+    ].join('|');
 
     roots.forEach(root => {
+      if (root._lastSnapKey === snapKey) return;
+      root._lastSnapKey = snapKey;
+
       root.querySelectorAll('[data-timer-clock]').forEach(el => {
-        el.textContent = snap.primaryDisplay;
+        this._setText(el, snap.primaryDisplay);
       });
       root.querySelectorAll('[data-timer-secondary]').forEach(el => {
-        el.textContent = snap.secondaryDisplay || '';
+        this._setText(el, snap.secondaryDisplay || '');
       });
       root.querySelectorAll('[data-timer-phase]').forEach(el => {
-        el.textContent = snap.phaseLabel;
+        this._setText(el, snap.phaseLabel);
         let base = 'px-2 py-0.5 rounded-md text-[10px] font-mono font-bold uppercase tracking-wider whitespace-nowrap';
         if (el.hasAttribute('data-timer-phase-row1')) {
           base = 'hidden min-[360px]:inline-block px-1.5 py-0.5 rounded text-[10px] font-mono font-bold uppercase tracking-wider whitespace-nowrap shrink-0';
         } else if (el.hasAttribute('data-timer-phase-xs')) {
           base = 'inline-block min-[360px]:hidden px-1.5 py-0.5 rounded text-[10px] font-mono font-bold uppercase tracking-wider whitespace-nowrap shrink-0';
         }
-        el.className = `${base} ${tonePhaseClasses[snap.phaseTone] || tonePhaseClasses.idle}`;
+        this._setClass(el, `${base} ${tonePhaseClasses[snap.phaseTone] || tonePhaseClasses.idle}`);
       });
       root.querySelectorAll('[data-timer-subphase]').forEach(el => {
-        el.textContent = snap.subPhaseLabel || '';
+        this._setText(el, snap.subPhaseLabel || '');
       });
       root.querySelectorAll('[data-timer-status-dot]').forEach(el => {
         const sizeCls = el.closest('#timerFocusCard') ? 'w-2.5 h-2.5' : 'w-2 h-2';
-        el.className = `${sizeCls} rounded-full shrink-0 ${toneDotClasses[snap.phaseTone] || toneDotClasses.idle}`;
+        this._setClass(el, `${sizeCls} rounded-full shrink-0 ${toneDotClasses[snap.phaseTone] || toneDotClasses.idle}`);
       });
       root.querySelectorAll('[data-timer-progress]').forEach(el => {
-        el.style.width = `${Math.max(0, Math.min(100, snap.progressPct || 0))}%`;
-        el.className = `h-full transition-[width] duration-150 ${toneProgressClasses[snap.phaseTone] || toneProgressClasses.work}`;
+        if (el.style.transform !== nextTransform) {
+          el.style.transform = nextTransform;
+        }
+        this._setClass(el, progressClass);
       });
       root.querySelectorAll('[data-timer-toggle-label]').forEach(el => {
-        el.textContent = toggleLabelText;
+        this._setText(el, toggleLabelText);
       });
       this._setIconState(root, '[data-timer-toggle-icon]', toggleIconKey);
       this._setIconState(root, '[data-timer-mute-icon]', muteIconKey);
@@ -3165,28 +3367,28 @@ const UI = {
       // Active / next movement lines
       root.querySelectorAll('[data-timer-active-line]').forEach(el => {
         if (snap.liveTargetText) {
-          el.textContent = snap.liveTargetText;
+          this._setText(el, snap.liveTargetText);
         } else if (snap.format === 'AMRAP') {
-          el.textContent = `Rounds: ${snap.rounds}`;
+          this._setText(el, `Rounds: ${snap.rounds}`);
         } else if (snap.format === 'FOR_TIME') {
-          el.textContent = snap.subPhaseLabel || '';
+          this._setText(el, snap.subPhaseLabel || '');
         } else {
-          el.textContent = '';
+          this._setText(el, '');
         }
       });
 
       root.querySelectorAll('[data-timer-next-line]').forEach(el => {
-        el.textContent = snap.nextTargetText ? `Next: ${snap.nextTargetText}` : '';
+        this._setText(el, snap.nextTargetText ? `Next: ${snap.nextTargetText}` : '');
       });
 
       root.querySelectorAll('[data-timer-compact-right]').forEach(el => {
         const showForTimeFinish = snap.format === 'FOR_TIME' && (snap.status === 'running' || snap.status === 'paused');
         if (snap.format === 'AMRAP' || showForTimeFinish) {
-          el.textContent = '';
+          this._setText(el, '');
           el.classList.add('hidden');
         } else {
           el.classList.remove('hidden');
-          el.textContent = snap.nextTargetText ? `Next: ${snap.nextTargetText}` : (snap.secondaryDisplay || '');
+          this._setText(el, snap.nextTargetText ? `Next: ${snap.nextTargetText}` : (snap.secondaryDisplay || ''));
         }
       });
 
@@ -3207,17 +3409,17 @@ const UI = {
       }
 
       root.querySelectorAll('[data-timer-rounds-count]').forEach(el => {
-        el.textContent = String(snap.rounds || 0);
+        this._setText(el, String(snap.rounds || 0));
       });
 
       // Contextual mobile / focus button (+1 Rnd for AMRAP, Finish for For Time)
       root.querySelectorAll('[data-timer-context-btn]').forEach(btn => {
         if (snap.format === 'AMRAP') {
           btn.classList.remove('hidden');
-          btn.textContent = btn.closest('#wodTimerCompactCard') ? '+1 Rnd' : `+1 Rnd (${snap.rounds})`;
+          this._setText(btn, btn.closest('#wodTimerCompactCard') ? '+1 Rnd' : `+1 Rnd (${snap.rounds})`);
         } else if (snap.format === 'FOR_TIME' && (snap.status === 'running' || snap.status === 'paused')) {
           btn.classList.remove('hidden');
-          btn.textContent = 'Finish';
+          this._setText(btn, 'Finish');
         } else {
           btn.classList.add('hidden');
         }
@@ -3227,23 +3429,27 @@ const UI = {
     // Desktop side card contextual panels
     const desktopCard = document.getElementById('wodTimerDesktopCard');
     if (desktopCard) {
-      const stationBox = desktopCard.querySelector('[data-timer-station-box]');
-      const nextWrap = desktopCard.querySelector('[data-timer-next-wrap]');
-      const ascPill = desktopCard.querySelector('[data-timer-ascending-pill]');
-      const amrapBox = desktopCard.querySelector('[data-timer-amrap-box]');
-      const forTimeBox = desktopCard.querySelector('[data-timer-fortime-box]');
+      const desktopKey = `${snap.format}|${snap.status}|${snap.nextTargetText || ''}|${snap.ascendingTarget || ''}`;
+      if (desktopCard._lastDesktopKey !== desktopKey) {
+        desktopCard._lastDesktopKey = desktopKey;
+        const stationBox = desktopCard.querySelector('[data-timer-station-box]');
+        const nextWrap = desktopCard.querySelector('[data-timer-next-wrap]');
+        const ascPill = desktopCard.querySelector('[data-timer-ascending-pill]');
+        const amrapBox = desktopCard.querySelector('[data-timer-amrap-box]');
+        const forTimeBox = desktopCard.querySelector('[data-timer-fortime-box]');
 
-      const isStationFormat = snap.format === 'EMOM' || snap.format === 'INTERVALS';
-      if (stationBox) stationBox.classList.toggle('hidden', !isStationFormat);
-      if (nextWrap) nextWrap.classList.toggle('hidden', !snap.nextTargetText);
-      if (ascPill) {
-        ascPill.classList.toggle('hidden', !snap.ascendingTarget);
-        if (snap.ascendingTarget) ascPill.textContent = snap.ascendingTarget;
-      }
-      if (amrapBox) amrapBox.classList.toggle('hidden', snap.format !== 'AMRAP');
-      if (forTimeBox) {
-        const showFinish = snap.format === 'FOR_TIME' && (snap.status === 'running' || snap.status === 'paused');
-        forTimeBox.classList.toggle('hidden', !showFinish);
+        const isStationFormat = snap.format === 'EMOM' || snap.format === 'INTERVALS';
+        if (stationBox) stationBox.classList.toggle('hidden', !isStationFormat);
+        if (nextWrap) nextWrap.classList.toggle('hidden', !snap.nextTargetText);
+        if (ascPill) {
+          ascPill.classList.toggle('hidden', !snap.ascendingTarget);
+          if (snap.ascendingTarget) this._setText(ascPill, snap.ascendingTarget);
+        }
+        if (amrapBox) amrapBox.classList.toggle('hidden', snap.format !== 'AMRAP');
+        if (forTimeBox) {
+          const showFinish = snap.format === 'FOR_TIME' && (snap.status === 'running' || snap.status === 'paused');
+          forTimeBox.classList.toggle('hidden', !showFinish);
+        }
       }
     }
 
@@ -3257,7 +3463,6 @@ const UI = {
     const listEl = document.getElementById('wodMovementsList');
     if (!listEl) return;
 
-    const rows = Array.from(listEl.querySelectorAll('[data-wod-row-index]'));
     const hasStationHighlight = Boolean(
       snap &&
       this._isTimerOpen &&
@@ -3268,6 +3473,16 @@ const UI = {
       snap.activeItemIndex !== undefined
     );
 
+    const highlightKey = hasStationHighlight
+      ? `${snap.activeItemIndex}:${snap.nextItemIndex ?? ''}:${snap.ascendingTarget || ''}`
+      : 'none';
+
+    if (this._lastTimerHighlightKey === highlightKey) {
+      return;
+    }
+    this._lastTimerHighlightKey = highlightKey;
+
+    const rows = Array.from(listEl.querySelectorAll('[data-wod-row-index]'));
     rows.forEach((row, idx) => {
       row.classList.remove('wod-row-active', 'wod-row-dimmed');
       const existingTag = row.querySelector('[data-timer-row-tag]');
@@ -3304,6 +3519,10 @@ const UI = {
       }
     });
 
+    if (globalThis.BiomechanicalStickAnimator && typeof BiomechanicalStickAnimator.notifyStateChange === 'function') {
+      BiomechanicalStickAnimator.notifyStateChange();
+    }
+
     // On narrow screens, gently keep the active station in view when it switches
     if (
       hasStationHighlight &&
@@ -3311,6 +3530,14 @@ const UI = {
       snap.activeItemIndex !== this._lastTimerActiveRow
     ) {
       this._lastTimerActiveRow = snap.activeItemIndex;
+      if (
+        !this._isTimerFocusOpen &&
+        rows[snap.activeItemIndex] &&
+        globalThis.BiomechanicalStickAnimator &&
+        typeof BiomechanicalStickAnimator.playPreview === 'function'
+      ) {
+        BiomechanicalStickAnimator.playPreview(rows[snap.activeItemIndex]);
+      }
       if (window.innerWidth < 1024 && (snap.status === 'running' || snap.status === 'countdown')) {
         const activeRow = rows[snap.activeItemIndex];
         if (activeRow && typeof activeRow.scrollIntoView === 'function') {
@@ -3331,6 +3558,7 @@ const UI = {
     if (this._lastFocusKey === focusKey) return;
     this._lastFocusKey = focusKey;
 
+    BiomechanicalStickAnimator.unregisterCanvasesIn(area);
     if ((snap.format === 'EMOM' || snap.format === 'INTERVALS') && typeof snap.activeItemIndex === 'number') {
       const item = wod.items[snap.activeItemIndex];
       const mov = item?.movement;
@@ -3351,7 +3579,7 @@ const UI = {
       `;
       const canvas = document.getElementById('timerFocusCanvas');
       if (canvas && globalThis.BiomechanicalStickAnimator) {
-        BiomechanicalStickAnimator.registerCanvas(canvas, mov.poseType);
+        BiomechanicalStickAnimator.registerCanvas(canvas, mov.poseType, { mode: 'preview' });
       }
       return;
     }

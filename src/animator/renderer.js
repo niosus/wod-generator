@@ -1056,8 +1056,8 @@ const drawFloor = (ctx, y, isLight) => {
   ctx.stroke();
 };
 
-function renderFrame(ctx, frame) {
-  const isLight = isLightTheme();
+function renderFrame(ctx, frame, isLightOverride = null) {
+  const isLight = typeof isLightOverride === 'boolean' ? isLightOverride : isLightTheme();
   if (frame.scale && frame.scale !== 1) {
     ctx.save();
     const ox = frame.originX ?? 100;
