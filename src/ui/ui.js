@@ -213,6 +213,18 @@ const UI = {
     if (typeof lucide !== 'undefined' && lucide.createIcons) {
       lucide.createIcons();
     }
+
+    this.syncNativeStatusBar(isDark);
+  },
+
+  syncNativeStatusBar(isDark) {
+    if (typeof window === 'undefined') return;
+    const cap = window.Capacitor;
+    if (!cap || typeof cap.isNativePlatform !== 'function' || !cap.isNativePlatform()) return;
+    const systemBars = cap.Plugins && cap.Plugins.SystemBars;
+    if (!systemBars || typeof systemBars.setStyle !== 'function') return;
+    const style = isDark ? 'DARK' : 'LIGHT';
+    Promise.resolve(systemBars.setStyle({ style })).catch(() => { });
   },
 
   cycleTheme() {
@@ -308,7 +320,9 @@ const UI = {
       const shareUrl = WorkoutSharing.createConfigShareUrl(AppState);
       if (window.history && window.history.replaceState) {
         try {
-          window.history.replaceState(null, '', shareUrl);
+          if (new URL(shareUrl).origin === window.location.origin) {
+            window.history.replaceState(null, '', shareUrl);
+          }
         } catch (e) { }
       }
       await WorkoutSharing.copyToClipboard(shareUrl);
@@ -334,7 +348,9 @@ const UI = {
 
       if (window.history && window.history.replaceState) {
         try {
-          window.history.replaceState(null, '', shareUrl);
+          if (new URL(shareUrl).origin === window.location.origin) {
+            window.history.replaceState(null, '', shareUrl);
+          }
         } catch (e) { }
       }
 

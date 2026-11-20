@@ -579,3 +579,60 @@ html.dark .wod-row-active {
 .wod-row-dimmed:hover {
   opacity: 0.92;
 }
+
+/* Safe-area support for edge-to-edge native WebViews (iOS notch / home indicator) */
+@supports (padding: env(safe-area-inset-top)) {
+  #appHeader,
+  #appLoadingPlaceholder > div:first-child {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+
+  #appFooter {
+    padding-bottom: calc(1.25rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  #floatingRerollBar,
+  #wodRollToast {
+    bottom: calc(1.25rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  #advancedModal,
+  #movementDemoModal,
+  #benchmarksModal,
+  #scaleModal {
+    padding:
+      calc(0.5rem + env(safe-area-inset-top, 0px))
+      calc(0.5rem + env(safe-area-inset-right, 0px))
+      calc(0.5rem + env(safe-area-inset-bottom, 0px))
+      calc(0.5rem + env(safe-area-inset-left, 0px));
+  }
+
+  #timerFocusModal {
+    padding:
+      calc(0.75rem + env(safe-area-inset-top, 0px))
+      calc(0.75rem + env(safe-area-inset-right, 0px))
+      calc(0.75rem + env(safe-area-inset-bottom, 0px))
+      calc(0.75rem + env(safe-area-inset-left, 0px));
+  }
+
+  @media (min-width: 640px) {
+    #advancedModal,
+    #movementDemoModal,
+    #benchmarksModal,
+    #scaleModal {
+      padding:
+        calc(1rem + env(safe-area-inset-top, 0px))
+        calc(1rem + env(safe-area-inset-right, 0px))
+        calc(1rem + env(safe-area-inset-bottom, 0px))
+        calc(1rem + env(safe-area-inset-left, 0px));
+    }
+
+    #timerFocusModal {
+      padding:
+        calc(1.5rem + env(safe-area-inset-top, 0px))
+        calc(1.5rem + env(safe-area-inset-right, 0px))
+        calc(1.5rem + env(safe-area-inset-bottom, 0px))
+        calc(1.5rem + env(safe-area-inset-left, 0px));
+    }
+  }
+}

@@ -22,6 +22,7 @@ const MUTE_STORAGE_KEY = 'wodroll_timer_muted_v1';
     _lastCueKey: null,
 
     _audioCtx: null,
+    _nativeAudioPlugin: null,
     _isMuted: false,
     _wakeLock: null,
 
@@ -58,8 +59,8 @@ const MUTE_STORAGE_KEY = 'wodroll_timer_muted_v1';
         localStorage.setItem(MUTE_STORAGE_KEY, this._isMuted ? '1' : '0');
       } catch (e) { }
       if (!this._isMuted) {
-        this._ensureAudioContext();
-        this._playTone(784, 0.06, 0.08, 'sine');
+        this._prepareAudio();
+        this._playCueWithFallback('countdown_pip', () => this._playTone(784, 0.06, 0.08, 'sine'));
       }
       this._emitTick();
       return this._isMuted;
@@ -190,7 +191,7 @@ const MUTE_STORAGE_KEY = 'wodroll_timer_muted_v1';
 
     startOrPause() {
       if (!this._plan) return;
-      this._ensureAudioContext();
+      this._prepareAudio();
 
       if (this._status === 'idle' || this._status === 'finished') {
         if (this._status === 'finished') {
@@ -677,8 +678,40 @@ const MUTE_STORAGE_KEY = 'wodroll_timer_muted_v1';
     },
 
     // =========================================================================
-    // WEB AUDIO SYNTHESIZER (Zero external audio assets)
+    // NATIVE & WEB AUDIO SYNTHESIZER (Zero external audio assets)
     // =========================================================================
+    _getNativeAudioPlugin() {
+      if (this._nativeAudioPlugin) return this._nativeAudioPlugin;
+      if (typeof window === 'undefined') return null;
+      const cap = window.Capacitor;
+      if (!cap || typeof cap.isNativePlatform !== 'function' || !cap.isNativePlatform()) return null;
+      const direct = cap.Plugins && cap.Plugins.TimerAudio;
+      if (direct && typeof direct.playCue === 'function') {
+        this._nativeAudioPlugin = direct;
+        return this._nativeAudioPlugin;
+      }
+      if (typeof cap.isPluginAvailable === 'function' && !cap.isPluginAvailable('TimerAudio')) return null;
+      if (typeof cap.registerPlugin === 'function') {
+        try {
+          this._nativeAudioPlugin = cap.registerPlugin('TimerAudio');
+          return this._nativeAudioPlugin;
+        } catch (e) {
+          return null;
+        }
+      }
+      return null;
+    },
+
+    _prepareAudio() {
+      const plugin = this._getNativeAudioPlugin();
+      if (plugin && typeof plugin.prepare === 'function') {
+        try {
+          Promise.resolve(plugin.prepare()).catch(() => { });
+        } catch (e) { }
+      }
+      this._ensureAudioContext();
+    },
+
     _ensureAudioContext() {
       if (typeof window === 'undefined') return null;
       const AudioCtx = window.AudioContext || window.webkitAudioContext;
@@ -690,8 +723,10 @@ const MUTE_STORAGE_KEY = 'wodroll_timer_muted_v1';
           return null;
         }
       }
-      if (this._audioCtx.state === 'suspended') {
-        this._audioCtx.resume().catch(() => { });
+      if (this._audioCtx.state !== 'running') {
+        try {
+          Promise.resolve(this._audioCtx.resume()).catch(() => { });
+        } catch (e) { }
       }
       return this._audioCtx;
     },
@@ -700,53 +735,100 @@ const MUTE_STORAGE_KEY = 'wodroll_timer_muted_v1';
       if (this._isMuted) return;
       const ctx = this._ensureAudioContext();
       if (!ctx) return;
-      try {
-        const now = ctx.currentTime + startOffset;
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.type = type;
-        osc.frequency.setValueAtTime(freq, now);
 
-        gain.gain.setValueAtTime(0.0001, now);
-        gain.gain.exponentialRampToValueAtTime(volume, now + 0.012);
-        gain.gain.exponentialRampToValueAtTime(0.0001, now + durationSec);
+      const schedule = (c) => {
+        try {
+          const now = c.currentTime + startOffset;
+          const osc = c.createOscillator();
+          const gain = c.createGain();
+          osc.type = type;
+          osc.frequency.setValueAtTime(freq, now);
 
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.start(now);
-        osc.stop(now + durationSec + 0.02);
-      } catch (e) { }
+          gain.gain.setValueAtTime(0.0001, now);
+          gain.gain.exponentialRampToValueAtTime(volume, now + 0.012);
+          gain.gain.exponentialRampToValueAtTime(0.0001, now + durationSec);
+
+          osc.connect(gain);
+          gain.connect(c.destination);
+          osc.start(now);
+          osc.stop(now + durationSec + 0.02);
+        } catch (e) { }
+      };
+
+      if (ctx.state === 'running') {
+        schedule(ctx);
+      } else {
+        try {
+          Promise.resolve(ctx.resume())
+            .then(() => {
+              if (ctx.state === 'running') {
+                schedule(ctx);
+              }
+            })
+            .catch(() => { });
+        } catch (e) { }
+      }
+    },
+
+    _playCueWithFallback(cueName, webFallbackFn) {
+      if (this._isMuted) return;
+      const plugin = this._getNativeAudioPlugin();
+      if (plugin && typeof plugin.playCue === 'function') {
+        try {
+          Promise.resolve(plugin.playCue({ cue: cueName })).catch(() => {
+            webFallbackFn();
+          });
+          return;
+        } catch (e) { }
+      }
+      webFallbackFn();
     },
 
     _playCountdownPip() {
-      this._playTone(620, 0.09, 0.16, 'triangle', 0);
+      this._playCueWithFallback('countdown_pip', () => {
+        this._playTone(620, 0.09, 0.16, 'triangle', 0);
+      });
     },
 
     _playStartOrWork() {
-      this._playTone(880, 0.14, 0.22, 'triangle', 0);
-      this._playTone(1174.66, 0.16, 0.18, 'sine', 0.09);
+      this._playCueWithFallback('start_work', () => {
+        this._playTone(880, 0.14, 0.22, 'triangle', 0);
+        this._playTone(1174.66, 0.16, 0.18, 'sine', 0.09);
+      });
     },
 
     _playRest() {
-      this._playTone(523.25, 0.12, 0.17, 'sine', 0);
-      this._playTone(392.0, 0.18, 0.16, 'sine', 0.1);
+      this._playCueWithFallback('rest', () => {
+        this._playTone(523.25, 0.12, 0.17, 'sine', 0);
+        this._playTone(392.0, 0.18, 0.16, 'sine', 0.1);
+      });
     },
 
     _playHalfway() {
-      this._playTone(740, 0.09, 0.14, 'sine', 0);
-      this._playTone(740, 0.11, 0.14, 'sine', 0.13);
+      this._playCueWithFallback('halfway', () => {
+        this._playTone(740, 0.09, 0.14, 'sine', 0);
+        this._playTone(740, 0.11, 0.14, 'sine', 0.13);
+      });
     },
 
     _playComplete() {
-      this._playTone(880, 0.14, 0.22, 'triangle', 0);
-      this._playTone(880, 0.14, 0.22, 'triangle', 0.18);
-      this._playTone(1318.5, 0.34, 0.24, 'triangle', 0.36);
+      this._playCueWithFallback('complete', () => {
+        this._playTone(880, 0.14, 0.22, 'triangle', 0);
+        this._playTone(880, 0.14, 0.22, 'triangle', 0.18);
+        this._playTone(1318.5, 0.34, 0.24, 'triangle', 0.36);
+      });
     },
 
     // =========================================================================
     // SCREEN WAKE LOCK
     // =========================================================================
     async _requestWakeLock() {
+      const plugin = this._getNativeAudioPlugin();
+      if (plugin && typeof plugin.setKeepAwake === 'function') {
+        try {
+          Promise.resolve(plugin.setKeepAwake({ enabled: true })).catch(() => { });
+        } catch (e) { }
+      }
       if (typeof navigator === 'undefined' || !navigator.wakeLock || this._wakeLock) return;
       try {
         this._wakeLock = await navigator.wakeLock.request('screen');
@@ -759,6 +841,12 @@ const MUTE_STORAGE_KEY = 'wodroll_timer_muted_v1';
     },
 
     _releaseWakeLock() {
+      const plugin = this._getNativeAudioPlugin();
+      if (plugin && typeof plugin.setKeepAwake === 'function') {
+        try {
+          Promise.resolve(plugin.setKeepAwake({ enabled: false })).catch(() => { });
+        } catch (e) { }
+      }
       if (!this._wakeLock) return;
       try {
         this._wakeLock.release().catch(() => { });

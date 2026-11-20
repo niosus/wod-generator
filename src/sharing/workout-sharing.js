@@ -47,6 +47,27 @@ const V2_CANONICAL_BENCHMARK_IDS = Object.freeze([
 const V2_BENCHMARK_ID_TO_CODE = new Map(V2_CANONICAL_BENCHMARK_IDS.map((id, i) => [id, i]));
 
 const WorkoutSharing = {
+  PUBLIC_SHARE_BASE_URL: 'https://niosus.github.io/wod-generator/',
+
+  resolveShareBaseUrl(baseHref = null) {
+    if (baseHref) return new URL(baseHref);
+    const url = new URL(window.location.href);
+    const isNativeCapacitor =
+      typeof window !== 'undefined' &&
+      window.Capacitor &&
+      typeof window.Capacitor.isNativePlatform === 'function' &&
+      window.Capacitor.isNativePlatform();
+    if (
+      isNativeCapacitor ||
+      url.protocol === 'capacitor:' ||
+      url.protocol === 'ionic:' ||
+      url.protocol === 'tauri:'
+    ) {
+      return new URL(this.PUBLIC_SHARE_BASE_URL);
+    }
+    return url;
+  },
+
   toBase64Url(uint8) {
     let binary = '';
     for (let i = 0; i < uint8.length; i++) {
@@ -861,7 +882,7 @@ const WorkoutSharing = {
 
   createConfigShareUrl(appState = globalThis.AppState) {
     const encoded = this.encodeConfig(appState);
-    const url = new URL(window.location.href);
+    const url = this.resolveShareBaseUrl();
     if (url.protocol === 'file:') {
       url.search = '';
       url.hash = 'cfg=' + encoded;
@@ -906,7 +927,7 @@ const WorkoutSharing = {
 
   async createShareUrl(wod, baseHref = null) {
     const encoded = await this.encodeWod(wod);
-    const url = new URL(baseHref || window.location.href);
+    const url = this.resolveShareBaseUrl(baseHref);
     if (url.protocol === 'file:') {
       url.search = '';
       url.hash = 'wod=' + encoded;
@@ -1535,8 +1556,12 @@ const WorkoutSharing = {
 
   async copyToClipboard(text) {
     if (navigator.clipboard && window.isSecureContext) {
-      await navigator.clipboard.writeText(text);
-      return;
+      try {
+        await navigator.clipboard.writeText(text);
+        return;
+      } catch (err) {
+        console.warn('navigator.clipboard.writeText failed, falling back to textarea:', err);
+      }
     }
     const ta = document.createElement('textarea');
     ta.value = text;
