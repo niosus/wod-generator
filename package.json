@@ -1,6 +1,6 @@
 {
   "name": "wodroll",
-  "version": "4.0.0",
+  "version": "4.0.1",
   "description": "Biomechanical HIIT & Functional Fitness WOD Generator",
   "type": "module",
   "scripts": {

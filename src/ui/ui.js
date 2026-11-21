@@ -53,6 +53,7 @@ const UI = {
     }
 
     this.initTheme();
+    this.renderAppVersion();
     this.renderEquipmentGrid();
     this.renderMovementMatrix();
     this.renderParameterControls();
@@ -160,6 +161,16 @@ const UI = {
     placeholder.classList.add('app-placeholder-fade-out');
     startInitialPreview();
     this._initialRevealTimer = setTimeout(finishHide, 290);
+  },
+
+  renderAppVersion() {
+    if (typeof document === 'undefined') return;
+    const badge = document.getElementById('appVersionBadge');
+    if (!badge) return;
+    const version = typeof __APP_VERSION__ !== 'undefined' ? String(__APP_VERSION__).trim() : '';
+    if (!version) return;
+    badge.textContent = `v${version}`;
+    badge.classList.remove('hidden');
   },
 
   // ===========================================================================
