@@ -1,7 +1,8 @@
 import {
   MOVEMENTS_DB,
   CLASSICAL_BENCHMARKS,
-  PATTERNS
+  PATTERNS,
+  ProgressionEngine
 } from '../data/index.js';
 import { AppState } from '../state/app-state.js';
 
@@ -10,7 +11,8 @@ const MOVEMENT_NAME_TOKENS = {
   pullups: ['CHALK', 'HIGH BAR', 'DEAD HANG', 'STRICT BAR', 'LATS'],
   chin_ups: ['CHALK', 'CHIN BAR', 'DEAD HANG', 'HIGH BAR', 'LATS'],
   chest_to_bar: ['CHALK', 'CHEST TO BAR', 'HIGH PULL', 'DEAD HANG', 'LATS'],
-  bar_hang: ['DEAD HANG', 'IRON GRIP', 'STATIC BAR', 'HANG TIME'],
+  bar_hang: ['DEAD HANG', 'PASSIVE HANG', 'IRON GRIP', 'HANG TIME'],
+  active_bar_hang: ['ACTIVE HANG', 'SCAP PACK', 'IRON GRIP', 'HOLLOW BAR'],
   bar_muscle_up: ['HIGH BAR', 'TURNOVER', 'LOCKOUT', 'ABOVE THE BAR'],
   ring_muscle_up: ['FALSE GRIP', 'HIGH RINGS', 'TURNOVER', 'RING LOCKOUT'],
   ring_dips: ['STILL RINGS', 'WOOD & STRAP', 'RING SUPPORT', 'DEEP DIP'],
@@ -101,7 +103,9 @@ const MOVEMENT_NAME_TOKENS = {
   pbar_support_hold: ['PARALLEL BARS', 'BAR SUPPORT', 'STRAIGHT ARMS', 'ISOMETRIC'],
   box_decline_pushups: ['PLYO BOX', 'DECLINE PRESS', 'FEET ELEVATED', 'LOCKOUT'],
   box_pike_pushups: ['PLYO BOX', 'PIKE PRESS', 'SHOULDER STACK', 'INVERTED'],
+  couch_pike_pushups: ['ELEVATED PIKE', 'COUCH PRESS', 'SHOULDER STACK', 'INVERTED'],
   box_dips: ['PLYO BOX', 'BENCH DIP', 'TRICEP LOCKOUT', 'BAR SUPPORT'],
+  couch_dips: ['COUCH DIP', 'TRICEP DIP', 'TRICEP LOCKOUT', 'BODYWEIGHT'],
   ring_pullups: ['STILL RINGS', 'FALSE GRIP', 'RING PULL', 'STRICT PULL'],
   db_plank_renegade_row: ['HEX HEAD', 'PLANK ROW', 'ANTI-ROTATION', 'HEAVY HANDLES'],
   kb_clean: ['CAST IRON', 'BELL CLEAN', 'FRONT RACK', 'HIP DRIVE'],
@@ -124,10 +128,10 @@ const MOVEMENT_NAME_TOKENS = {
   back_extensions: ['SUPERMAN ARCH', 'FLOOR EXTEND', 'POSTERIOR LINE', 'SPINE LIFT'],
   hollow_hold: ['HOLLOW BODY', 'STATIC CORE', 'BANANA HOLD', 'IRON MIDLINE'],
   hollow_rocks: ['HOLLOW ROCK', 'ROCKING CHAIR', 'MIDLINE', 'CORE LINE'],
-  russian_twists: ['RUSSIAN TWIST', 'OBLIQUE TURN', 'HEELS UP', 'MIDLINE'],
-  med_ball_russian_twists: ['MEDICINE BALL', 'OBLIQUE TWIST', 'WALL BALL', 'MIDLINE'],
-  kb_russian_twists: ['CAST IRON', 'KETTLE TWIST', 'OBLIQUE TURN', 'IRON BELL'],
-  db_russian_twists: ['HEX HEAD', 'SINGLE DUMBBELL', 'OBLIQUE TWIST', 'MIDLINE'],
+  twists: ['FLOOR TWIST', 'OBLIQUE TURN', 'HEELS UP', 'MIDLINE'],
+  med_ball_twists: ['MEDICINE BALL', 'OBLIQUE TWIST', 'WALL BALL', 'MIDLINE'],
+  kb_twists: ['CAST IRON', 'KETTLE TWIST', 'OBLIQUE TURN', 'IRON BELL'],
+  db_twists: ['HEX HEAD', 'SINGLE DUMBBELL', 'OBLIQUE TWIST', 'MIDLINE'],
   med_ball_situps: ['MEDICINE BALL', 'ABMAT PRESS', 'CORE LINE', 'OVERHEAD TOUCH'],
   plank_shoulder_taps: ['HIGH PLANK', 'SHOULDER TAP', 'ANTI-ROTATION', 'SQUARE HIPS'],
   plank_up_downs: ['COMMANDO', 'PLANK PRESS', 'ELBOW TO PALM', 'CORE LINE'],
@@ -135,10 +139,15 @@ const MOVEMENT_NAME_TOKENS = {
   ring_fallouts: ['STILL RINGS', 'RING ROLLOUT', 'HOLLOW PLANK', 'IRON MIDLINE'],
   pbar_knee_raises: ['PARALLEL BARS', 'KNEE TUCK', 'BAR SUPPORT', 'MIDLINE'],
   pbar_leg_raises: ['PARALLEL BARS', 'STRAIGHT LEG', 'TOE LIFT', 'MIDLINE'],
+  hanging_leg_raises: ['HANGING CORE', 'HIGH BAR', 'STRAIGHT LEG', 'MIDLINE'],
+  ring_leg_raises: ['STILL RINGS', 'STRAIGHT LEG', 'HANGING CORE', 'MIDLINE'],
   pbar_l_sit: ['PARALLEL BARS', 'L-SIT HOLD', 'STRAIGHT LEGS', 'ISOMETRIC'],
   db_farmers_carry: ['HEX HEAD', 'FARMERS WALK', 'PACKED LATS', 'IRON GRIP'],
+  kb_farmers_carry: ['CAST IRON', 'FARMERS WALK', 'PACKED LATS', 'IRON BELLS'],
   kb_suitcase_carry: ['CAST IRON', 'SUITCASE HOLD', 'ANTI-TILT', 'IRON BELL'],
+  db_suitcase_carry: ['HEX HEAD', 'SUITCASE HOLD', 'ANTI-TILT', 'SINGLE DUMBBELL'],
   kb_overhead_carry: ['CAST IRON', 'WAITER WALK', 'OVERHEAD LOCK', 'IRON BELL'],
+  db_overhead_carry: ['HEX HEAD', 'WAITER WALK', 'OVERHEAD LOCK', 'SINGLE DUMBBELL'],
   high_knees: ['FAST FEET', 'HIGH KNEES', 'SPRINTER DRIVE', 'FLOOR PACE'],
   row_erg_meters: ['FLYWHEEL', 'METER SPLIT', 'ERG CHAIN', 'LONG STROKE'],
   ski_erg_meters: ['NORDIC PULL', 'METER SPLIT', 'SKI CORDS', 'DOUBLE POLE'],
@@ -158,17 +167,6 @@ const MOVEMENT_NAME_TOKENS = {
   db_turkish_getup: ['HEX HEAD', 'GET-UP', 'VERTICAL ARM', 'FLOOR TO STAND'],
   med_ball_cleans: ['MEDICINE BALL', 'BALL CLEAN', 'FAST DROP', 'WALL BALL'],
   med_ball_slams: ['MEDICINE BALL', 'BALL SLAM', 'OVERHEAD SPIKE', 'FLOOR IMPACT']
-};
-
-const MOVEMENT_FAMILY_MAP = {
-  russian_twists: 'russian_twist',
-  med_ball_russian_twists: 'russian_twist',
-  kb_russian_twists: 'russian_twist',
-  db_russian_twists: 'russian_twist',
-  pbar_knee_raises: 'pbar_raise',
-  pbar_leg_raises: 'pbar_raise',
-  situps: 'situp',
-  med_ball_situps: 'situp'
 };
 
 const FORMAT_NAME_SUFFIXES = {
@@ -881,9 +879,9 @@ const WorkoutGenerator = {
   getSelectionSourcePool(pool, count) {
     if (!Array.isArray(pool) || pool.length === 0) return [];
 
-    // 1. Filter down to hardest allowed movement of each scale ladder
-    const effectivePool = globalThis.AppState && typeof globalThis.AppState.getHardestAllowedMovementPool === 'function'
-      ? globalThis.AppState.getHardestAllowedMovementPool()
+    // 1. Suppress ladder regression steps when higher-level steps on the same ladder are active
+    const effectivePool = ProgressionEngine && typeof ProgressionEngine.filterPoolToHardestLadderMovements === 'function'
+      ? ProgressionEngine.filterPoolToHardestLadderMovements(pool)
       : pool;
 
     let sourcePool = effectivePool.length >= count ? effectivePool : pool;
@@ -895,7 +893,8 @@ const WorkoutGenerator = {
 
     // 2. Pattern-level Easy filter:
     // Unless the athlete explicitly requested the "easy" tier,
-    // never select an "easy" movement in any pattern where normal or hard movements exist.
+    // never select an "easy" movement (except standalone movements like Glute Bridges)
+    // in any pattern where normal, hard, or standalone movements exist.
     if (globalThis.AppState?.activeDiffFilter !== 'easy') {
       const byPat = {};
       sourcePool.forEach(m => {
@@ -905,11 +904,11 @@ const WorkoutGenerator = {
 
       const filtered = [];
       Object.values(byPat).forEach(movs => {
-        const nonEasy = movs.filter(m => m.difficulty !== 'easy');
-        if (nonEasy.length > 0) {
-          filtered.push(...nonEasy);
+        const eligible = movs.filter(m => m.difficulty !== 'easy' || m.standalone);
+        if (eligible.length > 0) {
+          filtered.push(...eligible);
         } else {
-          // If no normal/hard movement exists for this pattern with current gear, keep easy
+          // If no normal/hard/standalone movement exists for this pattern with current gear, keep easy
           filtered.push(...movs);
         }
       });
@@ -924,9 +923,9 @@ const WorkoutGenerator = {
 
   /**
    * Movement Selection:
-   * 1. Filters the pool to ONLY the hardest allowed movement from each scale ladder.
-   *    (e.g., standard push-ups instead of knee push-ups, burpees instead of sprawls,
-   *    ring/bar rows instead of table rows, box jumps instead of step-ups).
+   * 1. Suppresses regression-only ladder steps (e.g., knee push-ups, box dips,
+   *    ring/bar/table rows, sprawls, box step-ups) when higher movements on the
+   *    same ladder are available, while preserving standalone movements.
    * 2. Selects balanced movement patterns across stations.
    */
   selectBalancedMovements(pool, count) {
@@ -946,14 +945,14 @@ const WorkoutGenerator = {
     const usedPoseTypes = new Set();
     const usedFamilies = new Set();
     const isFreshChoice = (m) => {
-      const fam = MOVEMENT_FAMILY_MAP[m.id];
+      const fam = ProgressionEngine.getExclusiveFamily(m.id);
       return !usedPoseTypes.has(m.poseType) && (!fam || !usedFamilies.has(fam));
     };
     const markSelected = (m) => {
       selected.push(m);
       usedIds.add(m.id);
       if (m.poseType) usedPoseTypes.add(m.poseType);
-      const fam = MOVEMENT_FAMILY_MAP[m.id];
+      const fam = ProgressionEngine.getExclusiveFamily(m.id);
       if (fam) usedFamilies.add(fam);
     };
 
@@ -1185,31 +1184,50 @@ const WorkoutGenerator = {
       copyText = `Block ${stationIndex + 1} (4 Min): 8x (${split.work}s Max ${mov.name}${loadSuffix} ${uniFull || ''} / ${split.rest}s Rest)`.replace(/\s+/g, ' ').trim();
     }
 
-    // 1. Equipment Alternative (collision-free against usedMovementIds)
+    const formatDerivedPrescription = (targetMov, extra = {}) => {
+      const targetLoad = targetMov.load ? ` (${targetMov.load})` : '';
+      if (formatKey === 'INTERVALS') {
+        const split = this.getIntervalSplit(context.intensity);
+        const uni = this.formatUnilateralBreakdown(targetMov, null, formatKey, false);
+        return {
+          movement: targetMov,
+          repVal: null,
+          ...extra,
+          text: `${targetMov.name}${targetLoad} (${split.work}s:${split.rest}s${uni ? ' ' + uni : ''})`.replace(/\s+/g, ' ').trim()
+        };
+      }
+      const repValDerived = this.convertCustomScheme(mov, targetMov, formatKey, customScheme, context);
+      const unitDerived = targetMov.unit === 'cal' ? 'Cal' : (targetMov.unit === 'm' ? 'm' : (targetMov.unit === 'sec' ? 's' : ''));
+      const unitSepDerived = (targetMov.unit === 'm' || targetMov.unit === 'sec') ? '' : ' ';
+      const unitStrDerived = unitDerived ? `${unitSepDerived}${unitDerived}` : '';
+      const uni = this.formatUnilateralBreakdown(targetMov, repValDerived, formatKey, false);
+      return {
+        movement: targetMov,
+        repVal: repValDerived,
+        ...extra,
+        text: `${repValDerived}${unitStrDerived} ${targetMov.name}${targetLoad}${uni ? ' ' + uni : ''}`.replace(/\s+/g, ' ').trim()
+      };
+    };
+
+    // 1. Equipment Alternative(s) — all usable group peers + a No-Gear option
     let altPrescription = null;
+    let altOptions = [];
     if (isOptionalGear || isMissingGear) {
-      const altMov = globalThis.AppState.resolveUniqueAlternative(mov, usedMovementIds);
-      if (altMov) {
-        const altLoad = altMov.load ? ` (${altMov.load})` : '';
-        if (formatKey === 'INTERVALS') {
-          const split = this.getIntervalSplit(context.intensity);
-          const altUni = this.formatUnilateralBreakdown(altMov, null, formatKey, false);
-          altPrescription = {
-            movement: altMov,
-            repVal: null,
-            text: `${altMov.name}${altLoad} (${split.work}s:${split.rest}s${altUni ? ' ' + altUni : ''})`.replace(/\s+/g, ' ').trim()
-          };
-        } else {
-          const altRepVal = this.convertCustomScheme(mov, altMov, formatKey, customScheme, context);
-          const altUnit = altMov.unit === 'cal' ? 'Cal' : (altMov.unit === 'm' ? 'm' : (altMov.unit === 'sec' ? 's' : ''));
-          const altUnitSep = (altMov.unit === 'm' || altMov.unit === 'sec') ? '' : ' ';
-          const altUnitStr = altUnit ? `${altUnitSep}${altUnit}` : '';
-          const altUni = this.formatUnilateralBreakdown(altMov, altRepVal, formatKey, false);
-          altPrescription = {
-            movement: altMov,
-            repVal: altRepVal,
-            text: `${altRepVal}${altUnitStr} ${altMov.name}${altLoad}${altUni ? ' ' + altUni : ''}`.replace(/\s+/g, ' ').trim()
-          };
+      const wodActiveIds = context.roundMovements
+        ? new Set(context.roundMovements.map(m => m.id))
+        : usedMovementIds;
+      const optionMovs = (typeof globalThis.AppState.resolveAlternativeOptions === 'function')
+        ? globalThis.AppState.resolveAlternativeOptions(mov, wodActiveIds)
+        : [];
+      altOptions = optionMovs.map(optMov => formatDerivedPrescription(optMov));
+
+      if (altOptions.length > 0) {
+        altPrescription = altOptions.find(o => !usedMovementIds.has(o.movement.id)) || altOptions[0];
+      } else {
+        const fallbackMov = globalThis.AppState.resolveUniqueAlternative(mov, usedMovementIds);
+        if (fallbackMov) {
+          altPrescription = formatDerivedPrescription(fallbackMov);
+          altOptions = [altPrescription];
         }
       }
     }
@@ -1218,30 +1236,7 @@ const WorkoutGenerator = {
     let scaleDownPrescription = null;
     const scaleResolved = globalThis.AppState.resolveScaleDown(mov, usedMovementIds);
     if (scaleResolved) {
-      const scMov = scaleResolved.movement;
-      const scLoad = scMov.load ? ` (${scMov.load})` : '';
-      if (formatKey === 'INTERVALS') {
-        const split = this.getIntervalSplit(context.intensity);
-        const scUni = this.formatUnilateralBreakdown(scMov, null, formatKey, false);
-        scaleDownPrescription = {
-          movement: scMov,
-          repVal: null,
-          note: scaleResolved.note,
-          text: `${scMov.name}${scLoad} (${split.work}s:${split.rest}s${scUni ? ' ' + scUni : ''})`.replace(/\s+/g, ' ').trim()
-        };
-      } else {
-        const scRepVal = this.convertCustomScheme(mov, scMov, formatKey, customScheme, context);
-        const scUnit = scMov.unit === 'cal' ? 'Cal' : (scMov.unit === 'm' ? 'm' : (scMov.unit === 'sec' ? 's' : ''));
-        const scUnitSep = (scMov.unit === 'm' || scMov.unit === 'sec') ? '' : ' ';
-        const scUnitStr = scUnit ? `${scUnitSep}${scUnit}` : '';
-        const scUni = this.formatUnilateralBreakdown(scMov, scRepVal, formatKey, false);
-        scaleDownPrescription = {
-          movement: scMov,
-          repVal: scRepVal,
-          note: scaleResolved.note,
-          text: `${scRepVal}${scUnitStr} ${scMov.name}${scLoad}${scUni ? ' ' + scUni : ''}`.replace(/\s+/g, ' ').trim()
-        };
-      }
+      scaleDownPrescription = formatDerivedPrescription(scaleResolved.movement, { note: scaleResolved.note });
     }
 
     // Register assigned options to usedMovementIds so subsequent stations do not duplicate them
@@ -1261,6 +1256,7 @@ const WorkoutGenerator = {
       isOptionalGear,
       isMissingGear,
       alternative: altPrescription,
+      alternativeOptions: altOptions,
       scaleDown: scaleDownPrescription
     };
   },
@@ -1299,6 +1295,9 @@ const WorkoutGenerator = {
       );
       if (wod.isBenchmark && item.benchmarkCustomLabel) {
         this.applyBenchmarkItemFormatting(built, item.movement, item.benchmarkCustomLabel, wod.format, headerLoad);
+      }
+      if (item.altDismissed && built.movement.id === item.movement.id) {
+        built.altDismissed = true;
       }
       return built;
     });
@@ -1510,7 +1509,9 @@ const WorkoutGenerator = {
   getSelectionWorkoutStats() {
     const activePool = globalThis.AppState.getActiveMovementPool();
     const hardestPool = globalThis.AppState.getHardestAllowedMovementPool();
-    const effectivePool = hardestPool.length > 0 ? hardestPool : activePool;
+    const ladderPool = hardestPool.length > 0 ? hardestPool : activePool;
+    const selectablePool = this.getSelectionSourcePool(ladderPool, 1);
+    const effectivePool = selectablePool.length > 0 ? selectablePool : ladderPool;
     const mode = globalThis.AppState.mode || 'smart';
     const format = globalThis.AppState.format || 'ANY';
     const duration = globalThis.AppState.duration || 'medium';
@@ -1540,7 +1541,12 @@ const WorkoutGenerator = {
       for (const fmt of formatsToCount) {
         const stationCounts = this._getAlgorithmicStationCounts(effectivePool.length, fmt, duration);
         for (const k of stationCounts) {
-          algoCount += this.countBalancedCombinations(effectivePool, k);
+          const targetPool = (fmt === 'EMOM' && k === 1)
+            ? effectivePool.filter(m => !m.unit || m.unit === 'reps' || m.unit === 'cal')
+            : effectivePool;
+          if (targetPool.length > 0) {
+            algoCount += this.countBalancedCombinations(targetPool, k);
+          }
         }
       }
     }

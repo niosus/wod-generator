@@ -744,6 +744,18 @@ const drawBackgroundProp = (ctx, pr, frame, isLight) => {
       ctx.fillRect(pr.x, pr.y, pr.w, pr.h);
       ctx.strokeRect(pr.x, pr.y, pr.w, pr.h);
       break;
+    case 'couch_edge':
+      ctx.fillStyle = resolveThemeColor('#334155', isLight);
+      ctx.strokeStyle = resolveThemeColor('#94a3b8', isLight);
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.roundRect(pr.x, pr.y, pr.w, pr.h - 4, 6);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = resolveThemeColor('#1e293b', isLight);
+      ctx.fillRect(pr.x + 5, pr.y + pr.h - 4, 4, 4);
+      ctx.fillRect(pr.x + pr.w - 9, pr.y + pr.h - 4, 4, 4);
+      break;
     case 'ski_erg':
       ctx.strokeStyle = resolveThemeColor('#334155', isLight);
       ctx.lineWidth = 4.5;

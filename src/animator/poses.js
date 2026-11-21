@@ -42,31 +42,35 @@ function _computePose(poseType, timestamp, options = null) {
   //      an authentic kip & hip-to-bar pull, and transitions shoulders forward
   //      over the bar/rings with elbows bending strictly backward (never crossing!).
   // ===========================================================================
-  if (poseType === 'pullup_front' || poseType === 'chest_to_bar_front' || poseType === 'chin_up_front' || poseType === 'bar_hang') {
+  if (poseType === 'pullup_front' || poseType === 'chest_to_bar_front' || poseType === 'chin_up_front' || poseType === 'bar_hang' || poseType === 'active_bar_hang') {
     frame.view = 'front';
     frame.floorY = 192;
     const isChestToBar = poseType === 'chest_to_bar_front';
     const isChinUp = poseType === 'chin_up_front';
-    const isBarHang = poseType === 'bar_hang';
+    const isPassiveHang = poseType === 'bar_hang';
+    const isActiveHang = poseType === 'active_bar_hang';
+    const isBarHang = isPassiveHang || isActiveHang;
     const barY = isChestToBar ? 38 : 16;
     frame.props.push({ type: 'rig_uprights', barY, floorY: 192 });
 
     // Vertical range: pull/chin clears chin; chest-to-bar pulls sternum clearly to bar (shoulders high above bar)
     const shoulderY = isBarHang
-      ? 62
+      ? (isActiveHang ? 59 : 63)
       : (isChestToBar ? this.lerp(80, 24, p) : this.lerp(62, 20, p));
     const hipY = shoulderY + L_TORSO;
     const leftHipX = 91, rightHipX = 109;
 
     if (isBarHang) {
-      const leftShoulderX = 85;
-      const rightShoulderX = 115;
+      const leftShoulderX = isActiveHang ? 86 : 84;
+      const rightShoulderX = isActiveHang ? 114 : 116;
       frame.frontTorso = {
         leftShoulderX, rightShoulderX, shoulderY,
         leftHipX, rightHipX, hipY,
-        headX: 100, headY: shoulderY - 14
+        headX: 100, headY: isActiveHang ? shoulderY - 15 : shoulderY - 11
       };
-      const leftHandX = 76, rightHandX = 124, handY = barY;
+      const leftHandX = isActiveHang ? 72 : 78;
+      const rightHandX = isActiveHang ? 128 : 122;
+      const handY = barY;
       const armL = this.solveFrontArm(leftShoulderX, shoulderY, leftHandX, handY, true);
       const armR = this.solveFrontArm(rightShoulderX, shoulderY, rightHandX, handY, false);
       addLimb('armL', 'arm', leftShoulderX, shoulderY, armL.jx, armL.jy, armL.ex, armL.ey, '#38bdf8', '#38bdf8', 5, 'hand');
@@ -288,12 +292,19 @@ function _computePose(poseType, timestamp, options = null) {
   }
 
   // ===========================================================================
-  // 1B. SIDE-VIEW HANGING KNEE RAISES & TOES-TO-BAR (T2B)
+  // 1B. SIDE-VIEW HANGING KNEE / LEG RAISES & TOES-TO-BAR (T2B)
   // ===========================================================================
-  if (poseType === 'knee_raise_side' || poseType === 'ring_knee_raise' || poseType === 'knees_to_elbows_side' || poseType === 'toes_to_bar_side') {
+  if (
+    poseType === 'knee_raise_side' ||
+    poseType === 'ring_knee_raise' ||
+    poseType === 'hanging_leg_raise' ||
+    poseType === 'ring_leg_raise' ||
+    poseType === 'knees_to_elbows_side' ||
+    poseType === 'toes_to_bar_side'
+  ) {
     frame.floorY = 188;
     const barX = 96, barY = 20;
-    if (poseType === 'ring_knee_raise') {
+    if (poseType === 'ring_knee_raise' || poseType === 'ring_leg_raise') {
       frame.props.push({ type: 'overhead_beam', x1: 44, y1: 6, x2: 152, y2: 6 });
       frame.props.push({ type: 'gym_ring', strapX: barX, strapY: 6, cx: barX, cy: barY, r: 8 });
     } else {
@@ -358,6 +369,24 @@ function _computePose(poseType, timestamp, options = null) {
       if (p > 0.88) {
         frame.props.push({ type: 'strike_ring', x: arm.jx, y: arm.jy, r: 9 });
       }
+    } else if (poseType === 'hanging_leg_raise' || poseType === 'ring_leg_raise') {
+      // Straight-Leg Hanging Raise: active hang, straight legs raise cleanly to horizontal/above hip level
+      const shoulderX = this.lerp(95, 84, p);
+      const shoulderY = this.lerp(66, 62, p);
+      const spineAngle = this.lerp(-1.55, -1.80, p);
+      frame.torso = this.torsoFromShoulder(shoulderX, shoulderY, spineAngle, 1, 0.06);
+      const { hipX, hipY } = frame.torso;
+
+      const arm = this.solveIK(shoulderX, shoulderY, barX, barY, L_UPPER_ARM, L_FOREARM, 1);
+
+      const thighAngle = this.lerp(1.56, -0.05, p);
+      const shinAngle = this.lerp(1.60, 0.02, p);
+      const legFront = this.solveFK(hipX, hipY, thighAngle, shinAngle, L_THIGH, L_SHIN);
+      const legBack = this.solveFK(hipX - 2, hipY, thighAngle, shinAngle, L_THIGH, L_SHIN);
+
+      addLimb('legB', 'leg', hipX - 2, hipY, legBack.jx, legBack.jy, legBack.ex, legBack.ey, '#64748b', '#475569', 5.2, 'foot', 1, 200);
+      addLimb('arm', 'arm', shoulderX, shoulderY, arm.jx, arm.jy, arm.ex, arm.ey, '#38bdf8', '#38bdf8', 5.2, 'hand');
+      addLimb('legF', 'leg', hipX, hipY, legFront.jx, legFront.jy, legFront.ex, legFront.ey, '#bef264', '#94a3b8', 6, 'foot', 1, 200);
     } else {
       // Hanging Knee Raise: active hang from bar, knees tuck smoothly above hip crease with exact 32+32=64px segments
       const shoulderX = this.lerp(95, 86, p);
@@ -564,10 +593,14 @@ function _computePose(poseType, timestamp, options = null) {
   // ===========================================================================
   // 3. PIKE PUSH-UPS & BOX PIKE PUSH-UPS (SIDE VIEW - STEEP INVERTED-V TO TRIPOD)
   // ===========================================================================
-  if (poseType === 'pike_pushup' || poseType === 'box_pike_pushup') {
-    if (poseType === 'box_pike_pushup') {
+  if (poseType === 'pike_pushup' || poseType === 'box_pike_pushup' || poseType === 'couch_pike_pushup') {
+    if (poseType === 'box_pike_pushup' || poseType === 'couch_pike_pushup') {
       frame.floorY = 170;
-      frame.props.push({ type: 'plyo_box', x: 26, y: 126, w: 38, h: 44 });
+      frame.props.push(
+        poseType === 'couch_pike_pushup'
+          ? { type: 'couch_edge', x: 24, y: 126, w: 40, h: 44 }
+          : { type: 'plyo_box', x: 26, y: 126, w: 38, h: 44 }
+      );
       const toeX = 56, toeY = 124;
       const handX = 128, handY = 166;
       const legAngle = this.lerp(-0.62, -0.32, p);
@@ -653,11 +686,16 @@ function _computePose(poseType, timestamp, options = null) {
     poseType === 'pbar_l_sit' ||
     poseType === 'pbar_knee_raise' ||
     poseType === 'pbar_leg_raise' ||
-    poseType === 'box_dip'
+    poseType === 'box_dip' ||
+    poseType === 'couch_dip'
   ) {
-    if (poseType === 'box_dip') {
+    if (poseType === 'box_dip' || poseType === 'couch_dip') {
       frame.floorY = 170;
-      frame.props.push({ type: 'plyo_box', x: 20, y: 138, w: 42, h: 32 });
+      frame.props.push(
+        poseType === 'couch_dip'
+          ? { type: 'couch_edge', x: 18, y: 138, w: 44, h: 32 }
+          : { type: 'plyo_box', x: 20, y: 138, w: 42, h: 32 }
+      );
       const handX = 60, handY = 138;
       const shoulderX = this.lerp(69, 76, p);
       const shoulderY = this.lerp(90, 114, p);
@@ -1501,7 +1539,7 @@ function _computePose(poseType, timestamp, options = null) {
   }
 
   // ===========================================================================
-  // 11. ABMAT SIT-UPS, MED BALL SIT-UPS, V-UPS, TUCK-UPS, RUSSIAN TWISTS,
+  // 11. ABMAT SIT-UPS, MED BALL SIT-UPS, V-UPS, TUCK-UPS, TWISTS,
   //     HOLLOW HOLD/ROCK, GLUTE BRIDGE, HIP THRUST & FLOOR PRESS
   // ===========================================================================
   if (
@@ -1511,10 +1549,10 @@ function _computePose(poseType, timestamp, options = null) {
     poseType === 'tuck_up' ||
     poseType === 'hollow_hold' ||
     poseType === 'hollow_rock' ||
-    poseType === 'russian_twist' ||
-    poseType === 'med_ball_russian_twist' ||
-    poseType === 'kb_russian_twist' ||
-    poseType === 'db_russian_twist' ||
+    poseType === 'seated_twist' ||
+    poseType === 'med_ball_twist' ||
+    poseType === 'kb_twist' ||
+    poseType === 'db_twist' ||
     poseType === 'glute_bridge' ||
     poseType === 'bb_hip_thrust'
   ) {
@@ -1566,10 +1604,10 @@ function _computePose(poseType, timestamp, options = null) {
       const arm = this.solveFK(shoulderX, shoulderY, armAngle, armAngle - 0.08, L_UPPER_ARM, L_FOREARM);
       addLimb('arm', 'arm', shoulderX, shoulderY, arm.jx, arm.jy, arm.ex, arm.ey, '#38bdf8', '#38bdf8', 5, 'hand');
     } else if (
-      poseType === 'russian_twist' ||
-      poseType === 'med_ball_russian_twist' ||
-      poseType === 'kb_russian_twist' ||
-      poseType === 'db_russian_twist'
+      poseType === 'seated_twist' ||
+      poseType === 'med_ball_twist' ||
+      poseType === 'kb_twist' ||
+      poseType === 'db_twist'
     ) {
       const twistPeriod = 3800;
       const twistTheta = (((timestamp % twistPeriod) + twistPeriod) % twistPeriod / twistPeriod) * Math.PI * 2;
@@ -1614,11 +1652,11 @@ function _computePose(poseType, timestamp, options = null) {
       const armR = KinematicMath.solveIK3D(rsx, rsy, rsz, handX, handY, handZ, L_UPPER_ARM, L_FOREARM, 0.5, 0.85, 0.25);
       addLimb('armL', 'arm', lsx, lsy, armL.jx, armL.jy, armL.ex, armL.ey, '#38bdf8', '#38bdf8', 5.0, 'hand', 1, null, lsz, armL.jz, armL.ez, isLeft ? -2 : -1);
       addLimb('armR', 'arm', rsx, rsy, armR.jx, armR.jy, armR.ex, armR.ey, '#38bdf8', '#38bdf8', 5.2, 'hand', 1, null, rsz, armR.jz, armR.ez, isLeft ? -1 : -2);
-      if (poseType === 'med_ball_russian_twist') {
+      if (poseType === 'med_ball_twist') {
         frame.props.push({ type: 'med_ball', x: handX, y: handY, r: 7.5, midground: true, behindLegs: true });
-      } else if (poseType === 'kb_russian_twist') {
+      } else if (poseType === 'kb_twist') {
         frame.props.push({ type: 'kettlebell', x: handX, y: handY + 6.5, r: 5.5, angle: twist * 0.20, midground: true, behindLegs: true });
-      } else if (poseType === 'db_russian_twist') {
+      } else if (poseType === 'db_twist') {
         frame.props.push({ type: 'dumbbell_near', x: handX, y: handY, angle: twist * 0.30, midground: true, behindLegs: true });
       }
     } else if (poseType === 'glute_bridge' || poseType === 'bb_hip_thrust') {
@@ -3664,7 +3702,14 @@ function _computePose(poseType, timestamp, options = null) {
   // ===========================================================================
   // 21. LOADED CARRIES: FARMER'S, SUITCASE & OVERHEAD WALKING CARRIES
   // ===========================================================================
-  if (poseType === 'db_farmers_carry' || poseType === 'kb_suitcase_carry' || poseType === 'kb_overhead_carry') {
+  if (
+    poseType === 'db_farmers_carry' ||
+    poseType === 'kb_farmers_carry' ||
+    poseType === 'kb_suitcase_carry' ||
+    poseType === 'db_suitcase_carry' ||
+    poseType === 'kb_overhead_carry' ||
+    poseType === 'db_overhead_carry'
+  ) {
     frame.floorY = 170;
     const walkPeriod = 1150;
     const wNorm = ((timestamp % walkPeriod) + walkPeriod) % walkPeriod / walkPeriod;
@@ -3689,7 +3734,7 @@ function _computePose(poseType, timestamp, options = null) {
     const legB = this.solveFK(hipX - 2, hipY, lkB.thigh, lkB.shin, L_THIGH, L_SHIN);
     const legF = this.solveFK(hipX, hipY, lkF.thigh, lkF.shin, L_THIGH, L_SHIN);
 
-    if (poseType === 'kb_overhead_carry') {
+    if (poseType === 'kb_overhead_carry' || poseType === 'db_overhead_carry') {
       frame.props.push({ type: 'hud_badge', text: wantLeft ? 'LEFT ARM' : 'RIGHT ARM', second: wantLeft });
       const ohArm = this.solveFK(shoulderX, shoulderY, -1.56, -1.56, L_UPPER_ARM, L_FOREARM);
       const freeSwing = Math.sin(wPhase) * 0.14;
@@ -3698,8 +3743,12 @@ function _computePose(poseType, timestamp, options = null) {
       addLimb('legB', 'leg', hipX - 2, hipY, legB.jx, legB.jy, legB.ex, legB.ey, '#64748b', '#475569', 5.4, 'foot', 1);
       addLimb('legF', 'leg', hipX, hipY, legF.jx, legF.jy, legF.ex, legF.ey, '#bef264', '#94a3b8', 6, 'foot', 1);
       addLimb(wantLeft ? 'armB' : 'armF', 'arm', shoulderX, shoulderY, ohArm.jx, ohArm.jy, ohArm.ex, ohArm.ey, '#38bdf8', '#38bdf8', 5.4, 'hand');
-      frame.props.push({ type: 'kettlebell', x: ohArm.ex - 3.2, y: ohArm.ey + 7.2, r: 7.5, midground: wantLeft });
-    } else if (poseType === 'kb_suitcase_carry') {
+      if (poseType === 'db_overhead_carry') {
+        frame.props.push({ type: 'dumbbell_near', x: ohArm.ex, y: ohArm.ey, midground: wantLeft });
+      } else {
+        frame.props.push({ type: 'kettlebell', x: ohArm.ex - 3.2, y: ohArm.ey + 7.2, r: 7.5, midground: wantLeft });
+      }
+    } else if (poseType === 'kb_suitcase_carry' || poseType === 'db_suitcase_carry') {
       frame.props.push({ type: 'hud_badge', text: wantLeft ? 'LEFT HAND' : 'RIGHT HAND', second: wantLeft });
       const holdArm = this.solveFK(shoulderX, shoulderY, 1.56, 1.56, L_UPPER_ARM, L_FOREARM);
       const freeSwing = Math.sin(wPhase) * 0.16;
@@ -3708,17 +3757,29 @@ function _computePose(poseType, timestamp, options = null) {
       addLimb('legB', 'leg', hipX - 2, hipY, legB.jx, legB.jy, legB.ex, legB.ey, '#64748b', '#475569', 5.4, 'foot', 1);
       addLimb('legF', 'leg', hipX, hipY, legF.jx, legF.jy, legF.ex, legF.ey, '#bef264', '#94a3b8', 6, 'foot', 1);
       addLimb(wantLeft ? 'armB' : 'armF', 'arm', shoulderX, shoulderY, holdArm.jx, holdArm.jy, holdArm.ex, holdArm.ey, '#38bdf8', '#38bdf8', 5.4, 'hand');
-      frame.props.push({ type: 'kettlebell', x: holdArm.ex, y: holdArm.ey + 7.5, r: 7.5, midground: wantLeft });
+      if (poseType === 'db_suitcase_carry') {
+        frame.props.push({ type: 'dumbbell_near', x: holdArm.ex, y: holdArm.ey, midground: wantLeft });
+      } else {
+        frame.props.push({ type: 'kettlebell', x: holdArm.ex, y: holdArm.ey + 7.5, r: 7.5, midground: wantLeft });
+      }
     } else {
       const sway = Math.sin(wPhase) * 0.04;
       const armB = this.solveFK(shoulderX - 2, shoulderY, 1.56 - sway, 1.56 - sway, L_UPPER_ARM, L_FOREARM);
       const armF = this.solveFK(shoulderX, shoulderY, 1.56 + sway, 1.56 + sway, L_UPPER_ARM, L_FOREARM);
       addLimb('armB', 'arm', shoulderX - 2, shoulderY, armB.jx, armB.jy, armB.ex, armB.ey, '#64748b', '#475569', 5, 'hand');
-      frame.props.push({ type: 'dumbbell_far', x: armB.ex, y: armB.ey });
+      if (poseType === 'kb_farmers_carry') {
+        frame.props.push({ type: 'kettlebell', x: armB.ex, y: armB.ey + 7.5, r: 7.5, midground: true });
+      } else {
+        frame.props.push({ type: 'dumbbell_far', x: armB.ex, y: armB.ey });
+      }
       addLimb('legB', 'leg', hipX - 2, hipY, legB.jx, legB.jy, legB.ex, legB.ey, '#64748b', '#475569', 5.4, 'foot', 1);
       addLimb('legF', 'leg', hipX, hipY, legF.jx, legF.jy, legF.ex, legF.ey, '#bef264', '#94a3b8', 6, 'foot', 1);
       addLimb('armF', 'arm', shoulderX, shoulderY, armF.jx, armF.jy, armF.ex, armF.ey, '#38bdf8', '#38bdf8', 5.4, 'hand');
-      frame.props.push({ type: 'dumbbell_near', x: armF.ex, y: armF.ey });
+      if (poseType === 'kb_farmers_carry') {
+        frame.props.push({ type: 'kettlebell', x: armF.ex, y: armF.ey + 7.5, r: 7.5, midground: false });
+      } else {
+        frame.props.push({ type: 'dumbbell_near', x: armF.ex, y: armF.ey });
+      }
     }
     return frame;
   }

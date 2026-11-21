@@ -597,10 +597,13 @@ canvas[data-demo-ladder-pose],
   }
 
   #appFooter {
-    padding-bottom: calc(1.25rem + env(safe-area-inset-bottom, 0px));
+    padding-bottom: calc(5rem + env(safe-area-inset-bottom, 0px));
   }
 
-  #floatingRerollBar,
+  #floatingRerollBar {
+    bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+  }
+
   #wodRollToast {
     bottom: calc(1.25rem + env(safe-area-inset-bottom, 0px));
   }

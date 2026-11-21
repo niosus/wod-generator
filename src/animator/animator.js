@@ -30,11 +30,16 @@ const SIDE_SWITCHABLE_POSES = new Set([
   'db_rfe_rdl',
   'bb_rfe_rdl',
   'kb_bent_row',
-  'kb_hang_power_clean'
+  'kb_hang_power_clean',
+  'kb_overhead_carry',
+  'db_overhead_carry',
+  'kb_suitcase_carry',
+  'db_suitcase_carry'
 ]);
 
 const STATIC_POSE_TYPES = new Set([
   'bar_hang',
+  'active_bar_hang',
   'knee_plank',
   'side_plank'
 ]);

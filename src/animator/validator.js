@@ -27,10 +27,10 @@ function validatePose(poseType, numSteps = 120, cycleMs = null) {
       poseType === 'cossack_squat' ||
       poseType === 'broad_jump' ||
       poseType === 'plank_up_down' ||
-      poseType === 'med_ball_russian_twist' ||
-      poseType === 'kb_russian_twist' ||
-      poseType === 'db_russian_twist' ||
-      poseType === 'russian_twist' ||
+      poseType === 'med_ball_twist' ||
+      poseType === 'kb_twist' ||
+      poseType === 'db_twist' ||
+      poseType === 'seated_twist' ||
       poseType === 'db_plank_renegade_row'
     ) cycleMs = 3800;
     else if (poseType === 'plank_shoulder_tap') cycleMs = 2000;

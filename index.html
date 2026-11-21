@@ -309,12 +309,12 @@
           <span class="hidden sm:inline">Benchmarks</span>
         </button>
 
-        <!-- All Movements & Scaling Progressions Library -->
+        <!-- Progressions Graph Library -->
         <button id="openScaleModalBtn"
           class="flex items-center gap-1.5 px-2 sm:px-2.5 py-1.5 rounded-lg bg-transparent hover:bg-zinc-100 dark:hover:bg-zinc-900 border border-transparent hover:border-zinc-200 dark:hover:border-zinc-800 text-xs font-medium text-zinc-600 dark:text-zinc-300 hover:text-zinc-950 dark:hover:text-white transition shrink-0"
-          title="Browse All Movements &amp; Scaling Progressions">
-          <i data-lucide="layout-grid" class="w-3.5 h-3.5"></i>
-          <span class="hidden sm:inline">Movements</span>
+          title="Browse Progressions">
+          <i data-lucide="git-merge" class="w-3.5 h-3.5"></i>
+          <span class="hidden sm:inline">Progressions</span>
         </button>
 
         <!-- Copy Short Setup Link (?cfg=...) -->
@@ -850,7 +850,7 @@
   </main>
 
   <!-- MINIMAL FOOTER & INDEXABLE OVERVIEW -->
-  <footer id="appFooter" class="max-w-3xl w-full mx-auto px-3.5 sm:px-6 pb-5 pt-1 text-[11px] text-zinc-500 dark:text-zinc-400">
+  <footer id="appFooter" class="max-w-3xl w-full mx-auto px-3.5 sm:px-6 pb-20 pt-1 text-[11px] text-zinc-500 dark:text-zinc-400">
     <details
       class="group rounded-xl border border-zinc-200/70 dark:border-zinc-800/70 bg-white/60 dark:bg-zinc-900/50 px-3.5 py-2 transition-colors">
       <summary
@@ -1239,7 +1239,7 @@
         <button id="demoToAllProgressionsBtn" type="button"
           class="w-full py-2.5 px-3 rounded-xl bg-zinc-100 dark:bg-zinc-800/80 hover:bg-zinc-200/80 dark:hover:bg-zinc-800 border border-zinc-200 dark:border-zinc-700/80 text-xs font-semibold text-zinc-800 dark:text-zinc-200 flex items-center justify-center gap-1.5 transition">
           <i data-lucide="git-merge" class="w-3.5 h-3.5"></i>
-          <span>View All Scaling Progressions</span>
+          <span>View Progressions</span>
           <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
         </button>
       </div>
@@ -1296,9 +1296,9 @@
 
   <!-- MOVEMENT LIBRARY & SCALING PROGRESSIONS MODAL -->
   <div id="scaleModal"
-    class="fixed inset-0 z-50 hidden items-center justify-center p-2 sm:p-4 bg-zinc-950/60 dark:bg-zinc-950/85">
+    class="fixed inset-0 z-50 hidden items-center justify-center p-1.5 sm:p-4 bg-zinc-950/60 dark:bg-zinc-950/85">
     <div id="scaleModalCard"
-      class="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl max-w-4xl w-full max-h-[92vh] sm:max-h-[88vh] flex flex-col shadow-2xl relative overflow-hidden">
+      class="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl max-w-6xl xl:max-w-7xl w-full h-[95vh] sm:h-[91vh] max-h-[95vh] sm:max-h-[91vh] flex flex-col shadow-2xl relative overflow-hidden">
       <div
         class="flex items-center justify-between px-4 sm:px-6 pt-4 sm:pt-5 pb-3 border-b border-zinc-200 dark:border-zinc-800 shrink-0">
         <div class="flex items-center gap-2.5 min-w-0">
@@ -1309,11 +1309,11 @@
           </button>
           <div class="min-w-0">
             <h3 class="text-base sm:text-lg font-black text-zinc-950 dark:text-white flex items-center gap-2 truncate">
-              <i data-lucide="layout-grid" class="w-4 h-4 text-volt-600 dark:text-volt shrink-0"></i>
-              <span class="truncate">Movement Library &amp; Progressions</span>
+              <i data-lucide="git-merge" class="w-4 h-4 text-volt-600 dark:text-volt shrink-0"></i>
+              <span class="truncate">Progressions</span>
             </h3>
             <p class="text-[11px] text-zinc-500 dark:text-zinc-400 mt-0.5 truncate">
-              Inspect all movements with live 2D form demos, coaching cues, and skill scaling ladders.
+              Explore scale-downs, lateral equipment swaps, and no-gear alternatives with live 2D form demos.
             </p>
           </div>
         </div>
@@ -1323,31 +1323,17 @@
         </button>
       </div>
 
-      <!-- Mode Tabs + Search Control -->
+      <!-- Search -->
       <div class="px-4 sm:px-6 pt-3 pb-2.5 border-b border-zinc-200/70 dark:border-zinc-800/70 shrink-0">
-        <div class="flex flex-wrap items-center justify-between gap-2">
-          <div id="scaleViewTabs"
-            class="inline-flex p-0.5 rounded-xl bg-zinc-100 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800">
-            <button data-scale-view="all" type="button"
-              class="scale-view-btn px-3 py-1.5 rounded-lg text-xs font-semibold transition">
-              All Movements
-            </button>
-            <button data-scale-view="ladders" type="button"
-              class="scale-view-btn px-3 py-1.5 rounded-lg text-xs font-semibold transition">
-              Scaling Ladders
-            </button>
-          </div>
-
-          <div id="scaleLibrarySearchWrap" class="relative w-full sm:w-64">
-            <input id="movementLibrarySearchInput" type="text"
-              placeholder="Search movements by name, pattern, or gear..."
-              class="w-full px-3 py-1.5 text-xs bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-lg text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-none focus:border-zinc-400 dark:focus:border-volt" />
-          </div>
+        <div id="scaleLibrarySearchWrap" class="relative w-full">
+          <input id="movementLibrarySearchInput" type="text"
+            placeholder="Search movements by name, pattern, or gear..."
+            class="w-full px-3 py-1.5 text-xs bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-lg text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-none focus:border-zinc-400 dark:focus:border-volt" />
         </div>
       </div>
 
-      <!-- Movement Library / Scale Ladders Container -->
-      <div id="scaleLaddersContainer" class="flex-1 overflow-y-auto px-4 sm:px-6 py-4 space-y-3">
+      <!-- Progressions Graph Container -->
+      <div id="scaleLaddersContainer" class="flex-1 overflow-hidden px-4 sm:px-6 py-3 flex flex-col">
         <!-- Populated by JS -->
       </div>
     </div>
@@ -1435,7 +1421,7 @@
 
   <!-- FLOATING RE-ROLL CTA (Appears when top Re-Roll button scrolls off screen) -->
   <div id="floatingRerollBar"
-    class="fixed bottom-5 left-1/2 -translate-x-1/2 z-40 transition-[opacity,transform,visibility] duration-300 opacity-0 translate-y-10 pointer-events-none invisible">
+    class="fixed bottom-4 left-1/2 -translate-x-1/2 z-40 transition-[opacity,transform,visibility] duration-300 opacity-0 translate-y-10 pointer-events-none invisible">
     <div class="flex items-center gap-2">
       <span id="floatingRerollSideDot"
         class="hidden w-2.5 h-2.5 rounded-full bg-volt-600 dark:bg-volt shadow-sm shrink-0"

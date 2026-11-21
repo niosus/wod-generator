@@ -254,9 +254,9 @@ const LEGACY_STORAGE_KEY = 'wodforge_local_prefs_v3';
       },
 
       /**
-       * Returns the active pool filtered to ONLY the hardest allowed movement of each scale ladder.
-       * Prevents regression movements (knee push-ups, sprawls, table rows) from being selected
-       * when normal Rx baseline movements are available and allowed.
+       * Returns the active pool with regression-only ladder steps suppressed whenever
+       * higher-level movements on the same ladder are available and allowed.
+       * Standalone movements (e.g. push-ups, air squats, sit-ups, single-unders) stay eligible.
        */
       getHardestAllowedMovementPool() {
         const pool = this.getActiveMovementPool();
@@ -267,64 +267,110 @@ const LEGACY_STORAGE_KEY = 'wodforge_local_prefs_v3';
       },
 
       /**
-       * Collision-Free Alternative Resolver:
-       * Selects an alternative movement that:
-       * 1) Preserves biomechanical pattern integrity (e.g. Pull never swaps to Push-Ups!)
-       * 2) Requires strictly 'available' (HAVE) equipment and is not suppressed by better gear
-       * 3) Is NOT already present in `forbiddenMovementIds` (movements already in the WOD
-       *    or already assigned as alternatives to other stations in the same WOD).
+       * Returns all usable alternative options when a movement's gear is 'optional' or 'off':
+       * 1) All usable different-gear options from its Lateral Peer Group ('available' before 'optional')
+       * 2) Usable non-bodyweight fallbacks when no peer group options exist
+       * 3) A matching No-Gear (bodyweight) alternative
+       */
+      resolveAlternativeOptions(mov, forbiddenMovementIds = new Set()) {
+        if (!mov) return [];
+        const forbidden = new Set(forbiddenMovementIds);
+        forbidden.add(mov.id);
+
+        const findById = (id) => globalThis.MOVEMENTS_DB.find(m => m.id === id);
+        const isAllowedDiffGear = (c) =>
+          c &&
+          c.equipment !== mov.equipment &&
+          this.isEquipmentUsable(c.equipment) &&
+          (this.includeHardMovements || c.difficulty !== 'hard') &&
+          !forbidden.has(c.id);
+
+        const options = [];
+        const seen = new Set([mov.id]);
+        const addOption = (c) => {
+          if (!c || seen.has(c.id) || forbidden.has(c.id)) return false;
+          seen.add(c.id);
+          options.push(c);
+          return true;
+        };
+
+        const peerIds = globalThis.ProgressionEngine && typeof globalThis.ProgressionEngine.getLateralPeers === 'function'
+          ? globalThis.ProgressionEngine.getLateralPeers(mov.id)
+          : [];
+        const usablePeers = peerIds.map(findById).filter(isAllowedDiffGear);
+
+        usablePeers
+          .filter(c => this.equipmentStates[c.equipment] === 'available' && c.equipment !== 'bodyweight')
+          .forEach(addOption);
+        usablePeers
+          .filter(c => this.equipmentStates[c.equipment] === 'optional' && c.equipment !== 'bodyweight')
+          .forEach(addOption);
+        usablePeers
+          .filter(c => c.equipment === 'bodyweight')
+          .forEach(addOption);
+
+        const candidates = (mov.fallbackCandidates || []).map(findById).filter(Boolean);
+        if (options.length === 0) {
+          candidates
+            .filter(c => c.equipment !== 'bodyweight' && isAllowedDiffGear(c))
+            .slice(0, 2)
+            .forEach(addOption);
+        }
+
+        if (mov.equipment !== 'bodyweight' && !options.some(o => o.equipment === 'bodyweight')) {
+          const isValidNoGear = (c, allowRegressions = true) =>
+            c &&
+            c.equipment === 'bodyweight' &&
+            (this.includeHardMovements || c.difficulty !== 'hard') &&
+            (allowRegressions || !(globalThis.ProgressionEngine && typeof globalThis.ProgressionEngine.isRegressionMovement === 'function' && globalThis.ProgressionEngine.isRegressionMovement(c.id))) &&
+            !forbidden.has(c.id);
+
+          let noGear =
+            candidates.find(c => isValidNoGear(c, false)) ||
+            candidates.find(c => isValidNoGear(c, true));
+
+          if (!noGear && globalThis.ProgressionEngine && typeof globalThis.ProgressionEngine.getScaleDownChain === 'function') {
+            const chainMovs = globalThis.ProgressionEngine.getScaleDownChain(mov.id).map(findById).filter(Boolean);
+            noGear = chainMovs.find(c => isValidNoGear(c, false)) || chainMovs.find(c => isValidNoGear(c, true));
+          }
+
+          if (!noGear) {
+            noGear =
+              globalThis.MOVEMENTS_DB.find(m => m.pattern === mov.pattern && m.difficulty === 'normal' && isValidNoGear(m, false)) ||
+              globalThis.MOVEMENTS_DB.find(m => m.pattern === mov.pattern && isValidNoGear(m, true));
+          }
+
+          if (noGear) addOption(noGear);
+        }
+
+        return options;
+      },
+
+      /**
+       * Collision-Free Alternative Resolver (2-Axis Graph):
+       * Selects the primary alternative movement when prescribed equipment is 'optional' or 'off'.
        */
       resolveUniqueAlternative(mov, forbiddenMovementIds = new Set()) {
         const forbidden = new Set(forbiddenMovementIds);
         forbidden.add(mov.id);
+        const options = this.resolveAlternativeOptions(mov, forbidden);
+        if (options.length > 0) return options[0];
 
-        const candidates = (mov.fallbackCandidates || [])
-          .map(id => globalThis.MOVEMENTS_DB.find(m => m.id === id))
-          .filter(Boolean);
-
-        // Pass 1: Candidate in fallbackCandidates with strictly 'available' gear, not suppressed, enabled in pool, and not in forbidden set
-        const pass1 = candidates.find(
-          c => this.equipmentStates[c.equipment] === 'available' &&
-            !this.isMovementSuppressedByBetterGear(c) &&
-            !this.excludedMovements.has(c.id) &&
-            !forbidden.has(c.id)
-        );
-        if (pass1) return pass1;
-
-        // Pass 2: Any movement of the SAME biomechanical pattern with 'available' gear, not suppressed, enabled in pool, and not in forbidden set
-        const pass2 = globalThis.MOVEMENTS_DB.find(
-          m => m.pattern === mov.pattern &&
-            this.equipmentStates[m.equipment] === 'available' &&
-            !this.isMovementSuppressedByBetterGear(m) &&
-            !this.excludedMovements.has(m.id) &&
-            !forbidden.has(m.id)
-        );
-        if (pass2) return pass2;
-
-        // Pass 3: Any movement of the SAME pattern with 'available' gear (even if suppressed or excluded) not in forbidden set
-        const pass3 = globalThis.MOVEMENTS_DB.find(
-          m => m.pattern === mov.pattern &&
-            this.equipmentStates[m.equipment] === 'available' &&
-            !this.isMovementSuppressedByBetterGear(m) &&
-            m.difficulty === 'normal' &&
-            !forbidden.has(m.id)
-        );
-        if (pass3) return pass3;
-
-        // Pass 4: Fallback within same pattern (e.g. if Pull-up Bar is only Optional and Rings are Off, Towel Row is valid)
-        const pass4 = globalThis.MOVEMENTS_DB.find(
+        const findById = (id) => globalThis.MOVEMENTS_DB.find(m => m.id === id);
+        const candidates = (mov.fallbackCandidates || []).map(findById).filter(Boolean);
+        const samePatternAny = globalThis.MOVEMENTS_DB.find(
           m => m.pattern === mov.pattern &&
             this.equipmentStates[m.equipment] === 'available' &&
             m.difficulty === 'normal' &&
             !forbidden.has(m.id)
         );
-        return pass4 || candidates[0] || globalThis.MOVEMENTS_DB[0];
+        return samePatternAny || candidates[0] || globalThis.MOVEMENTS_DB[0];
       },
 
       /**
-       * Collision-Free Scale-Down Progression Resolver:
-       * Checks if a movement has a simpler biomechanical progression (`scaleDownId`)
-       * and ensures the suggested scale-down does not duplicate another movement already in the WOD.
+       * Collision-Free Scale-Down Resolver (Vertical Chain + Lateral Peers):
+       * Walks `scaleDownId` downward, checking lateral peers at each tier when
+       * the primary step's equipment is unavailable or already used in the WOD.
        */
       resolveScaleDown(mov, forbiddenMovementIds = new Set()) {
         if (!mov || mov.id === 'run') return null;
@@ -337,8 +383,12 @@ const LEGACY_STORAGE_KEY = 'wodforge_local_prefs_v3';
           }
           return !freeWeightEquip.has(candidate.equipment);
         };
+        const isCandidateValid = (candidate) =>
+          candidate &&
+          isScaleEquipmentAllowed(candidate) &&
+          this.isEquipmentUsable(candidate.equipment) &&
+          !forbiddenMovementIds.has(candidate.id);
 
-        // Walk the explicit scaleDownId chain first (never crossing between KB / DB / BB / Wall Ball)
         const visited = new Set([mov.id]);
         let cursor = mov;
         for (let hop = 0; hop < 6 && cursor && cursor.scaleDownId; hop++) {
@@ -347,43 +397,42 @@ const LEGACY_STORAGE_KEY = 'wodforge_local_prefs_v3';
           const candidate = globalThis.MOVEMENTS_DB.find(m => m.id === cursor.scaleDownId);
           if (!candidate) break;
 
-          if (
-            isScaleEquipmentAllowed(candidate) &&
-            this.isEquipmentUsable(candidate.equipment) &&
-            !forbiddenMovementIds.has(candidate.id)
-          ) {
+          const peerIds = (globalThis.ProgressionEngine && typeof globalThis.ProgressionEngine.getLateralPeers === 'function')
+            ? globalThis.ProgressionEngine.getLateralPeers(candidate.id)
+            : [];
+          const peers = peerIds.map(pid => globalThis.MOVEMENTS_DB.find(m => m.id === pid)).filter(Boolean);
+
+          // Prefer matching equipment peer when primary target requires different gear
+          const sameGearPeer = candidate.equipment !== mov.equipment
+            ? peers.find(p => p.equipment === mov.equipment && isCandidateValid(p))
+            : null;
+          if (sameGearPeer) {
+            return {
+              movement: sameGearPeer,
+              note: sameGearPeer.name
+            };
+          }
+
+          if (isCandidateValid(candidate)) {
             return {
               movement: candidate,
               note: hop === 0 ? (mov.scaleNote || candidate.name) : candidate.name
             };
           }
+
+          // Check remaining lateral peers at the same vertical tier (e.g. bar_inverted_rows <-> ring_rows)
+          for (const peer of peers) {
+            if (isCandidateValid(peer)) {
+              return {
+                movement: peer,
+                note: peer.name
+              };
+            }
+          }
+
           cursor = candidate;
         }
 
-        // Fallback within the same movement pattern using same equipment or bodyweight only
-        const patternCandidates = globalThis.MOVEMENTS_DB.filter(candidate =>
-          candidate.id !== mov.id &&
-          candidate.pattern === mov.pattern &&
-          isScaleEquipmentAllowed(candidate) &&
-          this.isEquipmentUsable(candidate.equipment) &&
-          !this.excludedMovements.has(candidate.id) &&
-          !forbiddenMovementIds.has(candidate.id) &&
-          (candidate.intensity || 0) <= (mov.intensity || 99)
-        );
-        patternCandidates.sort((a, b) => {
-          const aSameEq = a.equipment === mov.equipment ? 0 : 1;
-          const bSameEq = b.equipment === mov.equipment ? 0 : 1;
-          if (aSameEq !== bSameEq) return aSameEq - bSameEq;
-          return (b.intensity || 0) - (a.intensity || 0);
-        });
-
-        const backupScale = patternCandidates[0];
-        if (backupScale) {
-          return {
-            movement: backupScale,
-            note: backupScale.name
-          };
-        }
         return null;
       },
 

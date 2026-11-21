@@ -52,7 +52,7 @@ const MOVEMENTS_DB = [
     reps: { emom: 10, amrap: 12, forTime: 15 },
     scaleDownId: 'pushups',
     scaleNote: 'Push-Ups',
-    fallbackCandidates: ['parallel_bar_dips', 'ring_dips', 'db_push_press', 'pushups'],
+    fallbackCandidates: ['couch_pike_pushups', 'box_pike_pushups', 'parallel_bar_dips', 'ring_dips', 'db_push_press', 'pushups'],
     cues: 'Hike hips high into an inverted V-shape with straight legs. Lower the crown of the head forward in front of the hands with elbows tracking backward, then press back to the inverted V.',
     scaling: 'Scale down to Push-Ups.'
   },
@@ -68,11 +68,11 @@ const MOVEMENTS_DB = [
     poseType: 'hspu',
     unit: 'reps',
     reps: { emom: 8, amrap: 8, forTime: 12 },
-    scaleDownId: 'pike_pushups',
-    scaleNote: 'Pike Push-Ups',
-    fallbackCandidates: ['parallel_bar_dips', 'ring_dips', 'pike_pushups', 'db_push_press', 'pushups'],
+    scaleDownId: 'box_pike_pushups',
+    scaleNote: 'Box / Couch Pike Push-Ups',
+    fallbackCandidates: ['box_pike_pushups', 'couch_pike_pushups', 'parallel_bar_dips', 'ring_dips', 'pike_pushups', 'db_push_press', 'pushups'],
     cues: 'Kick up vertical facing away from the wall. Lower head controlled into a tripod in front of hands with elbows bending backward, then drive up to full overhead lockout.',
-    scaling: 'Scale down to Pike Push-Ups or Push-Ups.'
+    scaling: 'Scale down to Box Pike Push-Ups or Pike Push-Ups.'
   },
   {
     id: 'ring_dips',
@@ -86,11 +86,11 @@ const MOVEMENTS_DB = [
     poseType: 'ring_dip',
     unit: 'reps',
     reps: { emom: 10, amrap: 10, forTime: 12 },
-    scaleDownId: 'parallel_bar_dips',
-    scaleNote: 'Parallel Bar Dips or Pike Push-Ups',
-    fallbackCandidates: ['parallel_bar_dips', 'pike_pushups', 'db_push_press', 'pushups'],
+    scaleDownId: 'box_dips',
+    scaleNote: 'Box / Couch Tricep Dips or Parallel Bar Dips',
+    fallbackCandidates: ['parallel_bar_dips', 'box_dips', 'couch_dips', 'pike_pushups', 'db_push_press', 'pushups'],
     cues: 'Start in locked-out support on gymnastic rings with palms turned slightly forward. Keep rings tight to torso while elbows hinge backward until shoulders drop below the elbow crease, then press to support.',
-    scaling: 'Sub Parallel Bar Dips, Pike Push-Ups, or Push-Ups.'
+    scaling: 'Sub Parallel Bar Dips or scale down to Box Tricep Dips.'
   },
   {
     id: 'parallel_bar_dips',
@@ -104,11 +104,11 @@ const MOVEMENTS_DB = [
     poseType: 'parallel_bar_dip',
     unit: 'reps',
     reps: { emom: 10, amrap: 12, forTime: 15 },
-    scaleDownId: 'pike_pushups',
-    scaleNote: 'Pike Push-Ups or Push-Ups',
-    fallbackCandidates: ['ring_dips', 'pike_pushups', 'db_push_press', 'pushups'],
+    scaleDownId: 'box_dips',
+    scaleNote: 'Box / Couch Tricep Dips',
+    fallbackCandidates: ['ring_dips', 'box_dips', 'couch_dips', 'pike_pushups', 'db_push_press', 'pushups'],
     cues: 'Start in locked-out support on parallel dip bars. Lean torso slightly forward while elbows hinge backward until shoulders drop below the elbow crease, then press to full lockout.',
-    scaling: 'Sub Push-Ups or Pike Push-Ups.'
+    scaling: 'Scale down to Box Tricep Dips or Push-Ups.'
   },
   {
     id: 'kb_strict_press',
@@ -124,11 +124,10 @@ const MOVEMENTS_DB = [
     unit: 'reps',
     load: '20/12 kg',
     reps: { emom: 12, amrap: 12, forTime: 15 },
-    scaleDownId: 'kb_push_press',
-    scaleNote: 'Kettlebell Push Press (Use Leg Drive)',
+    scaleNote: 'Lighter Kettlebell',
     fallbackCandidates: ['db_strict_press', 'kb_push_press', 'pike_pushups', 'pushups'],
     cues: 'Clean kettlebell to a tight front rack with forearm vertical. Brace glutes and abs with zero leg drive, and press strictly overhead to bicep-by-ear lockout.',
-    scaling: 'Use a shallow knee dip (Kettlebell Push Press) or a lighter kettlebell.'
+    scaling: 'Use a lighter kettlebell or sub Pike Push-Ups without weights.'
   },
   {
     id: 'db_strict_press',
@@ -143,11 +142,10 @@ const MOVEMENTS_DB = [
     unit: 'reps',
     load: '2x15/10 kg',
     reps: { emom: 12, amrap: 12, forTime: 15 },
-    scaleDownId: 'db_push_press',
-    scaleNote: 'Dumbbell Push Press (Use Leg Drive)',
+    scaleNote: 'Lighter Dumbbells',
     fallbackCandidates: ['kb_strict_press', 'db_push_press', 'pike_pushups', 'pushups'],
     cues: 'Hold dumbbells at shoulder height with elbows slightly in front of ribs. Keep knees locked and core rigid while pressing strictly overhead to full elbow lockout.',
-    scaling: 'Use a shallow knee dip (Dumbbell Push Press) or lighter dumbbells.'
+    scaling: 'Use lighter dumbbells or sub Pike Push-Ups without weights.'
   },
   {
     id: 'bb_strict_press',
@@ -162,11 +160,10 @@ const MOVEMENTS_DB = [
     unit: 'reps',
     load: '40/27.5 kg',
     reps: { emom: 10, amrap: 10, forTime: 12 },
-    scaleDownId: 'bb_push_press',
-    scaleNote: 'Barbell Push Press (Use Leg Drive)',
+    scaleNote: 'Lighter Barbell',
     fallbackCandidates: ['db_strict_press', 'kb_strict_press', 'pike_pushups', 'pushups'],
     cues: 'Grip bar just outside shoulders, pull chin back to clear bar path, and press vertically overhead with quads and glutes squeezed tight and no knee dip.',
-    scaling: 'Use a shallow knee dip (Barbell Push Press) or reduce barbell load.'
+    scaling: 'Reduce barbell load or sub Pike Push-Ups without weights.'
   },
   {
     id: 'kb_push_press',
@@ -182,11 +179,10 @@ const MOVEMENTS_DB = [
     unit: 'reps',
     load: '20/12 kg',
     reps: { emom: 12, amrap: 12, forTime: 16 },
-    scaleDownId: 'pike_pushups',
-    scaleNote: 'Lighter Kettlebell or Pike Push-Ups',
+    scaleNote: 'Lighter Kettlebell',
     fallbackCandidates: ['db_push_press', 'kb_strict_press', 'pike_pushups', 'pushups'],
     cues: 'Shallow vertical dip with upright torso, snap hips to full extension, and punch the kettlebell straight overhead to locked-out arm without re-bending knees.',
-    scaling: 'Use a lighter kettlebell or scale down to Pike Push-Ups.'
+    scaling: 'Use a lighter kettlebell or sub Pike Push-Ups without weights.'
   },
   {
     id: 'db_push_press',
@@ -201,11 +197,10 @@ const MOVEMENTS_DB = [
     unit: 'reps',
     load: '2x22.5/15 kg',
     reps: { emom: 12, amrap: 12, forTime: 15 },
-    scaleDownId: 'pike_pushups',
-    scaleNote: 'Lighter Dumbbells or Pike Push-Ups',
+    scaleNote: 'Lighter Dumbbells',
     fallbackCandidates: ['bb_push_press', 'kb_push_press', 'parallel_bar_dips', 'ring_dips', 'pike_pushups', 'pushups'],
     cues: 'Vertical torso dip of 3 inches, rapid hip and knee extension, and punch the dumbbells straight overhead to locked-out arms.',
-    scaling: 'Use lighter dumbbells or scale down to Pike Push-Ups.'
+    scaling: 'Use lighter dumbbells or sub Pike Push-Ups without weights.'
   },
   {
     id: 'bb_push_press',
@@ -220,11 +215,10 @@ const MOVEMENTS_DB = [
     unit: 'reps',
     load: '45/30 kg',
     reps: { emom: 10, amrap: 10, forTime: 14 },
-    scaleDownId: 'pike_pushups',
-    scaleNote: 'Lighter Barbell or Pike Push-Ups',
+    scaleNote: 'Lighter Barbell',
     fallbackCandidates: ['db_push_press', 'bb_strict_press', 'pike_pushups', 'pushups'],
     cues: 'Dip torso straight down 3 inches on full foot, drive violently through heels to pop barbell off front rack, and lock overhead with straight legs.',
-    scaling: 'Reduce barbell load or scale down to Pike Push-Ups.'
+    scaling: 'Reduce barbell load or sub Pike Push-Ups without weights.'
   },
   {
     id: 'kb_push_jerk',
@@ -240,11 +234,10 @@ const MOVEMENTS_DB = [
     unit: 'reps',
     load: '24/16 kg',
     reps: { emom: 10, amrap: 12, forTime: 14 },
-    scaleDownId: 'kb_push_press',
-    scaleNote: 'Kettlebell Push Press',
+    scaleNote: 'Lighter Kettlebell',
     fallbackCandidates: ['db_push_jerk', 'kb_push_press', 'pike_pushups', 'pushups'],
     cues: 'Dip vertical from the front rack, drive hips forcefully, drop underneath into a partial quarter squat to lock arm overhead, and stand tall.',
-    scaling: 'Scale down to Kettlebell Push Press or use a lighter kettlebell.'
+    scaling: 'Use a lighter kettlebell or sub Pike Push-Ups without weights.'
   },
   {
     id: 'db_push_jerk',
@@ -259,11 +252,10 @@ const MOVEMENTS_DB = [
     unit: 'reps',
     load: '2x22.5/15 kg',
     reps: { emom: 10, amrap: 10, forTime: 12 },
-    scaleDownId: 'db_push_press',
-    scaleNote: 'Dumbbell Push Press',
+    scaleNote: 'Lighter Dumbbells',
     fallbackCandidates: ['bb_push_jerk', 'db_push_press', 'pike_pushups', 'pushups'],
     cues: 'Vertical dip and drive dumbbells off shoulders, snap rapidly under into a partial quarter squat with elbows locked overhead, then stand to full extension.',
-    scaling: 'Scale down to Dumbbell Push Press or use lighter dumbbells.'
+    scaling: 'Use lighter dumbbells or sub Pike Push-Ups without weights.'
   },
   {
     id: 'bb_push_jerk',
@@ -278,11 +270,10 @@ const MOVEMENTS_DB = [
     unit: 'reps',
     load: '50/35 kg',
     reps: { emom: 10, amrap: 10, forTime: 12 },
-    scaleDownId: 'bb_push_press',
-    scaleNote: 'Barbell Push Press',
+    scaleNote: 'Lighter Barbell',
     fallbackCandidates: ['db_push_jerk', 'bb_push_press', 'parallel_bar_dips', 'ring_dips', 'db_push_press', 'pike_pushups', 'pushups'],
     cues: 'Dip vertical, drive the bar off the front rack, drop under into a partial quarter squat with locked elbows, and stand to complete the rep.',
-    scaling: 'Scale down to Barbell Push Press or reduce barbell load.'
+    scaling: 'Reduce barbell load or sub Pike Push-Ups without weights.'
   },
   {
     id: 'hand_release_pushups',
@@ -296,11 +287,11 @@ const MOVEMENTS_DB = [
     poseType: 'hand_release_pushup',
     unit: 'reps',
     reps: { emom: 12, amrap: 14, forTime: 16 },
-    scaleDownId: 'pushups',
-    scaleNote: 'Standard Push-Ups or Knee Push-Ups',
+    scaleDownId: 'knee_pushups',
+    scaleNote: 'Knee Push-Ups',
     fallbackCandidates: ['pushups', 'knee_pushups', 'parallel_bar_dips'],
     cues: 'Lower rigid plank until chest touches the floor, lift both hands clearly off the deck while pinching shoulder blades, replant palms, and press straight back to plank lockout.',
-    scaling: 'Scale down to Standard Push-Ups or Knee Push-Ups.'
+    scaling: 'Sub Standard Push-Ups or scale down to Knee Push-Ups.'
   },
   {
     id: 'diamond_pushups',
@@ -314,11 +305,11 @@ const MOVEMENTS_DB = [
     poseType: 'diamond_pushup',
     unit: 'reps',
     reps: { emom: 10, amrap: 12, forTime: 15 },
-    scaleDownId: 'pushups',
-    scaleNote: 'Standard Push-Ups',
+    scaleDownId: 'knee_pushups',
+    scaleNote: 'Knee Push-Ups',
     fallbackCandidates: ['pushups', 'box_dips', 'parallel_bar_dips', 'knee_pushups'],
     cues: 'Set hands narrowly beneath the sternum with thumbs and index fingers forming a diamond. Keep elbows tracking tight to ribs as chest lowers to hands, then drive to full triceps lockout.',
-    scaling: 'Widen hands to Standard Push-Ups or Knee Push-Ups.'
+    scaling: 'Widen hands to Standard Push-Ups or scale down to Knee Push-Ups.'
   },
   {
     id: 'ring_pushups',
@@ -350,11 +341,10 @@ const MOVEMENTS_DB = [
     poseType: 'ring_support_hold',
     unit: 'sec',
     reps: { emom: 25, amrap: 30, forTime: 35 },
-    scaleDownId: 'pbar_support_hold',
-    scaleNote: 'Parallel Bar Support Hold or Straight-Arm Plank',
+    scaleNote: 'Shorter hold sets or Straight-Arm Plank',
     fallbackCandidates: ['pbar_support_hold', 'straight_arm_plank', 'ring_dips'],
     cues: 'Press down tall on gymnastic rings with straight locked elbows, depressed shoulders, hollow core, and palms turned gently forward.',
-    scaling: 'Hold for shorter sets or scale to Parallel Bar Support Hold / Straight-Arm Plank.'
+    scaling: 'Hold for shorter sets or sub Straight-Arm Plank.'
   },
   {
     id: 'pbar_pushups',
@@ -379,16 +369,15 @@ const MOVEMENTS_DB = [
     name: 'Parallel Bar Support Hold',
     equipment: 'parallel_bars',
     pattern: 'PUSH',
-    difficulty: 'easy',
+    difficulty: 'normal',
     intensity: 1.2,
     repSec: 1.0,
     muscleFocus: ['upper_push', 'core'],
     poseType: 'pbar_support_hold',
     unit: 'sec',
     reps: { emom: 30, amrap: 35, forTime: 40 },
-    scaleDownId: 'straight_arm_plank',
-    scaleNote: 'Straight-Arm Plank',
-    fallbackCandidates: ['straight_arm_plank', 'parallel_bar_dips', 'ring_support_hold'],
+    scaleNote: 'Shorter hold sets or Straight-Arm Plank',
+    fallbackCandidates: ['ring_support_hold', 'straight_arm_plank', 'parallel_bar_dips'],
     cues: 'Lock elbows straight on parallel bars, push shoulders down away from ears, squeeze legs together in a hollow body, and hold steady.',
     scaling: 'Hold shorter intervals or sub Straight-Arm Plank.'
   },
@@ -415,7 +404,7 @@ const MOVEMENTS_DB = [
     name: 'Box Pike Push-Ups',
     equipment: 'plyo_box',
     pattern: 'PUSH',
-    difficulty: 'hard',
+    difficulty: 'normal',
     intensity: 3.4,
     repSec: 2.2,
     muscleFocus: ['upper_push', 'shoulders'],
@@ -424,8 +413,26 @@ const MOVEMENTS_DB = [
     reps: { emom: 8, amrap: 10, forTime: 12 },
     scaleDownId: 'pike_pushups',
     scaleNote: 'Floor Pike Push-Ups',
-    fallbackCandidates: ['pike_pushups', 'hspu', 'box_decline_pushups', 'db_push_press'],
+    fallbackCandidates: ['couch_pike_pushups', 'pike_pushups', 'hspu', 'box_decline_pushups', 'db_push_press'],
     cues: 'Place toes on plyo box and walk hands back until hips stack directly above shoulders. Lower head cleanly in front of hands in a tripod and press vertically to lockout.',
+    scaling: 'Drop feet to floor for Floor Pike Push-Ups.'
+  },
+  {
+    id: 'couch_pike_pushups',
+    name: 'Couch Pike Push-Ups',
+    equipment: 'bodyweight',
+    pattern: 'PUSH',
+    difficulty: 'normal',
+    intensity: 3.3,
+    repSec: 2.2,
+    muscleFocus: ['upper_push', 'shoulders'],
+    poseType: 'couch_pike_pushup',
+    unit: 'reps',
+    reps: { emom: 8, amrap: 10, forTime: 12 },
+    scaleDownId: 'pike_pushups',
+    scaleNote: 'Floor Pike Push-Ups',
+    fallbackCandidates: ['box_pike_pushups', 'pike_pushups', 'hspu', 'pushups'],
+    cues: 'Place toes on a sturdy couch or chair edge and walk hands back until hips stack over shoulders. Lower head cleanly forward into a tripod and press vertically to lockout.',
     scaling: 'Drop feet to floor for Floor Pike Push-Ups.'
   },
   {
@@ -440,11 +447,27 @@ const MOVEMENTS_DB = [
     poseType: 'box_dip',
     unit: 'reps',
     reps: { emom: 14, amrap: 15, forTime: 18 },
-    scaleDownId: 'knee_pushups',
-    scaleNote: 'Bent-Knee Box Dips or Knee Push-Ups',
-    fallbackCandidates: ['parallel_bar_dips', 'diamond_pushups', 'pushups', 'knee_pushups'],
+    scaleNote: 'Bent-Knee Box Dips',
+    fallbackCandidates: ['couch_dips', 'parallel_bar_dips', 'pushups', 'diamond_pushups', 'knee_pushups'],
     cues: 'Place hands on the front edge of the plyo box beside hips, extend legs forward with heels on floor, lower hips vertically until elbows reach 90°, and press to lockout.',
     scaling: 'Bend knees closer to box for reduced leverage.'
+  },
+  {
+    id: 'couch_dips',
+    name: 'Couch Tricep Dips',
+    equipment: 'bodyweight',
+    pattern: 'PUSH',
+    difficulty: 'easy',
+    intensity: 1.4,
+    repSec: 1.6,
+    muscleFocus: ['upper_push', 'triceps'],
+    poseType: 'couch_dip',
+    unit: 'reps',
+    reps: { emom: 14, amrap: 15, forTime: 18 },
+    scaleNote: 'Bent-Knee Couch Dips',
+    fallbackCandidates: ['box_dips', 'pushups', 'diamond_pushups', 'knee_pushups'],
+    cues: 'Place hands on the front edge of a sturdy couch or chair beside hips, extend legs forward with heels on floor, lower hips vertically until elbows reach 90°, and press to lockout.',
+    scaling: 'Bend knees closer to the couch for reduced leverage.'
   },
 
   // ==================== PULL ====================
@@ -460,11 +483,11 @@ const MOVEMENTS_DB = [
     poseType: 'pullup_front',
     unit: 'reps',
     reps: { emom: 10, amrap: 10, forTime: 15 },
-    scaleDownId: 'ring_rows',
-    scaleNote: 'Ring / Bar Inverted Rows',
-    fallbackCandidates: ['db_renegade_row', 'ring_rows', 'bar_inverted_rows', 'table_rows', 'doorway_towel_rows', 'superman_pulls'],
+    scaleDownId: 'bar_inverted_rows',
+    scaleNote: 'Bar / Ring Inverted Rows',
+    fallbackCandidates: ['ring_pullups', 'bar_inverted_rows', 'ring_rows', 'table_rows', 'doorway_towel_rows', 'superman_pulls'],
     cues: 'Grip the overhead bar outside shoulder width. From a full dead hang, drive elbows down and outward to pull your chin clearly above the horizontal bar.',
-    scaling: 'Scale to Doorway Towel Rows, Table Rows, or Ring Inverted Rows if you have no bar.'
+    scaling: 'Scale down to Bar Inverted Rows, Ring Inverted Rows, or Doorway / Table Rows.'
   },
   {
     id: 'chin_ups',
@@ -478,11 +501,11 @@ const MOVEMENTS_DB = [
     poseType: 'chin_up_front',
     unit: 'reps',
     reps: { emom: 10, amrap: 10, forTime: 14 },
-    scaleDownId: 'ring_rows',
-    scaleNote: 'Ring / Bar Inverted Rows',
-    fallbackCandidates: ['pullups', 'db_renegade_row', 'ring_rows', 'bar_inverted_rows', 'table_rows', 'doorway_towel_rows', 'superman_pulls'],
+    scaleDownId: 'bar_inverted_rows',
+    scaleNote: 'Bar / Ring Inverted Rows',
+    fallbackCandidates: ['ring_pullups', 'pullups', 'bar_inverted_rows', 'ring_rows', 'table_rows', 'doorway_towel_rows', 'superman_pulls'],
     cues: 'Grip overhead bar shoulder-width with underhand supinated grip (palms facing athlete). Pull chin clearly above bar while pulling elbows down into ribs.',
-    scaling: 'Scale down to Banded Chin-Ups, Doorway Towel Rows, Table Rows, or Ring Inverted Rows if you have no bar.'
+    scaling: 'Scale down to Bar Inverted Rows, Ring Inverted Rows, or Doorway / Table Rows.'
   },
   {
     id: 'chest_to_bar',
@@ -497,14 +520,14 @@ const MOVEMENTS_DB = [
     unit: 'reps',
     reps: { emom: 8, amrap: 8, forTime: 10 },
     scaleDownId: 'pullups',
-    scaleNote: 'Standard Pull-Ups or Ring Rows',
+    scaleNote: 'Pull-Ups or Chin-Ups',
     fallbackCandidates: ['pullups', 'chin_ups', 'db_renegade_row', 'ring_rows', 'bar_inverted_rows', 'table_rows', 'doorway_towel_rows', 'superman_pulls'],
     cues: 'Pull explosively from full dead hang, driving elbows down and back until upper chest physically makes contact with the pull-up bar.',
-    scaling: 'Scale to Standard Strict/Kipping Pull-Ups, Banded Pull-Ups, or Ring Inverted Rows.'
+    scaling: 'Scale to Pull-Ups, Chin-Ups, or Ring Inverted Rows.'
   },
   {
     id: 'bar_hang',
-    name: 'Bar Hang (Dead / Active Hang)',
+    name: 'Passive Bar Hang',
     equipment: 'pullup_bar',
     pattern: 'PULL',
     difficulty: 'normal',
@@ -514,11 +537,27 @@ const MOVEMENTS_DB = [
     poseType: 'bar_hang',
     unit: 'sec',
     reps: { emom: 30, amrap: 30, forTime: 45 },
-    scaleDownId: 'table_rows',
-    scaleNote: 'Toe-Assisted Bar Hang or Table Rows',
-    fallbackCandidates: ['pullups', 'bar_inverted_rows', 'ring_rows', 'table_rows', 'doorway_towel_rows', 'superman_pulls'],
-    cues: 'Grip pull-up bar just outside shoulder width with full thumb wrap. Hang with straight elbows, lightly pack shoulder blades down and hold a tight hollow torso with legs straight.',
-    scaling: 'Break hold into shorter sets, keep feet lightly touching a box, or sub Table Rows.'
+    scaleNote: 'Shorter hold sets or toe-assisted hang',
+    fallbackCandidates: ['active_bar_hang', 'straight_arm_plank', 'kb_suitcase_carry'],
+    cues: 'Grip pull-up bar just outside shoulder width with full thumb wrap. Hang with straight elbows, let shoulders relax upward toward ears, and keep legs zipped in a light hollow.',
+    scaling: 'Break hold into shorter sets or keep toes lightly touching a box.'
+  },
+  {
+    id: 'active_bar_hang',
+    name: 'Active Bar Hang',
+    equipment: 'pullup_bar',
+    pattern: 'PULL',
+    difficulty: 'normal',
+    intensity: 1.5,
+    repSec: 1.0,
+    muscleFocus: ['upper_pull', 'core'],
+    poseType: 'active_bar_hang',
+    unit: 'sec',
+    reps: { emom: 25, amrap: 30, forTime: 40 },
+    scaleNote: 'Shorter hold sets or Passive Bar Hang',
+    fallbackCandidates: ['bar_hang', 'straight_arm_plank', 'kb_suitcase_carry'],
+    cues: 'Grip pull-up bar just outside shoulder width with straight elbows. Pull shoulder blades forcefully down and back away from ears, lift chest slightly, and hold a tight hollow body.',
+    scaling: 'Break hold into shorter sets or switch to Passive Bar Hang.'
   },
   {
     id: 'bar_muscle_up',
@@ -532,11 +571,11 @@ const MOVEMENTS_DB = [
     poseType: 'muscle_up_front',
     unit: 'reps',
     reps: { emom: 5, amrap: 5, forTime: 7 },
-    scaleDownId: 'pullups',
-    scaleNote: 'Pull-Ups',
-    fallbackCandidates: ['ring_muscle_up', 'pullups', 'chin_ups', 'db_renegade_row', 'ring_rows', 'bar_inverted_rows', 'table_rows', 'doorway_towel_rows', 'superman_pulls'],
+    scaleDownId: 'chest_to_bar',
+    scaleNote: 'Chest-to-Bar Pull-Ups',
+    fallbackCandidates: ['ring_muscle_up', 'chest_to_bar', 'pullups', 'chin_ups', 'db_renegade_row', 'ring_rows', 'bar_inverted_rows', 'table_rows', 'doorway_towel_rows', 'superman_pulls'],
     cues: 'Initiate a powerful kip swing, press straight arms down into the bar to elevate hips, transition shoulders forward over the bar, and press to locked-out top support.',
-    scaling: 'Scale down to Pull-Ups or Inverted Rows.'
+    scaling: 'Scale down to Chest-to-Bar Pull-Ups or Pull-Ups.'
   },
   {
     id: 'ring_muscle_up',
@@ -550,11 +589,11 @@ const MOVEMENTS_DB = [
     poseType: 'ring_muscle_up_front',
     unit: 'reps',
     reps: { emom: 4, amrap: 5, forTime: 7 },
-    scaleDownId: 'pullups',
-    scaleNote: 'Pull-Ups or Ring Rows',
-    fallbackCandidates: ['bar_muscle_up', 'pullups', 'chin_ups', 'db_renegade_row', 'ring_rows', 'bar_inverted_rows', 'table_rows', 'doorway_towel_rows', 'superman_pulls'],
+    scaleDownId: 'chest_to_bar',
+    scaleNote: 'Chest-to-Bar Pull-Ups',
+    fallbackCandidates: ['bar_muscle_up', 'chest_to_bar', 'pullups', 'chin_ups', 'db_renegade_row', 'ring_rows', 'bar_inverted_rows', 'table_rows', 'doorway_towel_rows', 'superman_pulls'],
     cues: 'Pull rings tight to sternum, transition rapidly through the bottom of a deep ring dip, and lock out into full support.',
-    scaling: 'Scale down to Pull-Ups or Ring Rows.'
+    scaling: 'Scale down to Chest-to-Bar Pull-Ups or Pull-Ups.'
   },
   {
     id: 'ring_rows',
@@ -568,11 +607,11 @@ const MOVEMENTS_DB = [
     poseType: 'inverted_row_side',
     unit: 'reps',
     reps: { emom: 14, amrap: 15, forTime: 18 },
-    scaleDownId: 'table_rows',
-    scaleNote: 'Table Rows or Doorway Towel Rows',
+    scaleDownId: 'doorway_towel_rows',
+    scaleNote: 'Doorway Towel Rows',
     fallbackCandidates: ['db_renegade_row', 'bar_inverted_rows', 'table_rows', 'doorway_towel_rows', 'superman_pulls'],
     cues: 'Plant heels on the floor and hang beneath the rings at a 40° angle with arms fully extended and a rigid straight plank. Pull chest to the rings driving elbows straight back behind the torso.',
-    scaling: 'Walk feet higher to lessen angle, or scale down to Bar Inverted Rows, Table Rows, or Doorway Towel Rows.'
+    scaling: 'Walk feet higher to lessen angle, sub Bar / Table Inverted Rows, or scale down to Doorway Towel Rows.'
   },
   {
     id: 'bar_inverted_rows',
@@ -586,11 +625,11 @@ const MOVEMENTS_DB = [
     poseType: 'bar_row_side',
     unit: 'reps',
     reps: { emom: 14, amrap: 15, forTime: 18 },
-    scaleDownId: 'table_rows',
-    scaleNote: 'Table Rows or Doorway Towel Rows',
+    scaleDownId: 'doorway_towel_rows',
+    scaleNote: 'Doorway Towel Rows',
     fallbackCandidates: ['db_renegade_row', 'ring_rows', 'table_rows', 'doorway_towel_rows', 'superman_pulls'],
     cues: 'Set up under a low parallel bar (or waist-height racked bar). Grip hands shoulder-width apart, hang underneath with arms fully extended and body in a rigid straight plank from ankles to shoulders, and row your chest directly to the bar.',
-    scaling: 'Sub Ring Inverted Rows, Table Rows, or Doorway Towel Rows.'
+    scaling: 'Sub Ring / Table Inverted Rows, or scale down to Doorway Towel Rows.'
   },
   {
     id: 'table_rows',
@@ -661,11 +700,10 @@ const MOVEMENTS_DB = [
     unit: 'reps',
     load: '24/16 kg',
     reps: { emom: 14, amrap: 14, forTime: 16 },
-    scaleDownId: 'table_rows',
-    scaleNote: 'Lighter Kettlebell or Table Inverted Rows',
+    scaleNote: 'Lighter Kettlebell',
     fallbackCandidates: ['db_renegade_row', 'bb_bent_row', 'bar_inverted_rows', 'ring_rows', 'table_rows', 'doorway_towel_rows'],
     cues: 'Hinge hips back to 45° with a flat neutral spine and brace abs. Row kettlebell from hang to lower ribs driving elbow back tight to torso, alternating arms between sets or reps.',
-    scaling: 'Use a lighter kettlebell or scale down to Table Inverted Rows / Doorway Towel Rows.'
+    scaling: 'Use a lighter kettlebell.'
   },
   {
     id: 'db_renegade_row',
@@ -681,11 +719,10 @@ const MOVEMENTS_DB = [
     unit: 'reps',
     load: '2x15/10 kg',
     reps: { emom: 14, amrap: 14, forTime: 16 },
-    scaleDownId: 'table_rows',
-    scaleNote: 'Lighter Dumbbells or Table Inverted Rows',
+    scaleNote: 'Lighter Dumbbells or Single-Arm Row',
     fallbackCandidates: ['bb_bent_row', 'kb_bent_row', 'ring_rows', 'bar_inverted_rows', 'table_rows', 'doorway_towel_rows'],
     cues: 'Hinge forward at hips to 45° with a flat neutral back and knees slightly unlocked. Row dumbbells up to hip pockets driving elbows toward the ceiling.',
-    scaling: 'Perform single-arm Dumbbell Rows or scale down to Table Inverted Rows / Doorway Towel Rows.'
+    scaling: 'Use lighter dumbbells or perform supported single-arm Dumbbell Rows.'
   },
   {
     id: 'bb_bent_row',
@@ -700,11 +737,10 @@ const MOVEMENTS_DB = [
     unit: 'reps',
     load: '50/35 kg',
     reps: { emom: 10, amrap: 12, forTime: 14 },
-    scaleDownId: 'table_rows',
-    scaleNote: 'Lighter Barbell or Inverted Rows',
+    scaleNote: 'Lighter Barbell',
     fallbackCandidates: ['db_renegade_row', 'kb_bent_row', 'bar_inverted_rows', 'ring_rows', 'table_rows'],
     cues: 'Hinge torso over the barbell to roughly 45° with flat neutral spine and soft knees. Pull bar smoothly into lower sternum / upper abs while squeezing shoulder blades together.',
-    scaling: 'Reduce barbell load or scale down to Bar / Table Inverted Rows.'
+    scaling: 'Reduce barbell load.'
   },
   {
     id: 'kb_hang_power_clean',
@@ -720,11 +756,10 @@ const MOVEMENTS_DB = [
     unit: 'reps',
     load: '24/16 kg',
     reps: { emom: 12, amrap: 12, forTime: 14 },
-    scaleDownId: 'kb_deadlifts',
-    scaleNote: 'Kettlebell Deadlifts or KB Bent-Over Rows',
-    fallbackCandidates: ['db_hang_power_clean', 'bb_hang_power_clean', 'kb_deadlifts', 'kb_bent_row'],
+    scaleNote: 'Lighter Kettlebell',
+    fallbackCandidates: ['db_hang_power_clean', 'bb_hang_power_clean', 'kb_deadlifts', 'kb_bent_row', 'table_rows'],
     cues: 'Swing kettlebell back from the hang between knees, violently snap hips forward, punch hand smoothly through the handle, and receive softly into the front rack in a quarter squat.',
-    scaling: 'Sub Kettlebell Deadlifts or Kettlebell Bent-Over Rows.'
+    scaling: 'Use a lighter kettlebell.'
   },
   {
     id: 'db_hang_power_clean',
@@ -739,11 +774,10 @@ const MOVEMENTS_DB = [
     unit: 'reps',
     load: '2x22.5/15 kg',
     reps: { emom: 10, amrap: 12, forTime: 14 },
-    scaleDownId: 'db_deadlifts',
-    scaleNote: 'Dumbbell Deadlifts',
-    fallbackCandidates: ['bb_hang_power_clean', 'kb_hang_power_clean', 'db_deadlifts', 'db_renegade_row'],
+    scaleNote: 'Lighter Dumbbells',
+    fallbackCandidates: ['bb_hang_power_clean', 'kb_hang_power_clean', 'db_deadlifts', 'db_renegade_row', 'table_rows'],
     cues: 'Hinge dumbbells to mid-thigh, drive hips aggressively into full extension, shrug and pull under to catch the rear bell heads onto the shoulders in a crisp quarter squat.',
-    scaling: 'Scale down to Dumbbell Deadlifts or use lighter dumbbells.'
+    scaling: 'Use lighter dumbbells.'
   },
   {
     id: 'bb_hang_power_clean',
@@ -758,11 +792,10 @@ const MOVEMENTS_DB = [
     unit: 'reps',
     load: '50/35 kg',
     reps: { emom: 10, amrap: 10, forTime: 12 },
-    scaleDownId: 'bb_deadlifts',
-    scaleNote: 'Barbell Deadlifts',
-    fallbackCandidates: ['db_hang_power_clean', 'kb_hang_power_clean', 'bb_deadlifts', 'bb_bent_row', 'db_renegade_row', 'ring_rows'],
+    scaleNote: 'Lighter Barbell',
+    fallbackCandidates: ['db_hang_power_clean', 'kb_hang_power_clean', 'bb_deadlifts', 'bb_bent_row', 'db_renegade_row', 'ring_rows', 'table_rows'],
     cues: 'Hinge barbell to just above kneecaps with vertical shins. Violently extend hips and knees, shrug shoulders high, pull under, and snap elbows forward into a crisp front rack catch in a quarter squat.',
-    scaling: 'Scale down to Barbell Deadlifts or reduce barbell load.'
+    scaling: 'Reduce barbell load.'
   },
   {
     id: 'ring_pullups',
@@ -778,7 +811,7 @@ const MOVEMENTS_DB = [
     reps: { emom: 10, amrap: 10, forTime: 14 },
     scaleDownId: 'ring_rows',
     scaleNote: 'Ring Inverted Rows',
-    fallbackCandidates: ['pullups', 'chin_ups', 'ring_rows', 'bar_inverted_rows'],
+    fallbackCandidates: ['pullups', 'chin_ups', 'ring_rows', 'bar_inverted_rows', 'table_rows', 'doorway_towel_rows', 'superman_pulls'],
     cues: 'Hang at full extension from gymnastic rings with palms facing away or rotating naturally. Pull chest and chin up cleanly between the rings while keeping legs tight in a hollow body.',
     scaling: 'Scale down to Ring Inverted Rows.'
   },
@@ -787,7 +820,7 @@ const MOVEMENTS_DB = [
     name: 'Dumbbell Plank Renegade Rows',
     equipment: 'dumbbell',
     pattern: 'PULL',
-    difficulty: 'hard',
+    difficulty: 'normal',
     unilateral: 'alternating',
     intensity: 3.2,
     repSec: 2.2,
@@ -816,11 +849,10 @@ const MOVEMENTS_DB = [
     unit: 'reps',
     load: '24/16 kg',
     reps: { emom: 12, amrap: 12, forTime: 16 },
-    scaleDownId: 'kb_hang_power_clean',
-    scaleNote: 'KB Hang Power Cleans or KB Swings',
-    fallbackCandidates: ['db_power_clean', 'bb_power_clean', 'kb_hang_power_clean', 'kb_swings'],
+    scaleNote: 'Lighter Kettlebell',
+    fallbackCandidates: ['db_power_clean', 'bb_power_clean', 'kb_hang_power_clean', 'kb_swings', 'table_rows'],
     cues: 'Hike kettlebell back between thighs, drive hips violently to standing, keep elbow close to ribs, and spear hand smoothly into the front rack without banging the forearm. Split arms evenly.',
-    scaling: 'Scale down to Kettlebell Deadlifts or Kettlebell Swings.'
+    scaling: 'Use a lighter kettlebell.'
   },
   {
     id: 'db_power_clean',
@@ -835,11 +867,10 @@ const MOVEMENTS_DB = [
     unit: 'reps',
     load: '2x22.5/15 kg',
     reps: { emom: 10, amrap: 12, forTime: 14 },
-    scaleDownId: 'db_hang_power_clean',
-    scaleNote: 'DB Hang Power Cleans or DB Deadlifts',
-    fallbackCandidates: ['bb_power_clean', 'kb_clean', 'db_hang_power_clean', 'db_deadlifts'],
+    scaleNote: 'Lighter Dumbbells',
+    fallbackCandidates: ['bb_power_clean', 'kb_clean', 'db_hang_power_clean', 'db_deadlifts', 'table_rows'],
     cues: 'Touch one head of each dumbbell to floor outside feet with flat back. Drive through legs, snap hips tall, shrug, and catch bells on shoulders in a crisp quarter squat.',
-    scaling: 'Scale down to Dumbbell Hang Power Cleans or Dumbbell Deadlifts.'
+    scaling: 'Use lighter dumbbells.'
   },
   {
     id: 'bb_power_clean',
@@ -854,11 +885,10 @@ const MOVEMENTS_DB = [
     unit: 'reps',
     load: '60/42.5 kg',
     reps: { emom: 8, amrap: 10, forTime: 12 },
-    scaleDownId: 'bb_hang_power_clean',
-    scaleNote: 'Barbell Hang Power Cleans',
-    fallbackCandidates: ['db_power_clean', 'kb_clean', 'bb_hang_power_clean', 'bb_deadlifts'],
+    scaleNote: 'Lighter Barbell',
+    fallbackCandidates: ['db_power_clean', 'kb_clean', 'bb_hang_power_clean', 'bb_deadlifts', 'table_rows'],
     cues: 'Set barbell over midfoot with flat back and shoulders slightly ahead of bar. Sweep smoothly past knees, hit full hip extension, shrug, and whip elbows fast to catch in a quarter-squat front rack.',
-    scaling: 'Scale down to Barbell Hang Power Cleans or Barbell Deadlifts.'
+    scaling: 'Reduce barbell load.'
   },
   {
     id: 'kb_sdhp',
@@ -873,11 +903,10 @@ const MOVEMENTS_DB = [
     unit: 'reps',
     load: '24/16 kg',
     reps: { emom: 14, amrap: 15, forTime: 18 },
-    scaleDownId: 'kb_deadlifts',
-    scaleNote: 'Kettlebell Deadlifts',
-    fallbackCandidates: ['bb_sdhp', 'kb_bent_row', 'kb_deadlifts', 'kb_swings'],
+    scaleNote: 'Lighter Kettlebell',
+    fallbackCandidates: ['bb_sdhp', 'kb_bent_row', 'kb_deadlifts', 'kb_swings', 'table_rows'],
     cues: 'Take a wide sumo stance over the kettlebell. Keep spine flat, drive knees out and hips through violently, then pull elbows high and outside to float the handle to collarbone height.',
-    scaling: 'Use a lighter kettlebell or sub Kettlebell Deadlifts.'
+    scaling: 'Use a lighter kettlebell.'
   },
   {
     id: 'bb_sdhp',
@@ -892,11 +921,10 @@ const MOVEMENTS_DB = [
     unit: 'reps',
     load: '35/25 kg',
     reps: { emom: 12, amrap: 15, forTime: 18 },
-    scaleDownId: 'bb_deadlifts',
-    scaleNote: 'Barbell Deadlifts or KB SDHP',
-    fallbackCandidates: ['kb_sdhp', 'bb_bent_row', 'bb_hang_power_clean', 'bb_deadlifts'],
+    scaleNote: 'Lighter Barbell',
+    fallbackCandidates: ['kb_sdhp', 'bb_bent_row', 'bb_hang_power_clean', 'bb_deadlifts', 'table_rows'],
     cues: 'Wide sumo stance with narrow inside-knee grip. Drive hips aggressively to full extension before pulling elbows high and outside until barbell reaches collarbone level.',
-    scaling: 'Reduce barbell weight or sub Kettlebell SDHP / Barbell Deadlifts.'
+    scaling: 'Reduce barbell weight.'
   },
 
   // ==================== SQUAT ====================
@@ -968,11 +996,11 @@ const MOVEMENTS_DB = [
     poseType: 'bulgarian_split_squat',
     unit: 'reps',
     reps: { emom: 12, amrap: 12, forTime: 16 },
-    scaleDownId: 'step_back_lunges',
-    scaleNote: 'Step-Back Lunges or Air Squats',
-    fallbackCandidates: ['step_back_lunges', 'walking_lunges', 'air_squats', 'kb_bulgarian_split_squats', 'db_bulgarian_split_squats'],
+    scaleDownId: 'cossack_squats',
+    scaleNote: 'Alternating Cossack Squats or Step-Back Lunges',
+    fallbackCandidates: ['cossack_squats', 'step_back_lunges', 'walking_lunges', 'air_squats', 'kb_bulgarian_split_squats', 'db_bulgarian_split_squats'],
     cues: 'Rest laces of rear foot behind you on a sturdy bench or low box. Keep torso tall and lower rear knee softly toward floor with front shin upright, then drive through front midfoot to full lockout. Split reps evenly per leg.',
-    scaling: 'Remove rear-foot elevation and perform Step-Back Lunges.'
+    scaling: 'Scale down to Alternating Cossack Squats or Step-Back Lunges.'
   },
   {
     id: 'kb_bulgarian_split_squats',
@@ -988,11 +1016,10 @@ const MOVEMENTS_DB = [
     load: '24/16 kg',
     unit: 'reps',
     reps: { emom: 10, amrap: 10, forTime: 14 },
-    scaleDownId: 'bulgarian_split_squats',
-    scaleNote: 'Bodyweight Bulgarian Split Squats or Goblet Squats',
+    scaleNote: 'Lighter Kettlebell',
     fallbackCandidates: ['db_bulgarian_split_squats', 'bb_bulgarian_split_squats', 'bulgarian_split_squats', 'goblet_squats'],
     cues: 'Hold kettlebell in a tight goblet position at chest with rear foot elevated on a box or bench. Keep chest tall as you lower the back knee toward the floor, then drive through the front heel to stand. Split reps evenly per leg.',
-    scaling: 'Drop the kettlebell and perform Bodyweight Bulgarian Split Squats, or use a lighter bell.'
+    scaling: 'Use a lighter kettlebell.'
   },
   {
     id: 'db_bulgarian_split_squats',
@@ -1008,11 +1035,10 @@ const MOVEMENTS_DB = [
     load: '2x15/10 kg',
     unit: 'reps',
     reps: { emom: 10, amrap: 10, forTime: 14 },
-    scaleDownId: 'bulgarian_split_squats',
-    scaleNote: 'Single-DB or Bodyweight Bulgarian Split Squats',
+    scaleNote: 'Lighter Dumbbells',
     fallbackCandidates: ['kb_bulgarian_split_squats', 'bb_bulgarian_split_squats', 'bulgarian_split_squats', 'db_front_squats'],
     cues: 'Hold dumbbells at your sides with lats engaged and rear foot resting on a bench or low box. Descend under control until rear knee nearly kisses the floor, then drive vertically through the front foot. Split reps evenly per leg.',
-    scaling: 'Use a single dumbbell in goblet position or perform Bodyweight Bulgarian Split Squats.'
+    scaling: 'Use lighter dumbbells or a single dumbbell.'
   },
   {
     id: 'bb_bulgarian_split_squats',
@@ -1028,11 +1054,10 @@ const MOVEMENTS_DB = [
     load: '50/35 kg',
     unit: 'reps',
     reps: { emom: 8, amrap: 10, forTime: 12 },
-    scaleDownId: 'bulgarian_split_squats',
-    scaleNote: 'Bodyweight Bulgarian Split Squats',
+    scaleNote: 'Lighter Barbell',
     fallbackCandidates: ['db_bulgarian_split_squats', 'kb_bulgarian_split_squats', 'bulgarian_split_squats', 'bb_front_squats'],
     cues: 'Rack barbell securely across shoulders or front rack before placing rear foot on the bench behind you. Brace trunk tightly, descend with control keeping front knee tracking over toes, and drive straight up. Split reps evenly per leg.',
-    scaling: 'Use an empty barbell or scale down to Bodyweight Bulgarian Split Squats.'
+    scaling: 'Reduce barbell load.'
   },
   {
     id: 'jumping_lunges',
@@ -1085,11 +1110,10 @@ const MOVEMENTS_DB = [
     unit: 'reps',
     load: '24/16 kg',
     reps: { emom: 14, amrap: 14, forTime: 18 },
-    scaleDownId: 'air_squats',
-    scaleNote: 'Bodyweight Air Squats',
-    fallbackCandidates: ['db_front_squats', 'walking_lunges', 'air_squats'],
+    scaleNote: 'Lighter Kettlebell',
+    fallbackCandidates: ['db_front_squats', 'air_squats', 'walking_lunges'],
     cues: 'Hold kettlebell horns tight against sternum with elbows pinned down. Squat deep keeping torso proud until hip crease drops below knees.',
-    scaling: 'Use a lighter kettlebell or scale down to Bodyweight Air Squats.'
+    scaling: 'Use a lighter kettlebell.'
   },
   {
     id: 'db_front_squats',
@@ -1104,11 +1128,10 @@ const MOVEMENTS_DB = [
     unit: 'reps',
     load: '2x15/10 kg',
     reps: { emom: 12, amrap: 12, forTime: 15 },
-    scaleDownId: 'air_squats',
-    scaleNote: 'Bodyweight Air Squats',
-    fallbackCandidates: ['goblet_squats', 'walking_lunges', 'air_squats'],
+    scaleNote: 'Lighter Dumbbells',
+    fallbackCandidates: ['goblet_squats', 'air_squats', 'walking_lunges'],
     cues: 'Rest back bell of each dumbbell on front shoulder shelf with elbows driven high. Squat below parallel and drive midfoot to lockout.',
-    scaling: 'Hold a single dumbbell at chest or scale down to Bodyweight Air Squats.'
+    scaling: 'Use lighter dumbbells or hold a single dumbbell at chest.'
   },
   {
     id: 'bb_front_squats',
@@ -1123,11 +1146,10 @@ const MOVEMENTS_DB = [
     unit: 'reps',
     load: '60/42.5 kg',
     reps: { emom: 10, amrap: 10, forTime: 12 },
-    scaleDownId: 'air_squats',
-    scaleNote: 'Lighter Barbell or Air Squats',
-    fallbackCandidates: ['db_front_squats', 'goblet_squats', 'walking_lunges', 'air_squats'],
+    scaleNote: 'Lighter Barbell',
+    fallbackCandidates: ['db_front_squats', 'goblet_squats', 'air_squats', 'walking_lunges'],
     cues: 'Bar secured across front deltoid shelf, fingertips gripping bar, elbows punched high and parallel to floor. Descend below parallel and stand with chest proud.',
-    scaling: 'Reduce barbell load or scale down to Bodyweight Air Squats.'
+    scaling: 'Reduce barbell load.'
   },
   {
     id: 'bb_back_squat',
@@ -1142,11 +1164,10 @@ const MOVEMENTS_DB = [
     unit: 'reps',
     load: '70/47.5 kg',
     reps: { emom: 10, amrap: 10, forTime: 12 },
-    scaleDownId: 'air_squats',
-    scaleNote: 'Goblet Squats or Air Squats',
+    scaleNote: 'Lighter Barbell',
     fallbackCandidates: ['bb_front_squats', 'db_front_squats', 'goblet_squats', 'air_squats'],
     cues: 'Rest barbell across upper traps, pull bar down firmly into back, brace core, send hips back and down below parallel with knees tracking toes, and drive through midfoot to lockout.',
-    scaling: 'Reduce barbell load or scale down to Goblet Squats / Air Squats.'
+    scaling: 'Reduce barbell load.'
   },
   {
     id: 'bb_overhead_squat',
@@ -1161,11 +1182,10 @@ const MOVEMENTS_DB = [
     unit: 'reps',
     load: '43/30 kg',
     reps: { emom: 8, amrap: 10, forTime: 12 },
-    scaleDownId: 'bb_front_squats',
-    scaleNote: 'Barbell Front Squats or Goblet Squats',
-    fallbackCandidates: ['bb_front_squats', 'db_overhead_squat', 'kb_overhead_squat', 'goblet_squats'],
+    scaleNote: 'Lighter Barbell',
+    fallbackCandidates: ['db_overhead_squat', 'kb_overhead_squat', 'bb_front_squats', 'goblet_squats', 'air_squats'],
     cues: 'Wide snatch grip locked straight overhead with active armpits pressed skyward. Keep torso tall and bar stacked directly over midfoot as you descend below parallel and stand.',
-    scaling: 'Scale down to Barbell Front Squats or Single-Arm Overhead Squats.'
+    scaling: 'Use a lighter barbell or PVC pipe for mobility.'
   },
   {
     id: 'db_overhead_squat',
@@ -1181,11 +1201,10 @@ const MOVEMENTS_DB = [
     unit: 'reps',
     load: '22.5/15 kg',
     reps: { emom: 10, amrap: 10, forTime: 12 },
-    scaleDownId: 'db_front_squats',
-    scaleNote: 'Dumbbell Front Squats',
-    fallbackCandidates: ['kb_overhead_squat', 'bb_overhead_squat', 'db_front_squats', 'goblet_squats'],
+    scaleNote: 'Lighter Dumbbell',
+    fallbackCandidates: ['kb_overhead_squat', 'bb_overhead_squat', 'db_front_squats', 'goblet_squats', 'air_squats'],
     cues: 'Press dumbbell to full vertical overhead lockout with bicep by ear. Keep chest proud and dumbbell stacked over midfoot throughout a full below-parallel squat. Split reps evenly per arm.',
-    scaling: 'Scale down to Dumbbell Front Squats or lighter dumbbell.'
+    scaling: 'Use a lighter dumbbell.'
   },
   {
     id: 'kb_overhead_squat',
@@ -1201,11 +1220,10 @@ const MOVEMENTS_DB = [
     unit: 'reps',
     load: '20/12 kg',
     reps: { emom: 10, amrap: 10, forTime: 12 },
-    scaleDownId: 'goblet_squats',
-    scaleNote: 'Kettlebell Goblet Squats',
+    scaleNote: 'Lighter Kettlebell',
     fallbackCandidates: ['db_overhead_squat', 'bb_overhead_squat', 'goblet_squats', 'air_squats'],
     cues: 'Lock kettlebell vertically overhead with wrist neutral and shoulder packed. Squat below parallel keeping weight centered over midfoot and torso tall. Split reps evenly per arm.',
-    scaling: 'Scale down to Kettlebell Goblet Squats or lighter kettlebell.'
+    scaling: 'Use a lighter kettlebell.'
   },
   {
     id: 'db_walking_lunges',
@@ -1221,11 +1239,10 @@ const MOVEMENTS_DB = [
     unit: 'reps',
     load: '2x15/10 kg',
     reps: { emom: 14, amrap: 16, forTime: 20 },
-    scaleDownId: 'walking_lunges',
-    scaleNote: 'Bodyweight Walking Lunges',
+    scaleNote: 'Lighter Dumbbells',
     fallbackCandidates: ['kb_rack_lunges', 'bb_front_rack_lunges', 'walking_lunges', 'db_front_squats'],
     cues: 'Hold dumbbells at sides with shoulders packed. Step forward cleanly, kiss trailing knee softly to floor with 90/90 knee angles, and drive through lead heel to stand and alternate.',
-    scaling: 'Use a single dumbbell or scale down to Bodyweight Lunges.'
+    scaling: 'Use lighter dumbbells or hold a single dumbbell.'
   },
   {
     id: 'kb_rack_lunges',
@@ -1241,18 +1258,17 @@ const MOVEMENTS_DB = [
     unit: 'reps',
     load: '24/16 kg',
     reps: { emom: 12, amrap: 14, forTime: 18 },
-    scaleDownId: 'walking_lunges',
-    scaleNote: 'Bodyweight Lunges or Goblet Squats',
+    scaleNote: 'Lighter Kettlebell',
     fallbackCandidates: ['db_walking_lunges', 'bb_front_rack_lunges', 'walking_lunges', 'goblet_squats'],
     cues: 'Hold kettlebell in a tight front rack against chest with upright torso. Step forward smoothly to 90/90 knee flexion, drive through front foot, and switch rack side halfway.',
-    scaling: 'Use lighter kettlebell or sub Bodyweight Lunges.'
+    scaling: 'Use a lighter kettlebell.'
   },
   {
     id: 'bb_front_rack_lunges',
     name: 'Barbell Front-Rack Lunges',
     equipment: 'barbell',
     pattern: 'SQUAT',
-    difficulty: 'hard',
+    difficulty: 'normal',
     unilateral: 'alternating',
     intensity: 3.1,
     repSec: 2.1,
@@ -1261,11 +1277,10 @@ const MOVEMENTS_DB = [
     unit: 'reps',
     load: '43/30 kg',
     reps: { emom: 10, amrap: 12, forTime: 16 },
-    scaleDownId: 'walking_lunges',
-    scaleNote: 'Bodyweight Lunges or Barbell Front Squats',
+    scaleNote: 'Lighter Barbell',
     fallbackCandidates: ['db_walking_lunges', 'kb_rack_lunges', 'bb_front_squats', 'walking_lunges'],
     cues: 'Keep elbows high in front rack so torso stays vertical. Step forward with control, gently touch rear knee to floor, and drive powerfully through lead heel back to standing.',
-    scaling: 'Reduce barbell load or scale down to Bodyweight Lunges.'
+    scaling: 'Reduce barbell load.'
   },
   {
     id: 'cossack_squats',
@@ -1298,8 +1313,7 @@ const MOVEMENTS_DB = [
     poseType: 'wall_sit',
     unit: 'sec',
     reps: { emom: 35, amrap: 40, forTime: 45 },
-    scaleDownId: 'air_squats',
-    scaleNote: 'Higher Squat Angle or Air Squats',
+    scaleNote: 'Higher Squat Angle or Shorter Holds',
     fallbackCandidates: ['air_squats', 'step_back_lunges'],
     cues: 'Press lower back and shoulder blades flat against a wall, slide hips down until thighs are parallel to floor with shins vertical (90° knees), and keep hands off thighs.',
     scaling: 'Sit slightly above parallel or break hold into 20s sets.'
@@ -1319,11 +1333,10 @@ const MOVEMENTS_DB = [
     unit: 'reps',
     load: '24/16 kg',
     reps: { emom: 15, amrap: 15, forTime: 18 },
-    scaleDownId: 'air_squats',
-    scaleNote: 'Air Squats',
-    fallbackCandidates: ['db_deadlifts', 'bb_deadlifts', 'kb_rdl', 'kb_swings', 'air_squats'],
+    scaleNote: 'Lighter Kettlebell',
+    fallbackCandidates: ['db_deadlifts', 'bb_deadlifts', 'kb_rdl', 'kb_swings', 'glute_bridges'],
     cues: 'Stand over kettlebell with shins close. Hinge hips back with a flat back, grip handle, and drive floor away to full hip and knee lockout.',
-    scaling: 'Sub Air Squats or reduce load.'
+    scaling: 'Use a lighter kettlebell.'
   },
   {
     id: 'db_deadlifts',
@@ -1338,11 +1351,10 @@ const MOVEMENTS_DB = [
     unit: 'reps',
     load: '2x22.5/15 kg',
     reps: { emom: 12, amrap: 12, forTime: 15 },
-    scaleDownId: 'air_squats',
-    scaleNote: 'Lighter Dumbbells or Air Squats',
-    fallbackCandidates: ['kb_deadlifts', 'bb_deadlifts', 'db_rdl', 'air_squats'],
+    scaleNote: 'Lighter Dumbbells',
+    fallbackCandidates: ['kb_deadlifts', 'bb_deadlifts', 'db_rdl', 'glute_bridges'],
     cues: 'Stand with dumbbells just outside ankles, flat neutral spine, and chest proud. Hinge hips back to touch front heads lightly beside heels, then drive hips through to standing lockout.',
-    scaling: 'Reduce dumbbell weight or scale down to Bodyweight Air Squats.'
+    scaling: 'Reduce dumbbell weight.'
   },
   {
     id: 'bb_deadlifts',
@@ -1357,11 +1369,10 @@ const MOVEMENTS_DB = [
     unit: 'reps',
     load: '100/70 kg',
     reps: { emom: 10, amrap: 10, forTime: 12 },
-    scaleDownId: 'air_squats',
-    scaleNote: 'Lighter Barbell or Air Squats',
-    fallbackCandidates: ['db_deadlifts', 'kb_deadlifts', 'bb_rdl', 'kb_swings', 'air_squats'],
+    scaleNote: 'Lighter Barbell',
+    fallbackCandidates: ['db_deadlifts', 'kb_deadlifts', 'bb_rdl', 'kb_swings', 'glute_bridges'],
     cues: 'Feet hip-width apart under the barbell with shins touching bar. Lats locked down, chest proud, neutral cervical spine; pull bar vertically along shins to full standing hip lockout.',
-    scaling: 'Reduce barbell load or scale down to Bodyweight Air Squats.'
+    scaling: 'Reduce barbell load.'
   },
   {
     id: 'kb_rdl',
@@ -1376,11 +1387,10 @@ const MOVEMENTS_DB = [
     unit: 'reps',
     load: '24/16 kg',
     reps: { emom: 12, amrap: 14, forTime: 16 },
-    scaleDownId: 'kb_deadlifts',
-    scaleNote: 'Kettlebell Deadlifts',
+    scaleNote: 'Lighter Kettlebell',
     fallbackCandidates: ['db_rdl', 'bb_rdl', 'kb_deadlifts', 'rfe_rdl'],
     cues: 'Stand tall holding kettlebell close to hips with knees softly unlocked. Push hips straight backward keeping shins vertical and lats engaged until bell passes mid-shin with flat back, then snap glutes forward to lock out.',
-    scaling: 'Scale down to Kettlebell Deadlifts or reduce kettlebell load.'
+    scaling: 'Use a lighter kettlebell.'
   },
   {
     id: 'db_rdl',
@@ -1395,11 +1405,10 @@ const MOVEMENTS_DB = [
     unit: 'reps',
     load: '2x22.5/15 kg',
     reps: { emom: 12, amrap: 12, forTime: 15 },
-    scaleDownId: 'db_deadlifts',
-    scaleNote: 'Dumbbell Deadlifts',
+    scaleNote: 'Lighter Dumbbells',
     fallbackCandidates: ['kb_rdl', 'bb_rdl', 'db_deadlifts', 'rfe_rdl'],
     cues: 'Hold dumbbells alongside thighs with soft knees and flat spine. Push hips horizontally backward sliding bells tightly along shins until hamstrings reach peak stretch just below knees, then drive hips through.',
-    scaling: 'Scale down to Dumbbell Deadlifts or reduce dumbbell load.'
+    scaling: 'Reduce dumbbell load.'
   },
   {
     id: 'bb_rdl',
@@ -1414,11 +1423,10 @@ const MOVEMENTS_DB = [
     unit: 'reps',
     load: '70/47.5 kg',
     reps: { emom: 10, amrap: 10, forTime: 12 },
-    scaleDownId: 'bb_deadlifts',
-    scaleNote: 'Barbell Deadlifts',
+    scaleNote: 'Lighter Barbell',
     fallbackCandidates: ['db_rdl', 'kb_rdl', 'bb_deadlifts', 'rfe_rdl'],
     cues: 'From a tall hang with bar glued to thighs and knees softly unlocked, sweep hips straight back keeping vertical shins and lats tightly engaged until bar glides below kneecaps, then squeeze glutes to stand tall.',
-    scaling: 'Scale down to Barbell Deadlifts or reduce barbell load.'
+    scaling: 'Reduce barbell load.'
   },
   {
     id: 'rfe_rdl',
@@ -1433,11 +1441,11 @@ const MOVEMENTS_DB = [
     poseType: 'rfe_rdl',
     unit: 'reps',
     reps: { emom: 12, amrap: 12, forTime: 16 },
-    scaleDownId: 'situps',
-    scaleNote: 'Kickstand RDL or Sit-Ups',
-    fallbackCandidates: ['kb_rfe_rdl', 'db_rfe_rdl', 'bb_rfe_rdl', 'kb_rdl', 'db_rdl', 'situps'],
+    scaleDownId: 'glute_bridges',
+    scaleNote: 'Kickstand RDL or Glute Bridges',
+    fallbackCandidates: ['kb_rfe_rdl', 'db_rfe_rdl', 'bb_rfe_rdl', 'kb_rdl', 'db_rdl', 'glute_bridges'],
     cues: 'Rest rear toes behind you on a low bench or box with working knee softly unlocked (15°). Hinge hips straight backward keeping spine long and flat until torso nears horizontal and hamstring stretches, then squeeze glute to stand tall. Split reps evenly per leg.',
-    scaling: 'Keep rear toes lightly resting on floor as a kickstand or shorten range of motion.'
+    scaling: 'Keep rear toes lightly resting on floor as a kickstand or scale down to Glute Bridges.'
   },
   {
     id: 'kb_rfe_rdl',
@@ -1453,11 +1461,10 @@ const MOVEMENTS_DB = [
     unit: 'reps',
     load: '24/16 kg',
     reps: { emom: 12, amrap: 12, forTime: 16 },
-    scaleDownId: 'rfe_rdl',
-    scaleNote: 'Bodyweight Rear-Foot Elevated RDL or KB RDL',
+    scaleNote: 'Lighter Kettlebell',
     fallbackCandidates: ['db_rfe_rdl', 'bb_rfe_rdl', 'kb_rdl', 'rfe_rdl'],
     cues: 'Elevate rear toes behind you on a bench or box while holding kettlebell at arm\'s length with lats packed. Keep front shin nearly vertical, push hips straight back until bell passes mid-shin with flat back, then squeeze front glute to lock out. Split reps evenly per leg.',
-    scaling: 'Scale down to Bodyweight Rear-Foot Elevated RDL or Kettlebell RDL.'
+    scaling: 'Use a lighter kettlebell.'
   },
   {
     id: 'db_rfe_rdl',
@@ -1473,11 +1480,10 @@ const MOVEMENTS_DB = [
     unit: 'reps',
     load: '2x22.5/15 kg',
     reps: { emom: 10, amrap: 12, forTime: 14 },
-    scaleDownId: 'rfe_rdl',
-    scaleNote: 'Bodyweight Rear-Foot Elevated RDL or DB RDL',
+    scaleNote: 'Lighter Dumbbells',
     fallbackCandidates: ['kb_rfe_rdl', 'bb_rfe_rdl', 'db_rdl', 'rfe_rdl'],
     cues: 'Set rear toes on a box holding dumbbells alongside front thigh. Softly unlock working knee, hinge hips horizontally backward keeping dumbbells close to front shin until hamstrings reach full stretch, then drive hip forward to stand tall. Split reps evenly per leg.',
-    scaling: 'Scale down to Bodyweight Rear-Foot Elevated RDL or Dumbbell RDL.'
+    scaling: 'Use lighter dumbbells or a single dumbbell.'
   },
   {
     id: 'bb_rfe_rdl',
@@ -1493,11 +1499,10 @@ const MOVEMENTS_DB = [
     unit: 'reps',
     load: '60/40 kg',
     reps: { emom: 10, amrap: 10, forTime: 12 },
-    scaleDownId: 'bb_rdl',
-    scaleNote: 'Barbell RDL or Bodyweight Rear-Foot Elevated RDL',
+    scaleNote: 'Lighter Barbell',
     fallbackCandidates: ['db_rfe_rdl', 'kb_rfe_rdl', 'bb_rdl', 'rfe_rdl'],
     cues: 'With rear toes resting on a box behind you and barbell braced close to hips with lats locked, sweep hips straight back keeping front shin vertical until bar lowers below front knee, then drive front hip through cleanly. Split reps evenly per leg.',
-    scaling: 'Scale down to Barbell Romanian Deadlifts or Bodyweight Rear-Foot Elevated RDL.'
+    scaling: 'Reduce barbell load.'
   },
   {
     id: 'kb_swings',
@@ -1512,11 +1517,10 @@ const MOVEMENTS_DB = [
     unit: 'reps',
     load: '24/16 kg',
     reps: { emom: 16, amrap: 16, forTime: 20 },
-    scaleDownId: 'kb_deadlifts',
-    scaleNote: 'Kettlebell Deadlifts',
-    fallbackCandidates: ['bb_deadlifts', 'kb_deadlifts', 'air_squats'],
+    scaleNote: 'Lighter Kettlebell',
+    fallbackCandidates: ['bb_deadlifts', 'kb_deadlifts', 'glute_bridges', 'air_squats'],
     cues: 'Hinge hips back with soft knees, hike kettlebell high between upper thighs, and violently snap hips forward to float kettlebell to eye level.',
-    scaling: 'Reduce kettlebell weight or sub Kettlebell Deadlifts.'
+    scaling: 'Reduce kettlebell weight.'
   },
   {
     id: 'situps',
@@ -1653,11 +1657,11 @@ const MOVEMENTS_DB = [
     poseType: 'lsit',
     unit: 'sec',
     reps: { emom: 20, amrap: 20, forTime: 30 },
-    scaleDownId: 'hanging_knee_raises',
-    scaleNote: 'Hanging Knee Raises or V-Ups',
-    fallbackCandidates: ['toes_to_bar', 'hanging_knee_raises', 'v_ups', 'tuck_ups', 'situps', 'plank'],
+    scaleDownId: 'pbar_leg_raises',
+    scaleNote: 'Parallel Bar Leg Raises or V-Ups',
+    fallbackCandidates: ['pbar_leg_raises', 'toes_to_bar', 'hanging_knee_raises', 'v_ups', 'tuck_ups', 'situps', 'plank'],
     cues: 'Lock elbows straight down beside hips, depress shoulders, lift hips off deck, and extend legs straight out horizontally parallel to deck with pointed toes.',
-    scaling: 'Tuck L-Sit (knees bent), Single-Leg L-Sit, or V-Ups.'
+    scaling: 'Tuck L-Sit (knees bent), Single-Leg L-Sit, or Parallel Bar Leg Raises.'
   },
   {
     id: 'hanging_knee_raises',
@@ -1707,11 +1711,11 @@ const MOVEMENTS_DB = [
     poseType: 'toes_to_bar_side',
     unit: 'reps',
     reps: { emom: 10, amrap: 10, forTime: 12 },
-    scaleDownId: 'hanging_knee_raises',
-    scaleNote: 'Hanging Knee Raises',
-    fallbackCandidates: ['hanging_knee_raises', 'pbar_leg_raises', 'v_ups', 'situps'],
+    scaleDownId: 'knees_to_elbows',
+    scaleNote: 'Knees-to-Elbows or Hanging Knee Raises',
+    fallbackCandidates: ['knees_to_elbows', 'hanging_knee_raises', 'pbar_leg_raises', 'v_ups', 'situps'],
     cues: 'Kip into a tight hollow body, pull down on the bar with straight arms, and snap feet upward until both sets of toes simultaneously contact the bar.',
-    scaling: 'Scale down to Hanging Knee Raises or Floor V-Ups.'
+    scaling: 'Scale down to Knees-to-Elbows, Hanging Knee Raises, or Floor V-Ups.'
   },
   {
     id: 'bb_good_morning',
@@ -1726,11 +1730,10 @@ const MOVEMENTS_DB = [
     unit: 'reps',
     load: '40/27.5 kg',
     reps: { emom: 10, amrap: 12, forTime: 14 },
-    scaleDownId: 'bb_rdl',
-    scaleNote: 'Barbell RDL or Back Extensions',
+    scaleNote: 'Lighter Barbell',
     fallbackCandidates: ['bb_rdl', 'db_rdl', 'kb_rdl', 'back_extensions'],
     cues: 'Rest barbell across upper back, unlock knees slightly (15°), brace abs, and hinge hips straight back keeping spine flat until torso nears horizontal before squeezing glutes upright.',
-    scaling: 'Use an empty barbell or scale down to Barbell Romanian Deadlifts.'
+    scaling: 'Use a lighter barbell or PVC pipe.'
   },
   {
     id: 'glute_bridges',
@@ -1738,6 +1741,7 @@ const MOVEMENTS_DB = [
     equipment: 'bodyweight',
     pattern: 'HINGE_CORE',
     difficulty: 'easy',
+    standalone: true,
     intensity: 1.0,
     repSec: 1.5,
     muscleFocus: ['posterior_chain'],
@@ -1761,11 +1765,10 @@ const MOVEMENTS_DB = [
     unit: 'reps',
     load: '60/42.5 kg',
     reps: { emom: 12, amrap: 12, forTime: 15 },
-    scaleDownId: 'glute_bridges',
-    scaleNote: 'Bodyweight Glute Bridges',
+    scaleNote: 'Lighter Barbell',
     fallbackCandidates: ['glute_bridges', 'bb_deadlifts', 'kb_swings', 'back_extensions'],
     cues: 'Position barbell across hip crease with knees bent and heels planted. Tuck chin, brace ribs down, and thrust hips upward to full glute lockout without hyperextending lower back.',
-    scaling: 'Reduce barbell load or scale down to Bodyweight Glute Bridges.'
+    scaling: 'Reduce barbell load.'
   },
   {
     id: 'back_extensions',
@@ -1797,11 +1800,10 @@ const MOVEMENTS_DB = [
     poseType: 'hollow_hold',
     unit: 'sec',
     reps: { emom: 30, amrap: 35, forTime: 40 },
-    scaleDownId: 'plank',
-    scaleNote: 'Tuck Hollow Hold or Forearm Plank',
+    scaleNote: 'Tuck Hollow Hold',
     fallbackCandidates: ['hollow_rocks', 'plank', 'v_ups', 'tuck_ups'],
     cues: 'Press lower back firmly into the floor with zero gap. Lift shoulder blades off deck, extend arms overhead by ears, and hover straight pointed legs low in a tight banana shape.',
-    scaling: 'Bend one or both knees into a tuck hollow or sub Forearm Plank.'
+    scaling: 'Bend one or both knees into a tuck hollow or shorten hold intervals.'
   },
   {
     id: 'hollow_rocks',
@@ -1822,8 +1824,8 @@ const MOVEMENTS_DB = [
     scaling: 'Scale down to Hollow Body Hold or Tuck-Ups.'
   },
   {
-    id: 'russian_twists',
-    name: 'Russian Twists',
+    id: 'twists',
+    name: 'Twists',
     equipment: 'bodyweight',
     pattern: 'HINGE_CORE',
     difficulty: 'normal',
@@ -1831,18 +1833,17 @@ const MOVEMENTS_DB = [
     intensity: 1.2,
     repSec: 0.9,
     muscleFocus: ['core', 'obliques'],
-    poseType: 'russian_twist',
+    poseType: 'seated_twist',
     unit: 'reps',
     reps: { emom: 24, amrap: 26, forTime: 32 },
-    scaleDownId: 'situps',
-    scaleNote: 'Heels-Down Russian Twists or Sit-Ups',
-    fallbackCandidates: ['kb_russian_twists', 'db_russian_twists', 'med_ball_russian_twists', 'situps', 'tuck_ups', 'side_plank'],
+    scaleNote: 'Heels-Down Twists',
+    fallbackCandidates: ['kb_twists', 'db_twists', 'med_ball_twists', 'situps', 'tuck_ups', 'side_plank'],
     cues: 'Balance on sit-bones with torso leaned back at 45° and heels hovering off deck. Rotate shoulders cleanly from left to right tapping hands beside each hip.',
-    scaling: 'Rest heels lightly on floor or sub AbMat Sit-Ups.'
+    scaling: 'Rest heels lightly on floor or shorten range of motion.'
   },
   {
-    id: 'med_ball_russian_twists',
-    name: 'Med Ball Russian Twists',
+    id: 'med_ball_twists',
+    name: 'Med Ball Twists',
     equipment: 'wall_ball',
     pattern: 'HINGE_CORE',
     difficulty: 'normal',
@@ -1850,19 +1851,18 @@ const MOVEMENTS_DB = [
     intensity: 1.8,
     repSec: 1.1,
     muscleFocus: ['core', 'obliques'],
-    poseType: 'med_ball_russian_twist',
+    poseType: 'med_ball_twist',
     unit: 'reps',
     load: '9/6 kg',
     reps: { emom: 20, amrap: 24, forTime: 30 },
-    scaleDownId: 'russian_twists',
-    scaleNote: 'Bodyweight Russian Twists',
-    fallbackCandidates: ['russian_twists', 'kb_russian_twists', 'db_russian_twists', 'med_ball_situps', 'situps', 'v_ups'],
+    scaleNote: 'Heels-Down Twists or Lighter Med Ball',
+    fallbackCandidates: ['twists', 'kb_twists', 'db_twists', 'med_ball_situps', 'situps', 'v_ups'],
     cues: 'Seated V-balance holding medicine ball at chest. Twist ribcage smoothly side to side tapping ball lightly outside each hip while keeping feet elevated.',
-    scaling: 'Plant heels on floor or drop the ball for Bodyweight Russian Twists.'
+    scaling: 'Plant heels on floor or drop the ball for Bodyweight Twists.'
   },
   {
-    id: 'kb_russian_twists',
-    name: 'Kettlebell Russian Twists',
+    id: 'kb_twists',
+    name: 'Kettlebell Twists',
     equipment: 'kettlebell',
     pattern: 'HINGE_CORE',
     difficulty: 'normal',
@@ -1870,19 +1870,18 @@ const MOVEMENTS_DB = [
     intensity: 1.9,
     repSec: 1.2,
     muscleFocus: ['core', 'obliques'],
-    poseType: 'kb_russian_twist',
+    poseType: 'kb_twist',
     unit: 'reps',
     load: '16/12 kg',
     reps: { emom: 18, amrap: 22, forTime: 26 },
-    scaleDownId: 'russian_twists',
-    scaleNote: 'Bodyweight Russian Twists or Lighter Kettlebell',
-    fallbackCandidates: ['db_russian_twists', 'med_ball_russian_twists', 'russian_twists', 'kb_swings'],
+    scaleNote: 'Lighter Kettlebell',
+    fallbackCandidates: ['db_twists', 'med_ball_twists', 'twists', 'kb_swings'],
     cues: 'Balance on sit-bones with heels hovering off deck while gripping kettlebell horns at sternum. Rotate shoulders side to side bringing the bell cleanly outside each hip without rounding lower back.',
-    scaling: 'Rest heels lightly on floor, use a lighter bell, or drop weight for Bodyweight Russian Twists.'
+    scaling: 'Use a lighter kettlebell or rest heels lightly on floor.'
   },
   {
-    id: 'db_russian_twists',
-    name: 'Dumbbell Russian Twists',
+    id: 'db_twists',
+    name: 'Dumbbell Twists',
     equipment: 'dumbbell',
     pattern: 'HINGE_CORE',
     difficulty: 'normal',
@@ -1890,15 +1889,14 @@ const MOVEMENTS_DB = [
     intensity: 1.9,
     repSec: 1.2,
     muscleFocus: ['core', 'obliques'],
-    poseType: 'db_russian_twist',
+    poseType: 'db_twist',
     unit: 'reps',
     load: '15/10 kg',
     reps: { emom: 18, amrap: 22, forTime: 26 },
-    scaleDownId: 'russian_twists',
-    scaleNote: 'Bodyweight Russian Twists or Lighter Dumbbell',
-    fallbackCandidates: ['kb_russian_twists', 'med_ball_russian_twists', 'russian_twists', 'situps'],
+    scaleNote: 'Lighter Dumbbell',
+    fallbackCandidates: ['kb_twists', 'med_ball_twists', 'twists', 'situps'],
     cues: 'Seated V-balance holding a single dumbbell across chest with heels lifted. Twist torso deliberately side to side tapping the dumbbell head lightly beside each hip.',
-    scaling: 'Plant heels on floor, use a lighter dumbbell, or sub Bodyweight Russian Twists.'
+    scaling: 'Use a lighter dumbbell or plant heels lightly on floor.'
   },
   {
     id: 'med_ball_situps',
@@ -1915,7 +1913,7 @@ const MOVEMENTS_DB = [
     reps: { emom: 14, amrap: 15, forTime: 20 },
     scaleDownId: 'situps',
     scaleNote: 'Bodyweight AbMat Sit-Ups',
-    fallbackCandidates: ['situps', 'med_ball_russian_twists', 'v_ups'],
+    fallbackCandidates: ['situps', 'med_ball_twists', 'v_ups'],
     cues: 'Touch medicine ball to floor overhead behind head at the bottom, sit all the way upright, and touch or press the ball over your feet.',
     scaling: 'Drop the medicine ball for Bodyweight AbMat Sit-Ups.'
   },
@@ -1968,11 +1966,11 @@ const MOVEMENTS_DB = [
     poseType: 'ring_knee_raise',
     unit: 'reps',
     reps: { emom: 12, amrap: 12, forTime: 15 },
-    scaleDownId: 'tuck_ups',
-    scaleNote: 'Tuck-Ups or V-Ups',
+    scaleDownId: 'v_ups',
+    scaleNote: 'V-Ups',
     fallbackCandidates: ['hanging_knee_raises', 'pbar_knee_raises', 'v_ups', 'tuck_ups'],
     cues: 'Hang from gymnastic rings with active lats and straight elbows. Compress abs to tuck both knees above hip crease without swinging.',
-    scaling: 'Scale down to Floor Tuck-Ups or V-Ups.'
+    scaling: 'Scale down to Floor V-Ups.'
   },
   {
     id: 'ring_fallouts',
@@ -1986,11 +1984,10 @@ const MOVEMENTS_DB = [
     poseType: 'ring_fallout',
     unit: 'reps',
     reps: { emom: 10, amrap: 10, forTime: 12 },
-    scaleDownId: 'plank',
-    scaleNote: 'Elevated Ring Fallouts or Straight-Arm Plank',
-    fallbackCandidates: ['toes_to_bar', 'l_sit', 'plank_up_downs', 'straight_arm_plank'],
+    scaleNote: 'Elevated Ring Fallouts',
+    fallbackCandidates: ['toes_to_bar', 'plank_up_downs', 'hollow_rocks', 'straight_arm_plank', 'l_sit'],
     cues: 'Set rings mid-shin to waist height, lean into a rigid hollow plank, and extend straight arms forward overhead without letting hips sag before pulling back to start.',
-    scaling: 'Raise ring height for less leverage or sub Straight-Arm Plank.'
+    scaling: 'Raise ring height for less leverage or sub Plank Up-Downs / Hollow Rocks.'
   },
   {
     id: 'pbar_knee_raises',
@@ -2004,11 +2001,11 @@ const MOVEMENTS_DB = [
     poseType: 'pbar_knee_raise',
     unit: 'reps',
     reps: { emom: 12, amrap: 14, forTime: 16 },
-    scaleDownId: 'tuck_ups',
-    scaleNote: 'Tuck-Ups or Hanging Knee Raises',
+    scaleDownId: 'v_ups',
+    scaleNote: 'V-Ups or Hanging Knee Raises',
     fallbackCandidates: ['hanging_knee_raises', 'ring_knee_raises', 'pbar_leg_raises', 'v_ups', 'tuck_ups'],
     cues: 'Support body tall on parallel bars with locked elbows and depressed shoulders. Tuck knees crisply toward chest and lower smoothly to straight hang.',
-    scaling: 'Scale down to Floor Tuck-Ups or AbMat Sit-Ups.'
+    scaling: 'Scale down to Floor V-Ups or Tuck-Ups.'
   },
   {
     id: 'pbar_leg_raises',
@@ -2024,9 +2021,45 @@ const MOVEMENTS_DB = [
     reps: { emom: 10, amrap: 12, forTime: 14 },
     scaleDownId: 'pbar_knee_raises',
     scaleNote: 'Parallel Bar Knee Raises or Hanging Knee Raises',
-    fallbackCandidates: ['pbar_knee_raises', 'toes_to_bar', 'v_ups', 'pbar_l_sit'],
+    fallbackCandidates: ['hanging_leg_raises', 'ring_leg_raises', 'pbar_knee_raises', 'toes_to_bar', 'v_ups', 'pbar_l_sit'],
     cues: 'Support tall on parallel bars with locked elbows and depressed shoulders. Keep knees straight and toes pointed as you raise legs smoothly to horizontal or slightly above, then lower under control.',
     scaling: 'Bend knees slightly or scale down to Parallel Bar Knee Raises.'
+  },
+  {
+    id: 'hanging_leg_raises',
+    name: 'Hanging Leg Raises',
+    equipment: 'pullup_bar',
+    pattern: 'HINGE_CORE',
+    difficulty: 'normal',
+    intensity: 2.4,
+    repSec: 2.0,
+    muscleFocus: ['core', 'hip_flexors', 'upper_pull'],
+    poseType: 'hanging_leg_raise',
+    unit: 'reps',
+    reps: { emom: 10, amrap: 10, forTime: 14 },
+    scaleDownId: 'hanging_knee_raises',
+    scaleNote: 'Hanging Knee Raises',
+    fallbackCandidates: ['ring_leg_raises', 'pbar_leg_raises', 'hanging_knee_raises', 'v_ups'],
+    cues: 'Hang at full extension from pull-up bar with active shoulders. Keep knees straight and toes pointed while lifting both legs cleanly to horizontal or slightly higher, then lower under control.',
+    scaling: 'Bend knees slightly or scale down to Hanging Knee Raises.'
+  },
+  {
+    id: 'ring_leg_raises',
+    name: 'Ring Hanging Leg Raises',
+    equipment: 'gym_rings',
+    pattern: 'HINGE_CORE',
+    difficulty: 'normal',
+    intensity: 2.5,
+    repSec: 2.0,
+    muscleFocus: ['core', 'hip_flexors', 'upper_pull'],
+    poseType: 'ring_leg_raise',
+    unit: 'reps',
+    reps: { emom: 10, amrap: 10, forTime: 14 },
+    scaleDownId: 'ring_knee_raises',
+    scaleNote: 'Ring Hanging Knee Raises',
+    fallbackCandidates: ['hanging_leg_raises', 'pbar_leg_raises', 'ring_knee_raises', 'v_ups'],
+    cues: 'Hang steadily from gymnastic rings with straight elbows and packed lats. Raise locked straight legs smoothly to parallel or above without swinging, then lower under control.',
+    scaling: 'Scale down to Ring Hanging Knee Raises or Floor V-Ups.'
   },
   {
     id: 'pbar_l_sit',
@@ -2040,11 +2073,11 @@ const MOVEMENTS_DB = [
     poseType: 'pbar_l_sit',
     unit: 'sec',
     reps: { emom: 20, amrap: 25, forTime: 30 },
-    scaleDownId: 'pbar_knee_raises',
-    scaleNote: 'Tucked L-Sit or Parallel Bar Knee Raises',
+    scaleDownId: 'pbar_leg_raises',
+    scaleNote: 'Parallel Bar Leg Raises or Tucked L-Sit',
     fallbackCandidates: ['l_sit', 'pbar_leg_raises', 'pbar_knee_raises', 'v_ups', 'plank'],
     cues: 'Lock arms straight on parallel bars, push shoulders down, and extend straight locked legs horizontally at 90° with toes pointed.',
-    scaling: 'Bend knees into a tucked L-sit or sub Parallel Bar Knee Raises.'
+    scaling: 'Scale down to Parallel Bar Leg Raises or bend knees into a tucked L-sit.'
   },
   {
     id: 'db_farmers_carry',
@@ -2059,11 +2092,28 @@ const MOVEMENTS_DB = [
     unit: 'sec',
     load: '2x22.5/15 kg',
     reps: { emom: 40, amrap: 45, forTime: 60 },
-    scaleDownId: 'plank',
-    scaleNote: 'Lighter Dumbbells or Forearm Plank',
-    fallbackCandidates: ['kb_suitcase_carry', 'bar_hang', 'plank'],
+    scaleNote: 'Lighter Dumbbells',
+    fallbackCandidates: ['kb_farmers_carry', 'straight_arm_plank', 'kb_suitcase_carry', 'bar_hang'],
     cues: 'Grip heavy dumbbells tightly at sides, pack shoulder blades down, brace abs with ribs stacked over pelvis, and march or walk briskly without shrugging or swinging.',
     scaling: 'Reduce dumbbell weight or shorten carry time.'
+  },
+  {
+    id: 'kb_farmers_carry',
+    name: 'Kettlebell Farmer\'s Carry / March',
+    equipment: 'kettlebell',
+    pattern: 'HINGE_CORE',
+    difficulty: 'normal',
+    intensity: 2.0,
+    repSec: 1.0,
+    muscleFocus: ['core', 'posterior_chain', 'upper_pull'],
+    poseType: 'kb_farmers_carry',
+    unit: 'sec',
+    load: '2x24/16 kg',
+    reps: { emom: 40, amrap: 45, forTime: 60 },
+    scaleNote: 'Lighter Kettlebells',
+    fallbackCandidates: ['db_farmers_carry', 'straight_arm_plank', 'kb_suitcase_carry', 'bar_hang'],
+    cues: 'Grip heavy kettlebells tightly at sides, pack shoulder blades down, brace abs with ribs stacked over pelvis, and march or walk briskly without shrugging or swinging.',
+    scaling: 'Reduce kettlebell weight or shorten carry time.'
   },
   {
     id: 'kb_suitcase_carry',
@@ -2079,11 +2129,29 @@ const MOVEMENTS_DB = [
     unit: 'sec',
     load: '24/16 kg',
     reps: { emom: 40, amrap: 40, forTime: 50 },
-    scaleDownId: 'side_plank',
-    scaleNote: 'Lighter Kettlebell or Side Plank',
-    fallbackCandidates: ['db_farmers_carry', 'kb_overhead_carry', 'side_plank', 'plank'],
+    scaleNote: 'Lighter Kettlebell',
+    fallbackCandidates: ['db_suitcase_carry', 'side_plank', 'straight_arm_plank', 'kb_farmers_carry'],
     cues: 'Hold kettlebell in one hand at your side like a suitcase. Resist leaning toward or away from the bell—keep shoulders and pelvis dead level while marching or walking. Split sides evenly.',
-    scaling: 'Use a lighter kettlebell or sub Side Plank.'
+    scaling: 'Use a lighter kettlebell.'
+  },
+  {
+    id: 'db_suitcase_carry',
+    name: 'Dumbbell Suitcase Carry / March',
+    equipment: 'dumbbell',
+    pattern: 'HINGE_CORE',
+    difficulty: 'normal',
+    unilateral: 'split',
+    intensity: 1.9,
+    repSec: 1.0,
+    muscleFocus: ['core', 'obliques', 'upper_pull'],
+    poseType: 'db_suitcase_carry',
+    unit: 'sec',
+    load: '22.5/15 kg',
+    reps: { emom: 40, amrap: 40, forTime: 50 },
+    scaleNote: 'Lighter Dumbbell',
+    fallbackCandidates: ['kb_suitcase_carry', 'side_plank', 'straight_arm_plank', 'db_farmers_carry'],
+    cues: 'Hold a single dumbbell in one hand at your side like a suitcase. Resist leaning toward or away from the weight—keep shoulders and pelvis dead level while marching or walking. Split sides evenly.',
+    scaling: 'Use a lighter dumbbell.'
   },
   {
     id: 'kb_overhead_carry',
@@ -2099,11 +2167,29 @@ const MOVEMENTS_DB = [
     unit: 'sec',
     load: '20/12 kg',
     reps: { emom: 30, amrap: 35, forTime: 45 },
-    scaleDownId: 'kb_suitcase_carry',
-    scaleNote: 'Kettlebell Suitcase Carry',
-    fallbackCandidates: ['kb_suitcase_carry', 'db_farmers_carry', 'plank'],
+    scaleNote: 'Lighter Kettlebell',
+    fallbackCandidates: ['db_overhead_carry', 'straight_arm_plank', 'kb_suitcase_carry', 'kb_farmers_carry'],
     cues: 'Press kettlebell to full vertical overhead lockout with bicep by ear, ribs tucked down, and glutes braced. March or walk smoothly without arching lower back. Split sides evenly.',
-    scaling: 'Lower kettlebell to Front-Rack or Suitcase Carry.'
+    scaling: 'Use a lighter kettlebell.'
+  },
+  {
+    id: 'db_overhead_carry',
+    name: 'Dumbbell Overhead Carry / March',
+    equipment: 'dumbbell',
+    pattern: 'HINGE_CORE',
+    difficulty: 'hard',
+    unilateral: 'split',
+    intensity: 2.3,
+    repSec: 1.0,
+    muscleFocus: ['core', 'shoulders'],
+    poseType: 'db_overhead_carry',
+    unit: 'sec',
+    load: '20/12.5 kg',
+    reps: { emom: 30, amrap: 35, forTime: 45 },
+    scaleNote: 'Lighter Dumbbell',
+    fallbackCandidates: ['kb_overhead_carry', 'straight_arm_plank', 'db_suitcase_carry', 'db_farmers_carry'],
+    cues: 'Press a single dumbbell to full vertical overhead lockout with bicep by ear, ribs tucked down, and glutes braced. March or walk smoothly without arching lower back. Split sides evenly.',
+    scaling: 'Use a lighter dumbbell.'
   },
 
   // ==================== CARDIO & MONOSTRUCTURAL ====================
@@ -2185,9 +2271,10 @@ const MOVEMENTS_DB = [
     poseType: 'single_unders',
     unit: 'reps',
     reps: { emom: 60, amrap: 60, forTime: 75 },
-    fallbackCandidates: ['mountain_climbers', 'jumping_jacks', 'run'],
+    scaleNote: 'Slower rhythm or lower rep volume',
+    fallbackCandidates: ['jumping_jacks', 'mountain_climbers', 'run'],
     cues: 'Relaxed shoulders, soft bounding on balls of feet, smooth single wrist rotation per jump.',
-    scaling: 'Sub Jumping Jacks or Mountain Climbers.'
+    scaling: 'Lower rep target or sub Jumping Jacks / Mountain Climbers if no rope.'
   },
   {
     id: 'jumping_jacks',
@@ -2195,7 +2282,7 @@ const MOVEMENTS_DB = [
     equipment: 'bodyweight',
     pattern: 'CARDIO',
     difficulty: 'normal',
-    intensity: 0.4,
+    intensity: 0.3,
     repSec: 0.6,
     muscleFocus: ['cardio', 'calves', 'shoulders'],
     poseType: 'jumping_jacks',
@@ -2217,7 +2304,7 @@ const MOVEMENTS_DB = [
     poseType: 'run',
     unit: 'm',
     reps: { emom: 100, amrap: 200, forTime: 400 },
-    fallbackCandidates: ['jumping_jacks', 'mountain_climbers', 'row_erg_cal', 'bike_erg_cal'],
+    fallbackCandidates: ['mountain_climbers', 'jumping_jacks', 'row_erg_cal', 'bike_erg_cal'],
     cues: 'Maintain tall upright posture, drive knees forward, land softly under center of mass, and breathe rhythmically.',
     scaling: 'Scale distance down by 25-50% or sub Jumping Jacks, Mountain Climbers, RowErg, or BikeErg.'
   },
@@ -2228,15 +2315,17 @@ const MOVEMENTS_DB = [
     pattern: 'CARDIO',
     difficulty: 'normal',
     unilateral: 'alternating',
-    intensity: 0.6,
+    intensity: 0.75,
     repSec: 0.7,
     muscleFocus: ['cardio', 'core'],
     poseType: 'mountain_climber',
     unit: 'reps',
     reps: { emom: 24, amrap: 24, forTime: 30 },
-    fallbackCandidates: ['situps', 'jumping_jacks'],
+    scaleDownId: 'high_knees',
+    scaleNote: 'High Knees',
+    fallbackCandidates: ['high_knees', 'situps', 'jumping_jacks'],
     cues: 'Rigid plank position. Alternatingly drive knees toward chest at high cadence without letting hips bounce toward the ceiling.',
-    scaling: 'Slow down cadence to marching plank.'
+    scaling: 'Sub High Knees or slow down cadence to marching plank.'
   },
   {
     id: 'high_knees',
@@ -2245,12 +2334,14 @@ const MOVEMENTS_DB = [
     pattern: 'CARDIO',
     difficulty: 'normal',
     unilateral: 'alternating',
-    intensity: 0.7,
+    intensity: 0.55,
     repSec: 0.55,
     muscleFocus: ['cardio', 'hip_flexors', 'calves'],
     poseType: 'high_knees',
     unit: 'reps',
     reps: { emom: 40, amrap: 45, forTime: 60 },
+    scaleDownId: 'jumping_jacks',
+    scaleNote: 'Jumping Jacks',
     fallbackCandidates: ['mountain_climbers', 'jumping_jacks', 'single_unders', 'run'],
     cues: 'Stay tall on balls of feet with upright torso, drive alternating knees crisply to hip height while pumping bent arms fast.',
     scaling: 'Slow cadence to high-knee march or sub Jumping Jacks.'
@@ -2283,9 +2374,9 @@ const MOVEMENTS_DB = [
     poseType: 'ski_erg',
     unit: 'm',
     reps: { emom: 200, amrap: 250, forTime: 500 },
-    fallbackCandidates: ['ski_erg_cal', 'row_erg_meters', 'bike_erg_meters', 'run', 'jumping_jacks'],
+    fallbackCandidates: ['ski_erg_cal', 'row_erg_meters', 'bike_erg_meters', 'run', 'mountain_climbers', 'jumping_jacks'],
     cues: 'Extend tall onto balls of feet, engage lats and crunch abs downward while driving handles past hips in long rhythmic strokes.',
-    scaling: 'Scale meters down by 25–40% or sub Run / Jumping Jacks.'
+    scaling: 'Scale meters down by 25–40% or sub Mountain Climbers / Jumping Jacks.'
   },
   {
     id: 'bike_erg_meters',
@@ -2299,7 +2390,7 @@ const MOVEMENTS_DB = [
     poseType: 'bike_erg',
     unit: 'm',
     reps: { emom: 400, amrap: 500, forTime: 1000 },
-    fallbackCandidates: ['bike_erg_cal', 'row_erg_meters', 'ski_erg_meters', 'run', 'high_knees'],
+    fallbackCandidates: ['bike_erg_cal', 'row_erg_meters', 'ski_erg_meters', 'run', 'mountain_climbers', 'high_knees'],
     cues: 'Maintain smooth circular pedal cadence (80–95 RPM) with relaxed shoulders and rhythmic breathing.',
     scaling: 'Scale distance down by 30% or sub Run / High Knees.'
   },
@@ -2353,7 +2444,7 @@ const MOVEMENTS_DB = [
     reps: { emom: 12, amrap: 12, forTime: 15 },
     scaleDownId: 'box_step_ups',
     scaleNote: 'Box Step-Ups',
-    fallbackCandidates: ['jumping_lunges', 'box_step_ups', 'air_squats'],
+    fallbackCandidates: ['jump_squats', 'jumping_lunges', 'box_step_ups', 'air_squats'],
     cues: 'Two-foot takeoff with athletic arm swing. Land softly with both feet flat on top of box with knees bent; stand to full hip lockout before stepping down.',
     scaling: 'Scale down to Box Step-Ups.'
   },
@@ -2370,11 +2461,10 @@ const MOVEMENTS_DB = [
     poseType: 'box_step_up',
     unit: 'reps',
     reps: { emom: 16, amrap: 16, forTime: 20 },
-    scaleDownId: 'walking_lunges',
-    scaleNote: 'Walking Lunges',
+    scaleNote: 'Lower box height',
     fallbackCandidates: ['box_jumps', 'walking_lunges', 'air_squats'],
     cues: 'Plant entire foot on top of box. Drive through working heel to full standing hip lockout before trailing foot touches.',
-    scaling: 'Lower box height or sub Walking Lunges.'
+    scaling: 'Lower box height.'
   },
   {
     id: 'wall_balls',
@@ -2389,11 +2479,10 @@ const MOVEMENTS_DB = [
     unit: 'reps',
     load: '9/6 kg',
     reps: { emom: 15, amrap: 15, forTime: 20 },
-    scaleDownId: 'air_squats',
-    scaleNote: 'Bodyweight Air Squats',
+    scaleNote: 'Lighter Medicine Ball',
     fallbackCandidates: ['db_thrusters', 'goblet_squats', 'air_squats'],
     cues: 'Hold medicine ball in front of chest. Descend below parallel in a front squat, explode upward, and launch the ball to the 10ft/9ft target mark.',
-    scaling: 'Use a lighter medicine ball or scale down to Bodyweight Air Squats.'
+    scaling: 'Use a lighter medicine ball or sub Bodyweight Air Squats.'
   },
   {
     id: 'man_makers',
@@ -2408,11 +2497,10 @@ const MOVEMENTS_DB = [
     unit: 'reps',
     load: '2x20/14 kg',
     reps: { emom: 5, amrap: 5, forTime: 7 },
-    scaleDownId: 'devil_press',
-    scaleNote: 'Dual Dumbbell Devil Press',
+    scaleNote: 'Lighter Dumbbells',
     fallbackCandidates: ['devil_press', 'db_thrusters', 'burpees', 'athletic_up_downs'],
     cues: 'Hands on dumbbells: sprawl to plank, complete a push-up, renegade row each dumbbell to ribs, jump feet to hands into a squat clean, and finish with a full thruster press overhead.',
-    scaling: 'Scale down to Dual Dumbbell Devil Press, DB Thrusters, or Burpees.'
+    scaling: 'Use lighter dumbbells.'
   },
   {
     id: 'devil_press',
@@ -2427,11 +2515,10 @@ const MOVEMENTS_DB = [
     unit: 'reps',
     load: '2x20/14 kg',
     reps: { emom: 6, amrap: 6, forTime: 8 },
-    scaleDownId: 'burpees',
-    scaleNote: 'Burpees or DB Thrusters',
+    scaleNote: 'Lighter Dumbbells',
     fallbackCandidates: ['man_makers', 'db_thrusters', 'burpees', 'athletic_up_downs'],
     cues: 'Burpee with hands on dumbbell handles and chest to deck. Jump feet wide, swing dumbbells between legs, and violently snatch dumbbells overhead in one unbroken arc.',
-    scaling: 'Scale down to Burpees or Light DB Snatches.'
+    scaling: 'Use lighter dumbbells.'
   },
   {
     id: 'kb_thrusters',
@@ -2447,11 +2534,10 @@ const MOVEMENTS_DB = [
     unit: 'reps',
     load: '24/16 kg',
     reps: { emom: 10, amrap: 12, forTime: 15 },
-    scaleDownId: 'goblet_squats',
-    scaleNote: 'Kettlebell Goblet Squats',
+    scaleNote: 'Lighter Kettlebell',
     fallbackCandidates: ['db_thrusters', 'bb_thrusters', 'wall_balls', 'goblet_squats', 'air_squats'],
     cues: 'Rack kettlebell tight to collar with vertical forearm. Squat below parallel, explode out of the bottom, and punch the kettlebell straight overhead to lockout in one seamless drive. Split arms evenly.',
-    scaling: 'Scale down to Kettlebell Goblet Squats or Kettlebell Push Press.'
+    scaling: 'Use a lighter kettlebell.'
   },
   {
     id: 'db_thrusters',
@@ -2466,11 +2552,10 @@ const MOVEMENTS_DB = [
     unit: 'reps',
     load: '2x15/10 kg',
     reps: { emom: 10, amrap: 12, forTime: 15 },
-    scaleDownId: 'db_front_squats',
-    scaleNote: 'Dumbbell Front Squats',
+    scaleNote: 'Lighter Dumbbells',
     fallbackCandidates: ['bb_thrusters', 'kb_thrusters', 'wall_balls', 'goblet_squats', 'air_squats'],
     cues: 'Dumbbells racked on shoulders. Full front squat below parallel, explode out of hole, and punch dumbbells overhead to locked arms in one fluid movement.',
-    scaling: 'Scale down to Dumbbell Front Squats or Dumbbell Push Press.'
+    scaling: 'Use lighter dumbbells.'
   },
   {
     id: 'bb_thrusters',
@@ -2485,11 +2570,10 @@ const MOVEMENTS_DB = [
     unit: 'reps',
     load: '43/30 kg',
     reps: { emom: 10, amrap: 10, forTime: 12 },
-    scaleDownId: 'bb_front_squats',
-    scaleNote: 'Barbell Front Squats',
-    fallbackCandidates: ['db_thrusters', 'kb_thrusters', 'db_push_press', 'wall_balls'],
+    scaleNote: 'Lighter Barbell',
+    fallbackCandidates: ['db_thrusters', 'kb_thrusters', 'db_push_press', 'wall_balls', 'air_squats'],
     cues: 'Barbell resting in front rack with elbows up. Sink into a full deep front squat, accelerate upward out of the bottom, and drive the barbell overhead in one continuous path.',
-    scaling: 'Scale down to Barbell Front Squats, Barbell Push Press, or lighter barbell load.'
+    scaling: 'Reduce barbell load.'
   },
   {
     id: 'bb_squat_snatch',
@@ -2504,11 +2588,10 @@ const MOVEMENTS_DB = [
     unit: 'reps',
     load: '60/42.5 kg',
     reps: { emom: 6, amrap: 6, forTime: 8 },
-    scaleDownId: 'bb_hang_power_clean',
-    scaleNote: 'Barbell Hang Power Cleans',
-    fallbackCandidates: ['bb_hang_power_clean', 'db_snatch', 'kb_snatch', 'kb_swings'],
+    scaleNote: 'Lighter Barbell',
+    fallbackCandidates: ['bb_power_snatch', 'bb_hang_power_clean', 'db_snatch', 'kb_snatch', 'burpees'],
     cues: 'Wide snatch grip. Lift bar from floor with active back, explosively extend hips, pull body rapidly under the barbell into a deep overhead squat, and stand to lockout.',
-    scaling: 'Scale down to Barbell Power Snatch or Barbell Hang Power Cleans.'
+    scaling: 'Reduce barbell load.'
   },
   {
     id: 'db_snatch',
@@ -2524,11 +2607,10 @@ const MOVEMENTS_DB = [
     unit: 'reps',
     load: '22.5/15 kg',
     reps: { emom: 12, amrap: 12, forTime: 16 },
-    scaleDownId: 'db_hang_power_clean',
-    scaleNote: 'Dumbbell Hang Power Cleans',
-    fallbackCandidates: ['kb_snatch', 'bb_squat_snatch', 'devil_press', 'kb_swings'],
+    scaleNote: 'Lighter Dumbbell',
+    fallbackCandidates: ['kb_snatch', 'bb_power_snatch', 'devil_press', 'db_hang_power_clean', 'burpees'],
     cues: 'Set dumbbell between feet with flat neutral back. Drive explosively through hips, keep bell close to torso with high elbow, and punch straight overhead into full arm lockout in one smooth pull; alternate hands each rep.',
-    scaling: 'Scale down to Dumbbell Hang Power Cleans or use a lighter dumbbell.'
+    scaling: 'Use a lighter dumbbell.'
   },
   {
     id: 'kb_snatch',
@@ -2544,11 +2626,10 @@ const MOVEMENTS_DB = [
     unit: 'reps',
     load: '24/16 kg',
     reps: { emom: 12, amrap: 12, forTime: 16 },
-    scaleDownId: 'kb_swings',
-    scaleNote: 'Kettlebell Swings',
-    fallbackCandidates: ['db_snatch', 'devil_press', 'bb_squat_snatch', 'kb_swings'],
+    scaleNote: 'Lighter Kettlebell',
+    fallbackCandidates: ['db_snatch', 'devil_press', 'bb_power_snatch', 'kb_hang_power_clean', 'kb_swings', 'burpees'],
     cues: 'Swing kettlebell back between legs, drive hips, punch fist to ceiling at the top so the kettlebell wraps smoothly around forearm without banging.',
-    scaling: 'Sub Kettlebell Swings.'
+    scaling: 'Use a lighter kettlebell.'
   },
   {
     id: 'bar_facing_burpees',
@@ -2628,17 +2709,16 @@ const MOVEMENTS_DB = [
     equipment: 'bodyweight',
     pattern: 'FULL_BODY',
     difficulty: 'normal',
-    intensity: 2.2,
+    intensity: 1.0,
     repSec: 1.0,
     muscleFocus: ['full_body_plyo', 'core', 'shoulders', 'quads'],
     poseType: 'bear_crawl',
     unit: 'sec',
     reps: { emom: 30, amrap: 35, forTime: 45 },
-    scaleDownId: 'straight_arm_plank',
-    scaleNote: 'Straight-Arm Plank or Mountain Climbers',
+    scaleNote: 'Shorter intervals or static Bear Plank',
     fallbackCandidates: ['mountain_climbers', 'plank_up_downs', 'athletic_up_downs'],
     cues: 'Hands under shoulders, knees hovering 2 inches above floor beneath hips, flat neutral back. Crawl forward moving opposite hand and foot together with zero hip sway.',
-    scaling: 'Hold static Bear Plank or sub Mountain Climbers.'
+    scaling: 'Hold static Bear Plank or break into shorter intervals.'
   },
   {
     id: 'wall_walks',
@@ -2652,18 +2732,17 @@ const MOVEMENTS_DB = [
     poseType: 'wall_walk',
     unit: 'reps',
     reps: { emom: 4, amrap: 5, forTime: 6 },
-    scaleDownId: 'pike_pushups',
-    scaleNote: 'Partial Wall Walks or Pike Push-Ups',
+    scaleNote: 'Partial Wall Walks',
     fallbackCandidates: ['hspu', 'pike_pushups', 'plank_shoulder_taps', 'burpees'],
     cues: 'Start prone with chest and feet touching wall. Press to plank, walk feet up the wall while stepping hands inward to vertical wall-facing handstand, then walk back down under control.',
-    scaling: 'Walk halfway up the wall or scale down to Pike Push-Ups.'
+    scaling: 'Walk halfway up the wall for controlled partial reps.'
   },
   {
     id: 'bb_squat_clean',
     name: 'Barbell Squat Cleans',
     equipment: 'barbell',
     pattern: 'FULL_BODY',
-    difficulty: 'hard',
+    difficulty: 'normal',
     intensity: 4.5,
     repSec: 3.0,
     muscleFocus: ['full_body_plyo', 'quads', 'posterior_chain'],
@@ -2671,18 +2750,17 @@ const MOVEMENTS_DB = [
     unit: 'reps',
     load: '60/42.5 kg',
     reps: { emom: 6, amrap: 8, forTime: 10 },
-    scaleDownId: 'bb_power_clean',
-    scaleNote: 'Barbell Power Cleans or Hang Power Cleans',
-    fallbackCandidates: ['bb_power_clean', 'bb_hang_power_clean', 'db_power_clean', 'bb_front_squats'],
+    scaleNote: 'Lighter Barbell',
+    fallbackCandidates: ['bb_power_clean', 'bb_hang_power_clean', 'db_power_clean', 'bb_front_squats', 'burpees'],
     cues: 'Pull barbell smoothly off floor, hit violent triple extension at mid-thigh, pull rapidly under into a full deep front squat catch with high elbows, and stand to full hip lockout.',
-    scaling: 'Scale down to Barbell Power Cleans or Hang Power Cleans.'
+    scaling: 'Reduce barbell load.'
   },
   {
     id: 'bb_clean_and_jerk',
     name: 'Barbell Clean & Jerks',
     equipment: 'barbell',
     pattern: 'FULL_BODY',
-    difficulty: 'hard',
+    difficulty: 'normal',
     intensity: 4.8,
     repSec: 3.5,
     muscleFocus: ['full_body_plyo', 'upper_push', 'posterior_chain', 'quads'],
@@ -2690,11 +2768,10 @@ const MOVEMENTS_DB = [
     unit: 'reps',
     load: '60/42.5 kg',
     reps: { emom: 6, amrap: 8, forTime: 10 },
-    scaleDownId: 'bb_push_jerk',
-    scaleNote: 'Barbell Power Cleans or Push Jerks',
-    fallbackCandidates: ['db_clean_and_jerk', 'kb_clean_and_jerk', 'bb_push_jerk', 'bb_power_clean'],
+    scaleNote: 'Lighter Barbell',
+    fallbackCandidates: ['db_clean_and_jerk', 'kb_clean_and_jerk', 'bb_power_clean', 'bb_push_jerk', 'burpees'],
     cues: 'Clean barbell cleanly from the floor to the front rack, reset feet, dip vertical 3 inches, drive legs forcefully, and punch under into a locked-out overhead jerk.',
-    scaling: 'Scale weight down or sub Barbell Push Jerks / DB Clean & Jerks.'
+    scaling: 'Reduce barbell load.'
   },
   {
     id: 'db_clean_and_jerk',
@@ -2709,11 +2786,10 @@ const MOVEMENTS_DB = [
     unit: 'reps',
     load: '2x20/14 kg',
     reps: { emom: 8, amrap: 10, forTime: 12 },
-    scaleDownId: 'db_push_jerk',
-    scaleNote: 'Dumbbell Power Cleans or Push Jerks',
-    fallbackCandidates: ['kb_clean_and_jerk', 'bb_clean_and_jerk', 'db_power_clean', 'db_push_jerk'],
+    scaleNote: 'Lighter Dumbbells',
+    fallbackCandidates: ['kb_clean_and_jerk', 'bb_clean_and_jerk', 'db_power_clean', 'db_push_jerk', 'burpees'],
     cues: 'Touch dumbbells to floor outside feet, power clean to shoulders, then immediately dip and drive overhead into a locked-out push jerk.',
-    scaling: 'Use lighter dumbbells or sub Dumbbell Push Press.'
+    scaling: 'Use lighter dumbbells.'
   },
   {
     id: 'kb_clean_and_jerk',
@@ -2729,11 +2805,10 @@ const MOVEMENTS_DB = [
     unit: 'reps',
     load: '24/16 kg',
     reps: { emom: 10, amrap: 10, forTime: 14 },
-    scaleDownId: 'kb_clean',
-    scaleNote: 'Kettlebell Cleans or Push Jerks',
-    fallbackCandidates: ['db_clean_and_jerk', 'bb_clean_and_jerk', 'kb_clean', 'kb_push_jerk'],
+    scaleNote: 'Lighter Kettlebell',
+    fallbackCandidates: ['db_clean_and_jerk', 'bb_clean_and_jerk', 'kb_clean', 'kb_push_jerk', 'burpees'],
     cues: 'Swing kettlebell into a tight front rack with vertical forearm, pause briefly, dip and drive hips to punch overhead in a crisp push jerk, then return to rack. Split arms evenly.',
-    scaling: 'Sub Kettlebell Cleans or Kettlebell Push Press.'
+    scaling: 'Use a lighter kettlebell.'
   },
   {
     id: 'bb_power_snatch',
@@ -2748,11 +2823,10 @@ const MOVEMENTS_DB = [
     unit: 'reps',
     load: '43/30 kg',
     reps: { emom: 8, amrap: 10, forTime: 12 },
-    scaleDownId: 'bb_hang_power_clean',
-    scaleNote: 'Lighter Barbell or Alternating DB Snatches',
-    fallbackCandidates: ['bb_squat_snatch', 'db_snatch', 'kb_snatch', 'bb_power_clean'],
+    scaleNote: 'Lighter Barbell',
+    fallbackCandidates: ['bb_squat_snatch', 'db_snatch', 'kb_snatch', 'bb_hang_power_clean', 'burpees'],
     cues: 'Wide snatch grip over midfoot. Sweep barbell close up shins, extend hips explosively, shrug high, and punch under to catch overhead in a quarter squat.',
-    scaling: 'Reduce barbell load or sub Alternating Dumbbell Snatches.'
+    scaling: 'Reduce barbell load.'
   },
   {
     id: 'kb_turkish_getup',
@@ -2768,9 +2842,8 @@ const MOVEMENTS_DB = [
     unit: 'reps',
     load: '20/12 kg',
     reps: { emom: 4, amrap: 6, forTime: 8 },
-    scaleDownId: 'kb_snatch',
-    scaleNote: 'Lighter Kettlebell or Bodyweight/Shoe TGU',
-    fallbackCandidates: ['db_turkish_getup', 'kb_snatch', 'kb_overhead_carry'],
+    scaleNote: 'Lighter Kettlebell or Bodyweight Shoe Get-Up',
+    fallbackCandidates: ['db_turkish_getup', 'kb_snatch', 'kb_overhead_carry', 'plank_up_downs'],
     cues: 'With kettlebell locked straight above shoulder, roll to elbow, press to tall hand, bridge hips, sweep leg under into half-kneeling, stand tall, and reverse step-by-step to the floor. Split sides evenly.',
     scaling: 'Use a lighter kettlebell or perform unweighted.'
   },
@@ -2788,11 +2861,10 @@ const MOVEMENTS_DB = [
     unit: 'reps',
     load: '15/10 kg',
     reps: { emom: 4, amrap: 6, forTime: 8 },
-    scaleDownId: 'db_snatch',
-    scaleNote: 'Lighter Dumbbell or DB Snatches',
-    fallbackCandidates: ['kb_turkish_getup', 'db_snatch', 'devil_press'],
+    scaleNote: 'Lighter Dumbbell or Bodyweight Shoe Get-Up',
+    fallbackCandidates: ['kb_turkish_getup', 'db_snatch', 'devil_press', 'plank_up_downs'],
     cues: 'Keep dumbbell stacked vertically over shoulder with eyes tracking the bell through elbow, tall hand, hip bridge, leg sweep, half-kneel, standing lockout, and controlled return. Split sides evenly.',
-    scaling: 'Use a lighter dumbbell or sub Alternating DB Snatches.'
+    scaling: 'Use a lighter dumbbell or perform unweighted.'
   },
   {
     id: 'med_ball_cleans',
@@ -2807,8 +2879,7 @@ const MOVEMENTS_DB = [
     unit: 'reps',
     load: '9/6 kg',
     reps: { emom: 14, amrap: 15, forTime: 20 },
-    scaleDownId: 'air_squats',
-    scaleNote: 'Wall Balls or Air Squats',
+    scaleNote: 'Lighter Medicine Ball',
     fallbackCandidates: ['wall_balls', 'med_ball_slams', 'kb_hang_power_clean', 'air_squats'],
     cues: 'Deadlift medicine ball from floor between feet, extend hips and shrug violently, drop rapidly under the ball into a deep squat without spinning the laces, and stand tall.',
     scaling: 'Use a lighter ball or sub Bodyweight Air Squats.'
@@ -2826,9 +2897,8 @@ const MOVEMENTS_DB = [
     unit: 'reps',
     load: '9/6 kg',
     reps: { emom: 14, amrap: 15, forTime: 20 },
-    scaleDownId: 'kb_swings',
-    scaleNote: 'Lighter Ball or Kettlebell Swings',
-    fallbackCandidates: ['med_ball_cleans', 'wall_balls', 'kb_swings', 'burpees'],
+    scaleNote: 'Lighter Medicine Ball',
+    fallbackCandidates: ['burpees', 'med_ball_cleans', 'wall_balls', 'kb_swings'],
     cues: 'Lift medicine ball tall overhead rising onto balls of feet, then engage lats and abs to slam the ball explosively straight into the floor between feet and catch/pick up cleanly.',
     scaling: 'Use a lighter ball or sub Burpees / Kettlebell Swings.'
   }
