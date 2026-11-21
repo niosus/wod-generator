@@ -194,9 +194,12 @@ class ProgressionGraphView {
     this._panStart = null;
     this._pinchStart = null;
     this._dragMoved = false;
+    this._wasMultiTouch = false;
     this._downNodeId = null;
     this._onInspectMovement = null;
     this._keyHandler = null;
+    this._resizeObserver = null;
+    this._lastViewportSize = { w: 0, h: 0 };
   }
 
   mount(container, options = {}) {
@@ -240,11 +243,11 @@ class ProgressionGraphView {
               <span>⇄</span><span>No-Gear Alt</span>
             </span>
           </div>
-          <span class="text-zinc-400 dark:text-zinc-500 hidden sm:inline">Tap movement for form &amp; cues · Drag to pan · Scroll to zoom</span>
+          <span id="graphInteractionHint" class="text-zinc-400 dark:text-zinc-500 hidden sm:inline">Tap movement for form &amp; cues · Drag to pan · Scroll to zoom</span>
         </div>
 
         <!-- Pan & Zoom Tree Viewport -->
-        <div id="graphViewport" class="relative flex-1 min-h-[340px] rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950 overflow-hidden select-none touch-none cursor-grab active:cursor-grabbing">
+        <div id="graphViewport" class="relative flex-1 min-h-[200px] rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950 overflow-hidden select-none touch-none cursor-grab active:cursor-grabbing">
           <div id="graphWorld" class="absolute top-0 left-0 origin-top-left will-change-transform">
             <svg id="graphEdgesSvg" class="absolute top-0 left-0 pointer-events-none overflow-visible"></svg>
             <div id="graphCardsLayer" class="relative"></div>
@@ -370,6 +373,10 @@ class ProgressionGraphView {
   }
 
   destroy() {
+    if (this._resizeObserver) {
+      this._resizeObserver.disconnect();
+      this._resizeObserver = null;
+    }
     if (this._keyHandler) {
       window.removeEventListener('keydown', this._keyHandler);
       this._keyHandler = null;
@@ -381,6 +388,8 @@ class ProgressionGraphView {
       BiomechanicalStickAnimator.unregisterCanvasesIn(this._inspectorEl);
     }
     this._pointers.clear();
+    this._wasMultiTouch = false;
+    this._lastViewportSize = { w: 0, h: 0 };
     this._container = null;
     this._viewportEl = null;
     this._worldEl = null;
@@ -910,12 +919,12 @@ class ProgressionGraphView {
         tgtBlock?.movements.some(m => this._searchMatchMovIds.has(m.id))
       );
 
-      let opacity = 0.78;
-      if (focus) opacity = isFocusedEdge ? 1 : 0.14;
-      else if (hasSearch) opacity = isSearchEdge ? 0.95 : 0.18;
+      let opacity = 0.82;
+      if (focus) opacity = isFocusedEdge ? 1 : 0.25;
+      else if (hasSearch) opacity = isSearchEdge ? 0.95 : 0.25;
 
       const marker = isFocusedEdge ? 'url(#blueArrowActive)' : 'url(#blueArrow)';
-      return `<path data-edge-src="${e.source}" data-edge-tgt="${e.target}" d="${d}" fill="none" stroke="currentColor" class="text-blue-600 dark:text-blue-400 transition-opacity" stroke-width="${isFocusedEdge ? 2.6 : 2}" stroke-opacity="${opacity}" marker-end="${marker}" />`;
+      return `<path data-edge-src="${e.source}" data-edge-tgt="${e.target}" d="${d}" fill="none" stroke="currentColor" class="text-blue-600 dark:text-blue-400 transition-opacity" stroke-width="${isFocusedEdge ? 2.6 : 2}" opacity="${opacity}" style="opacity: ${opacity}" marker-end="${marker}" />`;
     });
 
     this._svgEl.innerHTML = `
@@ -946,8 +955,8 @@ class ProgressionGraphView {
       const hasSearchHit = hasSearch && b.movements.some(m => this._searchMatchMovIds.has(m.id));
 
       let opacityCls = 'opacity-100';
-      if (focus) opacityCls = isBlockFocused ? 'opacity-100' : 'opacity-28';
-      else if (hasSearch) opacityCls = hasSearchHit ? 'opacity-100' : 'opacity-28';
+      if (focus) opacityCls = isBlockFocused ? 'opacity-100' : 'opacity-30';
+      else if (hasSearch) opacityCls = hasSearchHit ? 'opacity-100' : 'opacity-30';
 
       const portalFooterHtml = b.portals.length > 0
         ? `
@@ -1106,11 +1115,12 @@ class ProgressionGraphView {
         tgtBlock?.movements.some(m => this._searchMatchMovIds.has(m.id))
       );
 
-      let opacity = 0.78;
-      if (focus) opacity = isFocusedEdge ? 1 : 0.14;
-      else if (hasSearch) opacity = isSearchEdge ? 0.95 : 0.18;
+      let opacity = 0.82;
+      if (focus) opacity = isFocusedEdge ? 1 : 0.25;
+      else if (hasSearch) opacity = isSearchEdge ? 0.95 : 0.25;
 
-      path.setAttribute('stroke-opacity', String(opacity));
+      path.setAttribute('opacity', String(opacity));
+      path.style.opacity = String(opacity);
       path.setAttribute('stroke-width', isFocusedEdge ? '2.6' : '2');
       path.setAttribute('marker-end', isFocusedEdge ? 'url(#blueArrowActive)' : 'url(#blueArrow)');
     });
@@ -1120,9 +1130,9 @@ class ProgressionGraphView {
       const block = this._blockById.get(id);
       const isFocused = focus ? focus.neighborBlockIds.has(id) : false;
       const hasHit = hasSearch && block?.movements.some(m => this._searchMatchMovIds.has(m.id));
-      el.classList.remove('opacity-28', 'opacity-100');
-      if (focus) el.classList.add(isFocused ? 'opacity-100' : 'opacity-28');
-      else if (hasSearch) el.classList.add(hasHit ? 'opacity-100' : 'opacity-28');
+      el.classList.remove('opacity-30', 'opacity-100');
+      if (focus) el.classList.add(isFocused ? 'opacity-100' : 'opacity-30');
+      else if (hasSearch) el.classList.add(hasHit ? 'opacity-100' : 'opacity-30');
       else el.classList.add('opacity-100');
     });
 
@@ -1176,28 +1186,37 @@ class ProgressionGraphView {
     };
 
     vp.addEventListener('pointerdown', (e) => {
-      if (e.target.closest('[data-graph-action]') || e.target.closest('[data-portal-target]')) return;
-      const downCard = e.target.closest('[data-graph-node]');
-      this._downNodeId = downCard ? downCard.dataset.graphNode : null;
+      const isInteractiveTarget = Boolean(e.target.closest('[data-graph-action]') || e.target.closest('[data-portal-target]'));
+      if (this._pointers.size === 0 && isInteractiveTarget) return;
       const pos = getLocalPos(e);
+      const wasEmpty = this._pointers.size === 0;
       this._pointers.set(e.pointerId, pos);
 
       if (this._pointers.size === 1) {
-        this._dragMoved = false;
+        if (wasEmpty) {
+          this._wasMultiTouch = false;
+          this._dragMoved = false;
+          const downCard = e.target.closest('[data-graph-node]');
+          this._downNodeId = downCard ? downCard.dataset.graphNode : null;
+        }
         this._panStart = { x: pos.x, y: pos.y, tx: this._cam.tx, ty: this._cam.ty };
-      } else if (this._pointers.size === 2) {
+      } else if (this._pointers.size >= 2) {
+        this._wasMultiTouch = true;
+        this._dragMoved = true;
         this._downNodeId = null;
         this._panStart = null;
-        const pts = Array.from(this._pointers.values());
-        const dist = Math.hypot(pts[1].x - pts[0].x, pts[1].y - pts[0].y);
-        const midX = (pts[0].x + pts[1].x) / 2;
-        const midY = (pts[0].y + pts[1].y) / 2;
-        this._pinchStart = {
-          dist: Math.max(10, dist),
-          zoom: this._cam.zoom,
-          worldMidX: (midX - this._cam.tx) / this._cam.zoom,
-          worldMidY: (midY - this._cam.ty) / this._cam.zoom
-        };
+        if (this._pointers.size === 2) {
+          const pts = Array.from(this._pointers.values());
+          const dist = Math.hypot(pts[1].x - pts[0].x, pts[1].y - pts[0].y);
+          const midX = (pts[0].x + pts[1].x) / 2;
+          const midY = (pts[0].y + pts[1].y) / 2;
+          this._pinchStart = {
+            dist: Math.max(10, dist),
+            zoom: this._cam.zoom,
+            worldMidX: (midX - this._cam.tx) / this._cam.zoom,
+            worldMidY: (midY - this._cam.ty) / this._cam.zoom
+          };
+        }
       }
     });
 
@@ -1207,6 +1226,7 @@ class ProgressionGraphView {
       this._pointers.set(e.pointerId, pos);
 
       if (this._pointers.size === 2 && this._pinchStart) {
+        this._dragMoved = true;
         const pts = Array.from(this._pointers.values());
         const dist = Math.hypot(pts[1].x - pts[0].x, pts[1].y - pts[0].y);
         const midX = (pts[0].x + pts[1].x) / 2;
@@ -1235,13 +1255,19 @@ class ProgressionGraphView {
     });
 
     const onPointerEnd = (e) => {
-      const wasTap = e.type === 'pointerup' && !this._dragMoved && this._pointers.size === 1;
+      const hadPointer = this._pointers.has(e.pointerId);
+      const wasTap = e.type === 'pointerup' && hadPointer && !this._dragMoved && !this._wasMultiTouch && this._pointers.size === 1;
       const downNodeId = this._downNodeId;
       this._pointers.delete(e.pointerId);
       if (this._pointers.size < 2) this._pinchStart = null;
+      if (this._pointers.size === 1 && this._wasMultiTouch) {
+        const [remPos] = Array.from(this._pointers.values());
+        this._panStart = { x: remPos.x, y: remPos.y, tx: this._cam.tx, ty: this._cam.ty };
+      }
       if (this._pointers.size === 0) {
         this._panStart = null;
         this._downNodeId = null;
+        this._wasMultiTouch = false;
       }
 
       if (wasTap) {
@@ -1262,6 +1288,24 @@ class ProgressionGraphView {
 
     vp.addEventListener('pointerup', onPointerEnd);
     vp.addEventListener('pointercancel', onPointerEnd);
+
+    if (typeof ResizeObserver !== 'undefined') {
+      this._lastViewportSize = { w: vp.clientWidth, h: vp.clientHeight };
+      this._resizeObserver = new ResizeObserver(() => {
+        if (!this._viewportEl) return;
+        const vw = this._viewportEl.clientWidth;
+        const vh = this._viewportEl.clientHeight;
+        if (vw <= 0 || vh <= 0) return;
+        const prev = this._lastViewportSize;
+        const widthChanged = Math.abs(vw - prev.w) > 40;
+        const becameVisible = (prev.w === 0 || prev.h === 0);
+        this._lastViewportSize = { w: vw, h: vh };
+        if (becameVisible || widthChanged) {
+          this._fitActiveTree(false);
+        }
+      });
+      this._resizeObserver.observe(vp);
+    }
 
     vp.addEventListener('wheel', (e) => {
       e.preventDefault();

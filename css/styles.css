@@ -34,10 +34,12 @@ html.dark {
   -webkit-tap-highlight-color: transparent;
 }
 
+#scaleModalCard,
 #scaleLaddersContainer,
 #benchmarksListContainer,
 #advancedModalBody,
-#movementDemoCard {
+#movementDemoCard,
+#timerFocusCard {
   scrollbar-width: thin;
   scrollbar-color: var(--border-strong) transparent;
   overscroll-behavior: contain;
@@ -646,5 +648,81 @@ canvas[data-demo-ladder-pose],
         calc(1.5rem + env(safe-area-inset-bottom, 0px))
         calc(1.5rem + env(safe-area-inset-left, 0px));
     }
+  }
+
+  @media (max-height: 540px) {
+    #advancedModal,
+    #movementDemoModal,
+    #benchmarksModal,
+    #scaleModal,
+    #timerFocusModal {
+      padding:
+        calc(0.375rem + env(safe-area-inset-top, 0px))
+        calc(0.5rem + env(safe-area-inset-right, 0px))
+        calc(0.375rem + env(safe-area-inset-bottom, 0px))
+        calc(0.5rem + env(safe-area-inset-left, 0px));
+    }
+  }
+}
+
+/* Compact landscape / short-viewport layout for Progressions Graph modal */
+@media (max-height: 540px) {
+  #scaleModalCard {
+    height: 100%;
+    max-height: 100%;
+  }
+
+  #scaleModalSubtitle,
+  #graphInteractionHint {
+    display: none;
+  }
+
+  #scaleModalHeader {
+    padding: 0.5rem 0.75rem;
+  }
+
+  #scaleModalSearchRow {
+    padding: 0.375rem 0.75rem;
+  }
+
+  #scaleLaddersContainer {
+    padding: 0.375rem 0.75rem 0.5rem;
+    min-height: 230px;
+  }
+
+  #graphViewport {
+    min-height: 170px;
+  }
+}
+
+@media (max-height: 540px) and (min-width: 560px) {
+  #scaleModalTopBar {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    padding: 0.45rem 0.75rem;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  #scaleModalHeader {
+    display: contents;
+  }
+
+  #scaleModalTitleWrap {
+    order: 1;
+    flex-shrink: 0;
+  }
+
+  #scaleModalSearchRow {
+    order: 2;
+    flex: 1 1 auto;
+    min-width: 0;
+    padding: 0;
+    border-bottom: 0;
+  }
+
+  #closeScaleModalBtn {
+    order: 3;
+    margin-left: 0;
   }
 }

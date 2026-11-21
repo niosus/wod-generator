@@ -1681,7 +1681,15 @@ const UI = {
   lockBodyScroll() {
     this._activeModalCount++;
     if (this._activeModalCount === 1) {
+      const scrollY = window.scrollY || window.pageYOffset || 0;
+      this._lockedScrollY = scrollY;
       const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+      document.documentElement.style.overflow = 'hidden';
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.left = '0';
+      document.body.style.right = '0';
+      document.body.style.width = '100%';
       document.body.style.overflow = 'hidden';
       if (scrollbarWidth > 0 && window.innerWidth === document.documentElement.clientWidth) {
         document.body.style.paddingRight = `${scrollbarWidth}px`;
@@ -1693,8 +1701,19 @@ const UI = {
   unlockBodyScroll() {
     this._activeModalCount = Math.max(0, this._activeModalCount - 1);
     if (this._activeModalCount === 0) {
+      const scrollY = this._lockedScrollY || 0;
+      document.documentElement.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.left = '';
+      document.body.style.right = '';
+      document.body.style.width = '';
       document.body.style.overflow = '';
       document.body.style.paddingRight = '';
+      if (scrollY) {
+        window.scrollTo(0, scrollY);
+      }
+      this._lockedScrollY = 0;
     }
     this.updateFloatingRerollVisibility();
   },
@@ -2204,7 +2223,7 @@ const UI = {
     if (!container) return;
 
     BiomechanicalStickAnimator.unregisterCanvasesIn(container);
-    container.className = 'flex-1 overflow-hidden px-4 sm:px-6 py-3 flex flex-col';
+    container.className = 'flex-1 min-h-0 px-4 sm:px-6 py-3 flex flex-col';
 
     if (graphViewInstance._viewportEl && container.querySelector('#graphViewport')) {
       graphViewInstance.updateFilter({ patternFilter, searchQuery });
