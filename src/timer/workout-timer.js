@@ -466,13 +466,22 @@ const MUTE_STORAGE_KEY = 'wodroll_timer_muted_v1';
       const totalSec = plan.totalSeconds;
       const elapsedSec = Math.floor(this._elapsedMs / 1000);
       const overallProgressPct = totalSec > 0 ? Math.min(100, (this._elapsedMs / (totalSec * 1000)) * 100) : 0;
+      const common = {
+        status: this._status,
+        format: plan.format,
+        elapsedSec,
+        totalSec,
+        overallProgressPct,
+        rounds: this._rounds,
+        isMuted: this._isMuted
+      };
 
       // Pre-start 3s countdown snapshot
       if (this._status === 'countdown' || (this._status === 'paused' && this._countdownMs > 0)) {
         const cdSec = Math.max(1, Math.ceil(this._countdownMs / 1000));
         return {
-          status: this._status,
-          format: plan.format,
+          ...common,
+          elapsedSec: 0,
           primaryDisplay: `0:${String(cdSec).padStart(2, '0')}`,
           secondaryDisplay: `Starting ${this.formatClock(totalSec)} ${plan.format === 'FOR_TIME' ? 'Cap' : ''}`.trim(),
           phaseLabel: 'GET READY',
@@ -483,9 +492,7 @@ const MUTE_STORAGE_KEY = 'wodroll_timer_muted_v1';
           activeItemIndex: (plan.format === 'EMOM' || plan.format === 'INTERVALS') ? (plan.emomMode === 'every_min' ? 'all' : 0) : null,
           nextItemIndex: (plan.format === 'EMOM' || plan.format === 'INTERVALS') && items.length > 1 ? 1 : null,
           liveTargetText: this._getItemSummary(items[0], plan, 0),
-          nextTargetText: items.length > 1 ? this._getItemSummary(items[1], plan, 1) : null,
-          rounds: this._rounds,
-          isMuted: this._isMuted
+          nextTargetText: items.length > 1 ? this._getItemSummary(items[1], plan, 1) : null
         };
       }
 
@@ -535,7 +542,7 @@ const MUTE_STORAGE_KEY = 'wodroll_timer_muted_v1';
           : (nextItemIndex !== null ? this._getItemSummary(items[nextItemIndex], plan, activeMinIdx + 1) : null);
 
         return {
-          status: this._status,
+          ...common,
           format: 'EMOM',
           primaryDisplay: completed ? '00:00' : (this._status === 'idle' ? '01:00' : this.formatClock(secLeftInMin)),
           secondaryDisplay: this._status === 'idle'
@@ -545,16 +552,13 @@ const MUTE_STORAGE_KEY = 'wodroll_timer_muted_v1';
           phaseTone: completed ? 'done' : (isWarning ? 'warning' : (this._status === 'idle' ? 'idle' : 'work')),
           subPhaseLabel,
           progressPct: completed ? 100 : ((secIntoMin / 60) * 100),
-          overallProgressPct,
           activeItemIndex: this._status === 'idle' ? (plan.emomMode === 'every_min' ? 'all' : 0) : activeItemIndex,
           nextItemIndex: this._status === 'idle' ? (items.length > 1 && plan.emomMode === 'stations' ? 1 : null) : nextItemIndex,
           liveTargetText,
           nextTargetText,
           ascendingTarget: plan.emomMode === 'ascending' && plan.ascendingRule
             ? `${plan.ascendingRule.start + activeMinIdx * plan.ascendingRule.step} ${plan.ascendingRule.unit}`
-            : null,
-          rounds: this._rounds,
-          isMuted: this._isMuted
+            : null
         };
       }
 
@@ -595,7 +599,7 @@ const MUTE_STORAGE_KEY = 'wodroll_timer_muted_v1';
             : (isWork ? `Rest ${plan.restSec}s next` : null));
 
         return {
-          status: this._status,
+          ...common,
           format: 'INTERVALS',
           primaryDisplay: completed
             ? '00:00'
@@ -607,13 +611,10 @@ const MUTE_STORAGE_KEY = 'wodroll_timer_muted_v1';
           phaseTone: completed ? 'done' : (isWarning ? 'warning' : (this._status === 'idle' ? 'idle' : (isWork ? 'work' : 'rest'))),
           subPhaseLabel: `Block ${blockIdx + 1}/${plan.blocksCount} • Interval ${roundIdx + 1}/${plan.roundsPerBlock}`,
           progressPct: completed ? 100 : (this._status === 'idle' ? 0 : ((secIntoPhase / Math.max(1, phaseDuration)) * 100)),
-          overallProgressPct,
           activeItemIndex,
           nextItemIndex,
           liveTargetText,
-          nextTargetText,
-          rounds: this._rounds,
-          isMuted: this._isMuted
+          nextTargetText
         };
       }
 
@@ -624,7 +625,7 @@ const MUTE_STORAGE_KEY = 'wodroll_timer_muted_v1';
         const isWarning = this._status === 'running' && remainingToCapSec <= 3 && remainingToCapSec >= 1;
 
         return {
-          status: this._status,
+          ...common,
           format: 'FOR_TIME',
           primaryDisplay: this.formatClock(elapsedSec),
           secondaryDisplay: completed
@@ -636,13 +637,10 @@ const MUTE_STORAGE_KEY = 'wodroll_timer_muted_v1';
             ? (isCap ? 'Cap reached' : `Logged time: ${this.formatClock(elapsedSec)}`)
             : (this._status === 'idle' ? 'Counts up to time cap' : 'Clock running'),
           progressPct: overallProgressPct,
-          overallProgressPct,
           activeItemIndex: null,
           nextItemIndex: null,
           liveTargetText: null,
-          nextTargetText: null,
-          rounds: this._rounds,
-          isMuted: this._isMuted
+          nextTargetText: null
         };
       }
 
@@ -652,7 +650,7 @@ const MUTE_STORAGE_KEY = 'wodroll_timer_muted_v1';
       const isWarning = this._status === 'running' && remainingSec <= 3 && remainingSec >= 1;
 
       return {
-        status: this._status,
+        ...common,
         format: 'AMRAP',
         primaryDisplay: this.formatClock(remainingSec),
         secondaryDisplay: `${this.formatClock(elapsedSec)} elapsed of ${this.formatClock(totalSec)}`,
@@ -660,13 +658,10 @@ const MUTE_STORAGE_KEY = 'wodroll_timer_muted_v1';
         phaseTone: completed ? 'done' : (isWarning ? 'warning' : (this._status === 'idle' ? 'idle' : 'work')),
         subPhaseLabel: `Rounds completed: ${this._rounds}`,
         progressPct: overallProgressPct,
-        overallProgressPct,
         activeItemIndex: null,
         nextItemIndex: null,
         liveTargetText: null,
-        nextTargetText: null,
-        rounds: this._rounds,
-        isMuted: this._isMuted
+        nextTargetText: null
       };
     },
 

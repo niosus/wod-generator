@@ -79,6 +79,10 @@ const UI = {
 
       await this.waitForInitialPlaceholder();
       this.hideLoadingPlaceholder();
+      await this._notifyExtensions('onInit', this._getExtensionContext());
+      if (AppState.currentWod) {
+        await this._notifyExtensions('onWodDisplayed', AppState.currentWod);
+      }
 
       if (!sharedWod && sharedCfg) {
         this.showToast('Custom setup loaded from link.');
@@ -1194,6 +1198,10 @@ const UI = {
       } else if (this._isTimerOpen) {
         this.animateTimerRefresh();
       }
+    }
+
+    if (this._extensionsInitialized) {
+      this._notifyExtensions('onWodDisplayed', wod);
     }
   },
 
@@ -3491,6 +3499,10 @@ const UI = {
       });
     });
 
+    if (this._extensionsInitialized) {
+      this._notifyExtensions('onTimerSnapshot', snap);
+    }
+
     // Desktop side card contextual panels
     const desktopCard = document.getElementById('wodTimerDesktopCard');
     if (desktopCard) {
@@ -3695,7 +3707,38 @@ const UI = {
     });
   },
 
-  handleTimerCue(cue) {
+  _extensionsInitialized: false,
+
+  _getExtensionContext() {
+    return {
+      UI: this,
+      AppState,
+      WorkoutTimer,
+      WorkoutGenerator,
+      WorkoutSharing,
+      ProgressionEngine,
+      BiomechanicalStickAnimator
+    };
+  },
+
+  async _notifyExtensions(hookName, payload) {
+    const registry = globalThis.WodrollExtensions;
+    if (!registry || !Array.isArray(registry._items)) return;
+    if (hookName === 'onInit') {
+      this._extensionsInitialized = true;
+    }
+    for (const ext of registry._items) {
+      if (ext && typeof ext[hookName] === 'function') {
+        try {
+          await ext[hookName](payload);
+        } catch (err) {
+          console.warn(`[WODROLL] Extension hook '${hookName}' failed:`, err);
+        }
+      }
+    }
+  },
+
+  handleTimerCue(cue, snap) {
     if (!cue) return;
     if (cue.type === 'countdown_pip') {
       document.querySelectorAll('#wodTimerSection [data-timer-clock], #timerFocusModal [data-timer-clock]').forEach(el => {
@@ -3723,6 +3766,36 @@ const UI = {
       accentBar.classList.remove('accent-glow-sweep');
       void accentBar.offsetWidth;
       accentBar.classList.add('accent-glow-sweep');
+    }
+
+    if (cue.type === 'complete' || cue.type === 'time_cap') {
+      this._notifyExtensions('onWorkoutFinished', {
+        wod: AppState.currentWod,
+        timerSnapshot: snap || (globalThis.WorkoutTimer ? WorkoutTimer.getSnapshot() : null),
+        cue
+      });
+    }
+  }
+};
+
+const existingExt = globalThis.WodrollExtensions;
+const initialExtItems = existingExt && Array.isArray(existingExt._items) ? existingExt._items : [];
+globalThis.WodrollExtensions = {
+  _items: initialExtItems,
+  register(ext) {
+    if (!ext || typeof ext !== 'object') return;
+    this._items.push(ext);
+    if (UI._extensionsInitialized) {
+      if (typeof ext.onInit === 'function') {
+        Promise.resolve(ext.onInit(UI._getExtensionContext())).catch(err => {
+          console.warn("[WODROLL] Late extension 'onInit' failed:", err);
+        });
+      }
+      if (AppState.currentWod && typeof ext.onWodDisplayed === 'function') {
+        Promise.resolve(ext.onWodDisplayed(AppState.currentWod)).catch(err => {
+          console.warn("[WODROLL] Late extension 'onWodDisplayed' failed:", err);
+        });
+      }
     }
   }
 };
